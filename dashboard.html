@@ -12,13 +12,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
     
-    <!-- All the old <script> and <style> tags are GONE -->
 </head>
 
 <body class="bg-background-dark font-display text-white">
     <div class="relative flex min-h-screen w-full">
         <!-- SideNavBar -->
-        <aside class="flex h-screen w-64 flex-col bg-surface-dark p-4 border-r border-border-dark sticky top-0">
+        <aside class="flex h-screen w-64 flex-col justify-between bg-surface-dark p-4 border-r border-border-dark sticky top-0">
+            <!-- Top Section of Sidebar -->
             <div class="flex flex-col gap-8">
                 <div class="flex items-center gap-3 px-3">
                     <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10" data-alt="Golden Lamtouch company logo" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBHcVL9mAEPMxg1o1fNfX5aOf3R2rbREe9mMkMhH021Aba47JlqBG1W5hZhrGuZimaztIOdGWwKkyzexyTsXHegXGN9XStpFCFR6OMl6FNNV7HvlgSrQre33s7GhNniALsxxds7fpmCYhLiEI6xBVoCvr7fg9kcKPmtYw56-BnRjdM9Kbccjvad_8a7SEqH1jcTu4yL--OMfZw4RXWT7WzgOnLDWYanF7YfkqfPDWD_OEf9iQRrqRHc5W_stZ052kUq8p-nwrDkaF0");'></div>
@@ -50,6 +50,15 @@
                         <p class="text-sm font-medium leading-normal">Settings & User Roles</p>
                     </a>
                 </nav>
+            </div>
+            
+            <!-- Bottom Section of Sidebar -->
+            <div>
+                <!-- THIS IS THE NEW BUTTON WE ARE ADDING -->
+                <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 text-gray-300 cursor-pointer" id="sign-out-button">
+                    <span class="material-symbols-outlined">logout</span>
+                    <p class="text-sm font-medium leading-normal">Sign Out</p>
+                </a>
             </div>
         </aside>
 
@@ -188,5 +197,51 @@
             </div>
         </main>
     </div>
+
+    <!-- ====================================================== -->
+    <!-- START: FIREBASE SCRIPT BLOCK -->
+    <!-- ====================================================== -->
+
+    <!-- We load the Firebase tools from their server -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-storage-compat.js"></script>
+
+    <script>
+        // This is YOUR web app's Firebase configuration
+        // (The same keys from your index.html file)
+        const firebaseConfig = {
+          apiKey: "AIzaSyAJ-xyOPmJXmhe9PUCa1BU75fWJ_MWsHA0",
+          authDomain: "golden-lamtouch-project.firebaseapp.com",
+          projectId: "golden-lamtouch-project",
+          storageBucket: "golden-lamtouch-project.firebasestorage.app",
+          messagingSenderId: "528955254323",
+          appId: "1:528955254323:web:e71517dab7fcb78b842546"
+        };
+
+        // Initialize Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        
+        // Make the tools we need easy to use
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        const storage = firebase.storage();
+    </script>
+
+    <!-- 
+        This is our new "Auth Guard" file. 
+        We load it HERE, so it runs immediately. 
+    -->
+    <script src="auth-guard.js"></script>
+
+    <!-- 
+        (We will add dashboard.js here later when we build Milestone 5) 
+    -->
+    <!-- <script src="dashboard.js"></script> -->
+
+    <!-- ====================================================== -->
+    <!-- END: FIREBASE SCRIPT BLOCK -->
+    <!-- ====================================================== -->
 </body>
 </html>
