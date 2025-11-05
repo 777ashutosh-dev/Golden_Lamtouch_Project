@@ -13,11 +13,6 @@
     <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&amp;display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
-
-    <!-- 
-      All the old <script> and <style> tags that were here are now GONE. 
-      This is correct.
-    -->
 </head>
 
 <body class="bg-[#121212] font-['Inter',_sans-serif] text-[#E0E0E0] antialiased">
@@ -25,11 +20,16 @@
         <div class="w-full max-w-md rounded-xl bg-[#1E1E1E] p-8 shadow-2xl">
             <div class="flex flex-col items-center">
                 <h1 class="text-white tracking-light pb-8 pt-2 text-center text-3xl font-bold leading-tight">Golden Lamtouch Admin</h1>
-                <form class="flex w-full flex-col gap-6">
+                
+                <!-- STEP 1: Added id="login-form" -->
+                <form class="flex w-full flex-col gap-6" id="login-form">
+                    
+                    <!-- STEP 2: Changed all "username" to "email" -->
                     <div class="flex flex-col">
-                        <label class="pb-2 text-base font-medium leading-normal text-[#E0E0E0]" for="username">Username</label>
-                        <input class="form-input h-14 w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg border border-[#3b4754] bg-[#1c2127] p-[15px] text-base font-normal leading-normal text-white placeholder:text-[#9dabb9] focus:border-[#FFC107] focus:outline-0 focus:ring-2 focus:ring-[#FFC107]/50" id="username" placeholder="Enter your username" type="text" value="" />
+                        <label class="pb-2 text-base font-medium leading-normal text-[#E0E0E0]" for="email">Email</label>
+                        <input class="form-input h-14 w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg border border-[#3b4754] bg-[#1c2127] p-[15px] text-base font-normal leading-normal text-white placeholder:text-[#9dabb9] focus:border-[#FFC107] focus:outline-0 focus:ring-2 focus:ring-[#FFC107]/50" id="email" placeholder="Enter your email" type="email" value="" />
                     </div>
+                    
                     <div class="flex flex-col">
                         <label class="pb-2 text-base font-medium leading-normal text-[#E0E0E0]" for="password">Password</label>
                         <div class="relative flex w-full flex-1 items-stretch">
@@ -41,18 +41,52 @@
                             </div>
                         </div>
                     </div>
+                    
+                    <!-- STEP 3: Added id="login-button" -->
                     <div class="flex flex-col pt-2">
-                        <button class="flex h-12 min-w-[84px] w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg bg-[#FFC107] px-5 text-base font-bold leading-normal tracking-[0.015em] text-black transition-colors hover:bg-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 focus:ring-offset-[#1E1E1E]">
+                        <button class="flex h-12 min-w-[84px] w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg bg-[#FFC107] px-5 text-base font-bold leading-normal tracking-[0.015em] text-black transition-colors hover:bg-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 focus:ring-offset-[#1E1E1E]" id="login-button" type="submit">
                             <span class="truncate">Login</span>
                         </button>
                     </div>
-                    <!-- Initially hidden error message area -->
-                    <div class="hidden h-6 items-center justify-center pt-1 text-center text-sm text-[#CF6679]">
+                    
+                    <!-- STEP 4: Added id="error-message" -->
+                    <div class="hidden h-6 items-center justify-center pt-1 text-center text-sm text-[#CF6679]" id="error-message">
                         <span>Invalid credentials. Please try again.</span>
                     </div>
                 </form>
             </div>
         </div>
     </div>
+
+    <!-- This is our new Firebase script block -->
+    <!-- We load the Firebase tools from their server -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-storage-compat.js"></script>
+
+    <script>
+        // This is YOUR web app's Firebase configuration
+        const firebaseConfig = {
+          apiKey: "AIzaSyAJ-xyOPmJXmhe9PUCa1BU75fWJ_MWsHA0",
+          authDomain: "golden-lamtouch-project.firebaseapp.com",
+          projectId: "golden-lamtouch-project",
+          storageBucket: "golden-lamtouch-project.firebasestorage.app",
+          messagingSenderId: "528955254323",
+          appId: "1:528955254323:web:e71517dab7fcb78b842546"
+        };
+
+        // Initialize Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        
+        // Make the tools we need easy to use
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        const storage = firebase.storage();
+    </script>
+
+    <!-- This links to our *own* new, empty JavaScript file -->
+    <script src="login.js"></script>
+
 </body>
 </html>
