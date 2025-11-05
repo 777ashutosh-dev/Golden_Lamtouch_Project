@@ -54,7 +54,6 @@
             
             <!-- Bottom Section of Sidebar -->
             <div>
-                <!-- THIS IS THE NEW BUTTON WE ARE ADDING -->
                 <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 text-gray-300 cursor-pointer" id="sign-out-button">
                     <span class="material-symbols-outlined">logout</span>
                     <p class="text-sm font-medium leading-normal">Sign Out</p>
@@ -128,7 +127,11 @@
                                     <th class="px-6 py-3 text-sm font-semibold text-gray-400">Status</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <!-- 
+                                THIS IS THE ONLY CHANGE!
+                                We added id="submission-table-body" to the <tbody> tag.
+                            -->
+                            <tbody id="submission-table-body">
                                 <tr class="border-b border-border-dark hover:bg-white/5">
                                     <td class="px-6 py-4 text-sm font-medium text-gray-300">250001</td>
                                     <td class="px-6 py-4 text-sm text-white">Ashutosh RK</td>
@@ -230,15 +233,17 @@
     </script>
 
     <!-- 
-        This is our new "Auth Guard" file. 
+        This is our "Auth Guard" file. 
         We load it HERE, so it runs immediately. 
     -->
     <script src="auth-guard.js"></script>
 
     <!-- 
-        (We will add dashboard.js here later when we build Milestone 5) 
+        THIS IS THE NEW LINE WE ARE ADDING
+        We load our dashboard logic *after* the guard.
     -->
-    <!-- <script src="dashboard.js"></script> -->
+    <script src="dashboard.js"></script>
+
 
     <!-- ====================================================== -->
     <!-- END: FIREBASE SCRIPT BLOCK -->
