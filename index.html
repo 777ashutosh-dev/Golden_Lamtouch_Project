@@ -1,54 +1,58 @@
 <!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Golden Lamtouch Admin Login</title>
+    
+    <!-- This is the new, correct link to our own stylesheet -->
+    <link rel="stylesheet" href="style.css">
 
-<html class="dark" lang="en"><head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Golden Lamtouch Admin Login</title>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com" rel="preconnect"/>
-<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
-<style>
-      .form-input {
-        -webkit-appearance: none;
-        -moz-appearance: none;
-        appearance: none;
-      }
-    </style>
+    <!-- These font links are perfectly fine to keep -->
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&amp;display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+
+    <!-- 
+      All the old <script> and <style> tags that were here are now GONE. 
+      This is correct.
+    -->
 </head>
+
 <body class="bg-[#121212] font-['Inter',_sans-serif] text-[#E0E0E0] antialiased">
-<div class="relative flex h-screen min-h-screen w-full flex-col items-center justify-center overflow-hidden p-4">
-<div class="w-full max-w-md rounded-xl bg-[#1E1E1E] p-8 shadow-2xl">
-<div class="flex flex-col items-center">
-<h1 class="text-white tracking-light pb-8 pt-2 text-center text-3xl font-bold leading-tight">Golden Lamtouch Admin</h1>
-<form class="flex w-full flex-col gap-6">
-<div class="flex flex-col">
-<label class="pb-2 text-base font-medium leading-normal text-[#E0E0E0]" for="username">Username</label>
-<input class="form-input h-14 w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg border border-[#3b4754] bg-[#1c2127] p-[15px] text-base font-normal leading-normal text-white placeholder:text-[#9dabb9] focus:border-[#FFC107] focus:outline-0 focus:ring-2 focus:ring-[#FFC107]/50" id="username" placeholder="Enter your username" type="text" value=""/>
-</div>
-<div class="flex flex-col">
-<label class="pb-2 text-base font-medium leading-normal text-[#E0E0E0]" for="password">Password</label>
-<div class="relative flex w-full flex-1 items-stretch">
-<input class="form-input h-14 w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg border border-[#3b4754] bg-[#1c2127] p-[15px] text-base font-normal leading-normal text-white placeholder:text-[#9dabb9] focus:border-[#FFC107] focus:outline-0 focus:ring-2 focus:ring-[#FFC107]/50" id="password" placeholder="Enter your password" type="password" value=""/>
-<div class="absolute inset-y-0 right-0 flex items-center pr-4 text-[#9dabb9]">
-<span class="material-symbols-outlined cursor-pointer text-2xl">
+    <div class="relative flex h-screen min-h-screen w-full flex-col items-center justify-center overflow-hidden p-4">
+        <div class="w-full max-w-md rounded-xl bg-[#1E1E1E] p-8 shadow-2xl">
+            <div class="flex flex-col items-center">
+                <h1 class="text-white tracking-light pb-8 pt-2 text-center text-3xl font-bold leading-tight">Golden Lamtouch Admin</h1>
+                <form class="flex w-full flex-col gap-6">
+                    <div class="flex flex-col">
+                        <label class="pb-2 text-base font-medium leading-normal text-[#E0E0E0]" for="username">Username</label>
+                        <input class="form-input h-14 w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg border border-[#3b4754] bg-[#1c2127] p-[15px] text-base font-normal leading-normal text-white placeholder:text-[#9dabb9] focus:border-[#FFC107] focus:outline-0 focus:ring-2 focus:ring-[#FFC107]/50" id="username" placeholder="Enter your username" type="text" value="" />
+                    </div>
+                    <div class="flex flex-col">
+                        <label class="pb-2 text-base font-medium leading-normal text-[#E0E0E0]" for="password">Password</label>
+                        <div class="relative flex w-full flex-1 items-stretch">
+                            <input class="form-input h-14 w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg border border-[#3b4754] bg-[#1c2127] p-[15px] text-base font-normal leading-normal text-white placeholder:text-[#9dabb9] focus:border-[#FFC107] focus:outline-0 focus:ring-2 focus:ring-[#FFC107]/50" id="password" placeholder="Enter your password" type="password" value="" />
+                            <div class="absolute inset-y-0 right-0 flex items-center pr-4 text-[#9dabb9]">
+                                <span class="material-symbols-outlined cursor-pointer text-2xl">
                                     visibility_off
                                 </span>
-</div>
-</div>
-</div>
-<div class="flex flex-col pt-2">
-<button class="flex h-12 min-w-[84px] w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg bg-[#FFC107] px-5 text-base font-bold leading-normal tracking-[0.015em] text-black transition-colors hover:bg-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 focus:ring-offset-[#1E1E1E]">
-<span class="truncate">Login</span>
-</button>
-</div>
-<!-- Initially hidden error message area -->
-<div class="hidden h-6 items-center justify-center pt-1 text-center text-sm text-[#CF6679]">
-<span>Invalid credentials. Please try again.</span>
-</div>
-</form>
-</div>
-</div>
-</div>
-</body></html>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col pt-2">
+                        <button class="flex h-12 min-w-[84px] w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg bg-[#FFC107] px-5 text-base font-bold leading-normal tracking-[0.015em] text-black transition-colors hover:bg-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 focus:ring-offset-[#1E1E1E]">
+                            <span class="truncate">Login</span>
+                        </button>
+                    </div>
+                    <!-- Initially hidden error message area -->
+                    <div class="hidden h-6 items-center justify-center pt-1 text-center text-sm text-[#CF6679]">
+                        <span>Invalid credentials. Please try again.</span>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
