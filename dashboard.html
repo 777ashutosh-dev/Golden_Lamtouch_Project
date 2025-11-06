@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html class="dark" lang="en">
+
 <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
@@ -9,54 +10,69 @@
     <link rel="stylesheet" href="style.css">
 
     <!-- We keep the font links -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap"
+        rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
-    
+
 </head>
 
 <body class="bg-background-dark font-display text-white">
     <div class="relative flex min-h-screen w-full">
         <!-- SideNavBar -->
-        <aside class="flex h-screen w-64 flex-col justify-between bg-surface-dark p-4 border-r border-border-dark sticky top-0">
-            <!-- Top Section of Sidebar -->
+        <aside
+            class="flex h-screen w-64 flex-col bg-surface-dark p-4 border-r border-border-dark sticky top-0 overflow-y-auto">
             <div class="flex flex-col gap-8">
                 <div class="flex items-center gap-3 px-3">
-                    <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10" data-alt="Golden Lamtouch company logo" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBHcVL9mAEPMxg1o1fNfX5aOf3R2rbREe9mMkMhH021Aba47JlqBG1W5hZhrGuZimaztIOdGWwKkyzexyTsXHegXGN9XStpFCFR6OMl6FNNV7HvlgSrQre33s7GhNniALsxxds7fpmCYhLiEI6xBVoCvr7fg9kcKPmtYw56-BnRjdM9Kbccjvad_8a7SEqH1jcTu4yL--OMfZw4RXWT7WzgOnLDWYanF7YfkqfPDWD_OEf9iQRrqRHc5W_stZ052kUq8p-nwrDkaF0");'></div>
+                    <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10"
+                        data-alt="Golden Lamtouch company logo"
+                        style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBHcVL9mAEPMxg1o1fNfX5aOf3R2rbREe9mMkMhH021Aba47JlqBG1W5hZhrGuZimaztIOdGWwKkyzexyTsXHegXGN9XStpFCFR6OMl6FNNV7HvlgSrQre33s7GhNniALsxxds7fpmCYhLiEI6xBVoCvr7fg9kcKPmtYw56-BnRjdM9Kbccjvad_8a7SEqH1jcTu4yL--OMfZw4RXWT7WzgOnLDWYanF7YfkqfPDWD_OEf9iQRrqRHc5W_stZ052kUq8p-nwrDkaF0");'>
+                    </div>
                     <h1 class="text-white text-lg font-bold leading-normal">Golden Lamtouch</h1>
                 </div>
                 <nav class="flex flex-col gap-2">
-                    <!-- CHANGED: Link now points to dashboard.html -->
-                    <a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/20 text-primary" href="dashboard.html">
+                    <!-- Link 1: Dashboard -->
+                    <a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/20 text-primary"
+                        href="dashboard.html">
                         <span class="material-symbols-outlined fill">dashboard</span>
                         <p class="text-sm font-semibold leading-normal">Dashboard</p>
                     </a>
+                    
+                    <!-- Link 2: Form Management -->
                     <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 text-gray-300" href="#">
                         <span class="material-symbols-outlined">description</span>
                         <p class="text-sm font-medium leading-normal">Form Management</p>
                     </a>
-                    <!-- CHANGED: Link now points to form-creation.html -->
-                    <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 text-gray-300" href="form-creation.html">
+                    
+                    <!-- Link 3: Form Creation -->
+                    <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 text-gray-300"
+                        href="form-creation.html">
                         <span class="material-symbols-outlined">create_new_folder</span>
-                        <p class="text-sm font-medium leading-normal">Form Creation & Grouping</p>
+                        <p class="text-sm font-medium leading-normal">Form Creation</p>
                     </a>
+                    
+                    <!-- Link 4: Data Download -->
                     <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 text-gray-300" href="#">
                         <span class="material-symbols-outlined">download_for_offline</span>
                         <p class="text-sm font-medium leading-normal">Data Download</p>
                     </a>
+                    
+                    <!-- Link 5: System Logs -->
                     <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 text-gray-300" href="#">
                         <span class="material-symbols-outlined">manage_history</span>
                         <p class="text-sm font-medium leading-normal">System Logs & Activity</p>
                     </a>
+                    
+                    <!-- Link 6: Settings -->
                     <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 text-gray-300" href="#">
                         <span class="material-symbols-outlined">manage_accounts</span>
                         <p class="text-sm font-medium leading-normal">Settings & User Roles</p>
                     </a>
                 </nav>
             </div>
-            
-            <!-- Bottom Section of Sidebar -->
-            <div>
-                <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 text-gray-300 cursor-pointer" id="sign-out-button">
+            <!-- Sign Out Button (at the bottom) -->
+            <div class="mt-auto pt-8">
+                <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 text-gray-300"
+                    href="#" id="sign-out-button">
                     <span class="material-symbols-outlined">logout</span>
                     <p class="text-sm font-medium leading-normal">Sign Out</p>
                 </a>
@@ -64,37 +80,46 @@
         </aside>
 
         <!-- Main Content -->
-        <main class="flex-1 flex-col p-8">
+        <main class="flex-1 flex-col p-8 overflow-y-auto h-screen">
             <div class="flex flex-col gap-8">
                 <!-- PageHeading -->
                 <div class="flex flex-wrap justify-between gap-3">
                     <div class="flex flex-col gap-2">
                         <p class="text-white text-3xl font-bold leading-tight">Dashboard</p>
-                        <p class="text-gray-400 text-base font-normal leading-normal">Welcome to your Golden Lamtouch control panel.</p>
+                        <p class="text-gray-400 text-base font-normal leading-normal">Welcome to your Golden Lamtouch
+                            control panel.</p>
                     </div>
                 </div>
                 <!-- Stats -->
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Card 1: Total Forms -->
                     <div class="flex flex-col gap-2 rounded-xl p-6 bg-surface-dark border border-border-dark">
                         <p class="text-gray-300 text-base font-medium leading-normal">Total Forms</p>
-                        <p class="text-white text-3xl font-bold leading-tight">43</p>
+                        <p class="text-white text-3xl font-bold leading-tight" id="total-forms-display">43</p>
                     </div>
+                    
+                    <!-- Card 2: OTPs -->
                     <div class="flex flex-col gap-2 rounded-xl p-6 bg-surface-dark border border-border-dark">
                         <p class="text-gray-300 text-base font-medium leading-normal">OTPs</p>
                         <div class="flex items-baseline gap-4">
                             <div class="flex items-baseline gap-2">
-                                <p class="text-white text-3xl font-bold leading-tight">2000</p>
+                                <!-- NEW ID ADDED -->
+                                <p class="text-white text-3xl font-bold leading-tight" id="otps-generated-display">2000</p>
                                 <span class="text-gray-400 text-sm">Generated</span>
                             </div>
                             <div class="flex items-baseline gap-2">
-                                <p class="text-white text-3xl font-bold leading-tight">1500</p>
+                                <!-- NEW ID ADDED -->
+                                <p class="text-white text-3xl font-bold leading-tight" id="otps-used-display">1500</p>
                                 <span class="text-gray-400 text-sm">Used</span>
                             </div>
                         </div>
                     </div>
+
+                    <!-- Card 3: Total Submissions -->
                     <div class="flex flex-col gap-2 rounded-xl p-6 bg-surface-dark border border-border-dark">
                         <p class="text-gray-300 text-base font-medium leading-normal">Total Submissions</p>
-                        <p class="text-white text-3xl font-bold leading-tight">12,450</p>
+                        <!-- NEW ID ADDED -->
+                        <p class="text-white text-3xl font-bold leading-tight" id="total-submissions-display">12,450</p>
                     </div>
                 </div>
                 <!-- Toolbar and Table Section -->
@@ -102,15 +127,20 @@
                     <!-- ToolBar -->
                     <div class="flex flex-wrap justify-between items-center gap-4 px-6 pt-4">
                         <div class="relative w-full max-w-sm">
-                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">search</span>
-                            <input class="w-full h-10 pl-10 pr-4 rounded-lg bg-background-dark border border-border-dark text-white placeholder-gray-500 focus:ring-primary focus:border-primary text-sm" placeholder="Search by OTP..." type="text" />
+                            <span
+                                class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">search</span>
+                            <input
+                                class="w-full h-10 pl-10 pr-4 rounded-lg bg-background-dark border border-border-dark text-white placeholder-gray-500 focus:ring-primary focus:border-primary text-sm"
+                                placeholder="Search by OTP..." type="text" />
                         </div>
                         <div class="flex items-center gap-2">
-                            <button class="flex items-center justify-center h-10 px-4 rounded-lg bg-background-dark border border-border-dark text-sm text-gray-300 hover:bg-white/5 gap-2">
+                            <button
+                                class="flex items-center justify-center h-10 px-4 rounded-lg bg-background-dark border border-border-dark text-sm text-gray-300 hover:bg-white/5 gap-2">
                                 <span>Form</span>
                                 <span class="material-symbols-outlined text-base">arrow_drop_down</span>
                             </button>
-                            <button class="flex items-center justify-center h-10 px-4 rounded-lg bg-background-dark border border-border-dark text-sm text-gray-300 hover:bg-white/5 gap-2">
+                            <button
+                                class="flex items-center justify-center h-10 px-4 rounded-lg bg-background-dark border border-border-dark text-sm text-gray-300 hover:bg-white/5 gap-2">
                                 <span>Name</span>
                                 <span class="material-symbols-outlined text-base">arrow_drop_down</span>
                             </button>
@@ -129,17 +159,21 @@
                                     <th class="px-6 py-3 text-sm font-semibold text-gray-400">Status</th>
                                 </tr>
                             </thead>
-                            <!-- 
-                                This is our "target" for the data
-                            -->
+                            <!-- This is our "target" for the data rows. -->
                             <tbody id="submission-table-body">
+                                <!-- 
+                                    Our dashboard.js file will automatically delete 
+                                    these placeholder rows and add the live data.
+                                -->
                                 <tr class="border-b border-border-dark hover:bg-white/5">
                                     <td class="px-6 py-4 text-sm font-medium text-gray-300">250001</td>
                                     <td class="px-6 py-4 text-sm text-white">Ashutosh RK</td>
                                     <td class="px-6 py-4 text-sm text-gray-300">XYZ</td>
                                     <td class="px-6 py-4 text-sm text-gray-300">A5X5T7</td>
                                     <td class="px-6 py-4 text-sm text-gray-300">2024-06-25 12:11</td>
-                                    <td class="px-6 py-4 text-sm"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-500/20 text-green-400">Submitted</span></td>
+                                    <td class="px-6 py-4 text-sm"><span
+                                            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-500/20 text-green-400">Submitted</span>
+                                    </td>
                                 </tr>
                                 <tr class="border-b border-border-dark hover:bg-white/5">
                                     <td class="px-6 py-4 text-sm font-medium text-gray-300">250002</td>
@@ -147,7 +181,9 @@
                                     <td class="px-6 py-4 text-sm text-gray-300">XYZ</td>
                                     <td class="px-6 py-4 text-sm text-gray-300">A5X5T9</td>
                                     <td class="px-6 py-4 text-sm text-gray-300">2024-06-26 11:29</td>
-                                    <td class="px-6 py-4 text-sm"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-500/20 text-red-400">Rejected</span></td>
+                                    <td class="px-6 py-4 text-sm"><span
+                                            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-500/20 text-red-400">Rejected</span>
+                                    </td>
                                 </tr>
                                 <tr class="border-b border-border-dark hover:bg-white/5">
                                     <td class="px-6 py-4 text-sm font-medium text-gray-300">250003</td>
@@ -155,7 +191,9 @@
                                     <td class="px-6 py-4 text-sm text-gray-300">XYZ</td>
                                     <td class="px-6 py-4 text-sm text-gray-300">A5X9T3</td>
                                     <td class="px-6 py-4 text-sm text-gray-300">2024-06-25 12:33</td>
-                                    <td class="px-6 py-4 text-sm"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-500/20 text-green-400">Submitted</span></td>
+                                    <td class="px-6 py-4 text-sm"><span
+                                            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-500/20 text-green-400">Submitted</span>
+                                    </td>
                                 </tr>
                                 <tr class="border-b border-border-dark hover:bg-white/5">
                                     <td class="px-6 py-4 text-sm font-medium text-gray-300">250004</td>
@@ -163,7 +201,9 @@
                                     <td class="px-6 py-4 text-sm text-gray-300">XYZ</td>
                                     <td class="px-6 py-4 text-sm text-gray-300">A5X9T3</td>
                                     <td class="px-6 py-4 text-sm text-gray-300">2024-06-25 10:30</td>
-                                    <td class="px-6 py-4 text-sm"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-500/20 text-green-400">Submitted</span></td>
+                                    <td class="px-6 py-4 text-sm"><span
+                                            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-500/20 text-green-400">Submitted</span>
+                                    </td>
                                 </tr>
                                 <tr class="border-b border-border-dark hover:bg-white/5">
                                     <td class="px-6 py-4 text-sm font-medium text-gray-300">250005</td>
@@ -171,7 +211,9 @@
                                     <td class="px-6 py-4 text-sm text-gray-300">XYZ</td>
                                     <td class="px-6 py-4 text-sm text-gray-300">A5X9T3</td>
                                     <td class="px-6 py-4 text-sm text-gray-300">2024-06-25 11:17</td>
-                                    <td class="px-6 py-4 text-sm"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-500/20 text-yellow-400">Resoicted</span></td>
+                                    <td class="px-6 py-4 text-sm"><span
+                                            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-500/20 text-yellow-400">Resoicted</span>
+                                    </td>
                                 </tr>
                                 <tr class="hover:bg-white/5">
                                     <td class="px-6 py-4 text-sm font-medium text-gray-300">250006</td>
@@ -179,7 +221,9 @@
                                     <td class="px-6 py-4 text-sm text-gray-300">XYZ</td>
                                     <td class="px-6 py-4 text-sm text-gray-300">A5X5T3</td>
                                     <Td class="px-6 py-4 text-sm text-gray-300">2024-06-25 11:17</Td>
-                                    <td class="px-6 py-4 text-sm"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-500/20 text-green-400">Submitted</span></td>
+                                    <td class="px-6 py-4 text-sm"><span
+                                            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-500/20 text-green-400">Submitted</span>
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>
@@ -188,11 +232,16 @@
                     <div class="flex items-center justify-between p-4 border-t border-border-dark">
                         <span class="text-sm text-gray-400">Showing 1 to 6 of 6 results</span>
                         <div class="flex items-center gap-2">
-                            <button class="flex items-center justify-center h-8 w-8 rounded-md border border-border-dark bg-background-dark text-gray-300 hover:bg-white/5" disabled>
+                            <button
+                                class="flex items-center justify-center h-8 w-8 rounded-md border border-border-dark bg-background-dark text-gray-300 hover:bg-white/5"
+                                disabled>
                                 <span class="material-symbols-outlined text-lg">chevron_left</span>
                             </button>
-                            <button class="flex items-center justify-center h-8 w-8 rounded-md border border-border-dark bg-primary text-background-dark text-sm font-bold">1</button>
-                            <button class="flex items-center justify-center h-8 w-8 rounded-md border border-border-dark bg-background-dark text-gray-300 hover:bg-white/5" disabled>
+                            <button
+                                class="flex items-center justify-center h-8 w-8 rounded-md border border-border-dark bg-primary text-background-dark text-sm font-bold">1</button>
+                            <button
+                                class="flex items-center justify-center h-8 w-8 rounded-md border border-border-dark bg-background-dark text-gray-300 hover:bg-white/5"
+                                disabled>
                                 <span class="material-symbols-outlined text-lg">chevron_right</span>
                             </button>
                         </div>
@@ -201,7 +250,6 @@
             </div>
         </main>
     </div>
-
     <!-- ====================================================== -->
     <!-- START: FIREBASE SCRIPT BLOCK -->
     <!-- ====================================================== -->
@@ -216,17 +264,17 @@
         // This is YOUR web app's Firebase configuration
         // (The same keys from your index.html file)
         const firebaseConfig = {
-          apiKey: "AIzaSyAJ-xyOPmJXmhe9PUCa1BU75fWJ_MWsHA0",
-          authDomain: "golden-lamtouch-project.firebaseapp.com",
-          projectId: "golden-lamtouch-project",
-          storageBucket: "golden-lamtouch-project.firebasestorage.app",
-          messagingSenderId: "528955254323",
-          appId: "1:528955254323:web:e71517dab7fcb78b842546"
+            apiKey: "AIzaSyAJ-xyOPmJXmhe9PUCa1BU75fWJ_MWsHA0",
+            authDomain: "golden-lamtouch-project.firebaseapp.com",
+            projectId: "golden-lamtouch-project",
+            storageBucket: "golden-lamtouch-project.firebasestorage.app",
+            messagingSenderId: "528955254323",
+            appId: "1:528955254323:web:e71517dab7fcb78b842546"
         };
 
         // Initialize Firebase
         const app = firebase.initializeApp(firebaseConfig);
-        
+
         // Make the tools we need easy to use
         const auth = firebase.auth();
         const db = firebase.firestore();
@@ -240,14 +288,14 @@
     <script src="auth-guard.js"></script>
 
     <!-- 
-        This is our dashboard logic file.
-        We load it *after* the guard.
+        This is our NEW dashboard logic file. 
+        It will read our "live" data.
     -->
     <script src="dashboard.js"></script>
-
 
     <!-- ====================================================== -->
     <!-- END: FIREBASE SCRIPT BLOCK -->
     <!-- ====================================================== -->
 </body>
+
 </html>
