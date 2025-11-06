@@ -25,7 +25,8 @@
                     <h1 class="text-white text-lg font-bold leading-normal">Golden Lamtouch</h1>
                 </div>
                 <nav class="flex flex-col gap-2">
-                    <a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/20 text-primary" href="#">
+                    <!-- CHANGED: Link now points to dashboard.html -->
+                    <a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/20 text-primary" href="dashboard.html">
                         <span class="material-symbols-outlined fill">dashboard</span>
                         <p class="text-sm font-semibold leading-normal">Dashboard</p>
                     </a>
@@ -33,7 +34,8 @@
                         <span class="material-symbols-outlined">description</span>
                         <p class="text-sm font-medium leading-normal">Form Management</p>
                     </a>
-                    <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 text-gray-300" href="#">
+                    <!-- CHANGED: Link now points to form-creation.html -->
+                    <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 text-gray-300" href="form-creation.html">
                         <span class="material-symbols-outlined">create_new_folder</span>
                         <p class="text-sm font-medium leading-normal">Form Creation & Grouping</p>
                     </a>
@@ -128,8 +130,7 @@
                                 </tr>
                             </thead>
                             <!-- 
-                                THIS IS THE ONLY CHANGE!
-                                We added id="submission-table-body" to the <tbody> tag.
+                                This is our "target" for the data
                             -->
                             <tbody id="submission-table-body">
                                 <tr class="border-b border-border-dark hover:bg-white/5">
@@ -239,8 +240,8 @@
     <script src="auth-guard.js"></script>
 
     <!-- 
-        THIS IS THE NEW LINE WE ARE ADDING
-        We load our dashboard logic *after* the guard.
+        This is our dashboard logic file.
+        We load it *after* the guard.
     -->
     <script src="dashboard.js"></script>
 
