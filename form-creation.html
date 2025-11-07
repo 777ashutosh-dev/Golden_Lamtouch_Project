@@ -1,55 +1,74 @@
 <!DOCTYPE html>
 <html class="dark" lang="en">
+
 <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>Golden Lamtouch - Form Creation</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap"
+        rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
 </head>
 
 <body class="bg-background-dark font-display text-white">
     <div class="relative flex min-h-screen w-full">
         <!-- SideNavBar -->
-        <aside class="flex h-screen w-64 flex-col justify-between bg-surface-dark p-4 border-r border-border-dark sticky top-0">
-            <!-- Top Section of Sidebar -->
+        <aside
+            class="flex h-screen w-64 flex-col bg-surface-dark p-4 border-r border-border-dark sticky top-0 overflow-y-auto">
             <div class="flex flex-col gap-8">
                 <div class="flex items-center gap-3 px-3">
-                    <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10" data-alt="Golden Lamtouch company logo" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBHcVL9mAEPMxg1o1fNfX5aOf3R2rbREe9mMkMhH021Aba47JlqBG1W5hZhrGuZimaztIOdGWwKkyzexyTsXHegXGN9XStpFCFR6OMl6FNNV7HvlgSrQre33s7GhNniALsxxds7fpmCYhLiEI6xBVoCvr7fg9kcKPmtYw56-BnRjdM9Kbccjvad_8a7SEqH1jcTu4yL--OMfZw4RXWT7WzgOnLDWYanF7YfkqfPDWD_OEf9iQRrqRHc5W_stZ052kUq8p-nwrDkaF0");'></div>
+                    <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10"
+                        data-alt="Golden Lamtouch company logo"
+                        style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBHcVL9mAEPMxg1o1fNfX5aOf3R2rbREe9mMkMhH021Aba47JlqBG1W5hZhrGuZimaztIOdGWwKkyzexyTsXHegXGN9XStpFCFR6OMl6FNNV7HvlgSrQre33s7GhNniALsxxds7fpmCYhLiEI6xBVoCvr7fg9kcKPmtYw56-BnRjdM9Kbccjvad_8a7SEqH1jcTu4yL--OMfZw4RXWT7WzgOnLDWYanF7YfkqfPDWD_OEf9iQRrqRHc5W_stZ052kUq8p-nwrDkaF0");'>
+                    </div>
                     <h1 class="text-white text-lg font-bold leading-normal">Golden Lamtouch</h1>
                 </div>
                 <nav class="flex flex-col gap-2">
-                    <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 text-gray-300" href="dashboard.html">
+                    <!-- Link 1: Dashboard (Not active) -->
+                    <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 text-gray-300"
+                        href="dashboard.html">
                         <span class="material-symbols-outlined">dashboard</span>
-                        <p class="text-sm font-medium leading-normal">Dashboard</p>
+                        <p class="text-sm font-semibold leading-normal">Dashboard</p>
                     </a>
-                    <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 text-gray-300" href="#">
+                    
+                    <!-- Link 2: Form Management (Not active) -->
+                    <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 text-gray-300" 
+                       href="form-management.html">
                         <span class="material-symbols-outlined">description</span>
-                        <p class="text-sm font-medium leading-normal">Form Management & Grouping</p>
+                        <p class="text-sm font-medium leading-normal">Form Management</p>
                     </a>
-                    <a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/20 text-primary" href="form-creation.html">
+                    
+                    <!-- Link 3: Form Creation (THIS IS NOW OUR ACTIVE PAGE) -->
+                    <a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/20 text-primary"
+                        href="form-creation.html">
                         <span class="material-symbols-outlined fill">create_new_folder</span>
-                        <p class="text-sm font-semibold leading-normal">Form Creation</p>
+                        <p class="text-sm font-medium leading-normal">Form Creation</p>
                     </a>
+                    
+                    <!-- Link 4: Data Download -->
                     <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 text-gray-300" href="#">
                         <span class="material-symbols-outlined">download_for_offline</span>
                         <p class="text-sm font-medium leading-normal">Data Download</p>
                     </a>
+                    
+                    <!-- Link 5: System Logs -->
                     <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 text-gray-300" href="#">
                         <span class="material-symbols-outlined">manage_history</span>
                         <p class="text-sm font-medium leading-normal">System Logs & Activity</p>
                     </a>
+                    
+                    <!-- Link 6: Settings -->
                     <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 text-gray-300" href="#">
                         <span class="material-symbols-outlined">manage_accounts</span>
                         <p class="text-sm font-medium leading-normal">Settings & User Roles</p>
                     </a>
                 </nav>
             </div>
-            
-            <!-- Bottom Section of Sidebar -->
-            <div>
-                <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 text-gray-300 cursor-pointer" id="sign-out-button">
+            <!-- Sign Out Button (at the bottom) -->
+            <div class="mt-auto pt-8">
+                <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 text-gray-300"
+                    href="#" id="sign-out-button">
                     <span class="material-symbols-outlined">logout</span>
                     <p class="text-sm font-medium leading-normal">Sign Out</p>
                 </a>
@@ -57,101 +76,104 @@
         </aside>
 
         <!-- Main Content -->
-        <main class="flex-1 flex-col p-8">
+        <main class="flex-1 flex-col p-8 overflow-y-auto h-screen">
             <div class="flex flex-col gap-8">
                 <!-- PageHeading -->
-                <div class="flex flex-wrap justify-between gap-3">
+                <div class="flex flex-wrap justify-between items-center gap-4">
                     <div class="flex flex-col gap-2">
-                        <p class="text-white text-3xl font-bold leading-tight">Form Creation</p>
+                        <p class="text-white text-3xl font-bold leading-tight">Form Creation</I></p>
                         <p class="text-gray-400 text-base font-normal leading-normal">Use this page to build a new data collection form.</p>
                     </div>
-                    <button id="save-form-button" class="flex cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-lg h-12 bg-primary text-background-dark px-6 text-base font-bold leading-normal tracking-[0.015em]">
+                    <button id="save-form-button"
+                        class="flex cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-lg h-12 bg-primary text-background-dark px-6 text-base font-bold leading-normal tracking-[0.015em]">
                         <span class="material-symbols-outlined fill text-lg">save</span>
                         <span class="truncate">Save Form</span>
                     </button>
                 </div>
-                
-                <!-- This is our new Form Builder UI, updated to your new requests -->
-                <form id="create-form-container" class="flex flex-col gap-6">
-                    
-                    <!-- STEP 1: DEFINE FORM DETAILS (Updated per your new request) -->
-                    <div class="flex flex-col gap-4 rounded-xl bg-surface-dark border border-border-dark p-6">
-                        <h2 class="text-xl font-semibold text-white">Step 1: Form Details</h2>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <!-- Form Name Input -->
-                            <div class="flex flex-col">
-                                <label for="form-name" class="pb-2 text-sm font-medium leading-normal text-gray-300">Form Name</label>
-                                <input id="form-name" type="text" placeholder="e.g., 'Student ID Form 2025'" class="w-full h-10 px-4 rounded-lg bg-background-dark border border-border-dark text-white placeholder-gray-500 focus:ring-primary focus:border-primary text-sm" />
-                            </div>
 
-                            <!-- Name of Organisation Input (NEW) -->
-                            <div class="flex flex-col">
-                                <label for="org-name" class="pb-2 text-sm font-medium leading-normal text-gray-300">Name of Organisation</label>
-                                <input id="org-name" type="text" placeholder="e.g., 'XYZ University'" class="w-full h-10 px-4 rounded-lg bg-background-dark border border-border-dark text-white placeholder-gray-500 focus:ring-primary focus:border-primary text-sm" />
-                            </div>
-                            
-                            <!-- Name of Co-ordinator Input (NEW) -->
-                            <div class="flex flex-col">
-                                <label for="coordinator-name" class="pb-2 text-sm font-medium leading-normal text-gray-300">Name of Co-ordinator</label>
-                                <input id="coordinator-name" type="text" placeholder="e.g., 'Mr. Sunil Sharma'" class="w-full h-10 px-4 rounded-lg bg-background-dark border border-border-dark text-white placeholder-gray-500 focus:ring-primary focus:border-primary text-sm" />
-                            </div>
-
-                            <!-- Co-ordinator Email Input (NEW) -->
-                            <div class="flex flex-col">
-                                <label for="coordinator-email" class="pb-2 text-sm font-medium leading-normal text-gray-300">Co-ordinator Email ID</label>
-                                <input id="coordinator-email" type="email" placeholder="e.g., 'sunil@xyz.edu'" class="w-full h-10 px-4 rounded-lg bg-background-dark border border-border-dark text-white placeholder-gray-500 focus:ring-primary focus:border-primary text-sm" />
-                            </div>
+                <!-- Step 1: Form Details -->
+                <div class="flex flex-col gap-4 rounded-xl p-6 bg-surface-dark border border-border-dark">
+                    <p class="text-lg font-semibold text-white">Step 1: Form Details</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Form Name -->
+                        <div>
+                            <label for="form-name" class="text-sm font-medium text-gray-300">Form Name</label>
+                            <input id="form-name" type="text" placeholder="e.g., 'Student ID Form 2025'"
+                                class="w-full h-10 px-4 mt-2 rounded-lg bg-background-dark border border-border-dark text-white placeholder-gray-500 focus:ring-primary focus:border-primary text-sm" />
                         </div>
-
-                        <!-- Email Toggle (NEW) -->
-                        <div class="flex items-center gap-3 pt-2">
-                             <button type="button" id="email-toggle" class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-gray-600 transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-surface-dark" role="switch" aria-checked="false">
-                                <span class="sr-only">Send Email Notification</span>
-                                <span id="email-toggle-knob" class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-0"></span>
-                            </button>
-                            <label for="email-toggle" class="text-sm font-medium text-gray-300">Send Email Notification on Submission</label>
+                        <!-- Name of Organisation -->
+                        <div>
+                            <label for="org-name" class="text-sm font-medium text-gray-300">Name of Organisation</label>
+                            <input id="org-name" type="text" placeholder="e.g., 'XYZ University'"
+                                class="w-full h-10 px-4 mt-2 rounded-lg bg-background-dark border border-border-dark text-white placeholder-gray-500 focus:ring-primary focus:border-primary text-sm" />
+                        </div>
+                        <!-- Name of Co-ordinator -->
+                        <div>
+                            <label for="coordinator-name" class="text-sm font-medium text-gray-300">Name of Co-ordinator</label>
+                            <input id="coordinator-name" type="text" placeholder="e.g., 'Mr. Sunil Sharma'"
+                                class="w-full h-10 px-4 mt-2 rounded-lg bg-background-dark border border-border-dark text-white placeholder-gray-500 focus:ring-primary focus:border-primary text-sm" />
+                        </div>
+                        <!-- Co-ordinator Email -->
+                        <div>
+                            <label for="coordinator-email" class="text-sm font-medium text-gray-300">Co-ordinator Email ID</label>
+                            <input id="coordinator-email" type="email" placeholder="e.g., 'sunil@xyz.edu'"
+                                class="w-full h-10 px-4 mt-2 rounded-lg bg-background-dark border border-border-dark text-white placeholder-gray-500 focus:ring-primary focus:border-primary text-sm" />
                         </div>
                     </div>
+                    <!-- Email Notification Toggle -->
+                    <div class="flex items-center gap-3 pt-2">
+                        <button type="button"
+                            class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-gray-600 transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-surface-dark"
+                            id="email-toggle" role="switch" aria-checked="false">
+                            <span class="sr-only">Send Email Notification</span>
+                            <span
+                                class="pointer-events-none relative inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out translate-x-0"
+                                id="email-toggle-knob"></span>
+                        </button>
+                        <label for="email-toggle" class="text-sm font-medium text-gray-300">Send Email Notification on Submission</label>
+                    </div>
+                </div>
 
-                    <!-- STEP 2: PAYMENT CONFIGURATION (CHANGED to a Toggle) -->
-                    <div class="flex flex-col gap-4 rounded-xl bg-surface-dark border border-border-dark p-6">
-                        <h2 class="text-xl font-semibold text-white">Step 2: Payment Configuration</h2>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <!-- Payment Toggle (NEW) -->
-                            <div class="flex items-center gap-3 pt-2">
-                                <button type="button" id="payment-toggle" class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-gray-600 transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-surface-dark" role="switch" aria-checked="false">
-                                    <span class="sr-only">Enable Prepaid</span>
-                                    <span id="payment-toggle-knob" class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-0"></span>
-                                </button>
-                                <label for="payment-toggle" class="text-sm font-medium text-gray-300">Enable Prepaid (Requires payment to submit)</label>
-                            </div>
-                            
-                            <!-- Preset Amount (Now hidden by default) -->
-                            <div id="preset-amount-container" class="flex flex-col hidden">
-                                <label for="preset-amount" class="pb-2 text-sm font-medium leading-normal text-gray-300">Preset Amount (INR)</label>
-                                <input id="preset-amount" type="number" placeholder="e.g., 150.00" class="w-full h-10 px-4 rounded-lg bg-background-dark border border-border-dark text-white placeholder-gray-500 focus:ring-primary focus:border-primary text-sm" />
-                            </div>
+                <!-- Step 2: Payment Configuration -->
+                <div class="flex flex-col gap-4 rounded-xl p-6 bg-surface-dark border border-border-dark">
+                    <p class="text-lg font-semibold text-white">Step 2: Payment Configuration</p>
+                    <div class="flex items-center gap-3">
+                        <button type="button"
+                            class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-gray-600 transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-surface-dark"
+                            id="payment-toggle" role="switch" aria-checked="false">
+                            <span class="sr-only">Enable Prepaid</span>
+                            <span
+                                class="pointer-events-none relative inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out translate-x-0"
+                                id="payment-toggle-knob"></span>
+                        </button>
+                        <label for="payment-toggle" class="text-sm font-medium text-gray-300">Enable Prepaid (Requires payment to submit)</label>
+                    </div>
+                    <!-- Preset Amount (Hidden by default) -->
+                    <div id="preset-amount-container" class="hidden max-w-xs">
+                        <label for="preset-amount" class="text-sm font-medium text-gray-300">Preset Amount (INR)</label>
+                        <div class="relative mt-2">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">₹</span>
+                            <input id="preset-amount" type="number" placeholder="e.g., 150.00"
+                                class="w-full h-10 pl-7 pr-4 rounded-lg bg-background-dark border border-border-dark text-white placeholder-gray-500 focus:ring-primary focus:border-primary text-sm" />
                         </div>
                     </div>
+                </div>
 
-                    <!-- STEP 3: FIELD CONFIGURATION -->
-                    <div class="flex flex-col gap-4 rounded-xl bg-surface-dark border border-border-dark p-6">
-                        <div class="flex justify-between items-center">
-                            <h2 class="text-xl font-semibold text-white">Step 3: Form Fields</h2>
-                            <button id="add-field-button" type="button" class="flex cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-lg h-10 bg-white/10 text-white px-4 text-sm font-bold leading-normal tracking-[0.015em] hover:bg-white/20">
-                                <span class="material-symbols-outlined fill text-lg">add</span>
-                                <span class="truncate">Add Field</span>
-                            </button>
-                        </div>
-                        
-                        <!-- CHANGED: The placeholder <p> tag is now gone -->
-                        <div id="fields-container" class="flex flex-col gap-4 pt-4">
-                            <!-- New fields will be dynamically added here by our script -->
-                        </div>
+                <!-- Step 3: Form Fields -->
+                <div class="flex flex-col gap-4 rounded-xl p-6 bg-surface-dark border border-border-dark">
+                    <div class="flex justify-between items-center">
+                        <p class="text-lg font-semibold text-white">Step 3: Form Fields</p>
+                        <button id="add-field-button"
+                            class="flex cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-lg h-10 bg-primary/20 text-primary px-4 text-sm font-bold leading-normal tracking-[0.015em] hover:bg-primary/30">
+                            <span class="material-symbols-outlined fill text-lg">add</span>
+                            <span class="truncate">Add Field</span>
+                        </button>
                     </div>
-
-                </form>
+                    <!-- This container is where our JS will add the new field rows -->
+                    <div id="fields-container" class="flex flex-col gap-4 pt-4">
+                        <!-- This is the empty container (as requested) -->
+                    </div>
+                </div>
 
             </div>
         </main>
@@ -160,32 +182,32 @@
     <!-- ====================================================== -->
     <!-- START: FIREBASE SCRIPT BLOCK -->
     <!-- ====================================================== -->
-
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-storage-compat.js"></script>
-
     <script>
         const firebaseConfig = {
-          apiKey: "AIzaSyAJ-xyOPmJXmhe9PUCa1BU75fWJ_MWsHA0",
-          authDomain: "golden-lamtouch-project.firebaseapp.com",
-          projectId: "golden-lamtouch-project",
-          storageBucket: "golden-lamtouch-project.firebasestorage.app",
-          messagingSenderId: "528955254323",
-          appId: "1:528955254323:web:e71517dab7fcb78b842546"
+            apiKey: "AIzaSyAJ-xyOPmJXmhe9PUCa1BU75fWJ_MWsHA0",
+            authDomain: "golden-lamtouch-project.firebaseapp.com",
+            projectId: "golden-lamtouch-project",
+            storageBucket: "golden-lamtouch-project.firebasestorage.app",
+            messagingSenderId: "528955254323",
+            appId: "1:528955254323:web:e71517dab7fcb78b842546"
         };
         const app = firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
         const storage = firebase.storage();
     </script>
-
     <script src="auth-guard.js"></script>
+    
+    <!-- This is the correct, fixed JS file link! -->
     <script src="form-creation-v2.js"></script>
-
+    
     <!-- ====================================================== -->
     <!-- END: FIREBASE SCRIPT BLOCK -->
     <!-- ====================================================== -->
 </body>
+
 </html>

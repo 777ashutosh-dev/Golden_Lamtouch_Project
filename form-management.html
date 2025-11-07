@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Golden Lamtouch - Form Management</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+</head>
+
+<body class="bg-background-dark font-display text-white">
+    <div class="relative flex min-h-screen w-full">
+        <!-- SideNavBar -->
+        <aside
+            class="flex h-screen w-64 flex-col bg-surface-dark p-4 border-r border-border-dark sticky top-0 overflow-y-auto">
+            <div class="flex flex-col gap-8">
+                <div class="flex items-center gap-3 px-3">
+                    <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10"
+                        data-alt="Golden Lamtouch company logo"
+                        style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBHcVL9mAEPMxg1o1fNfX5aOf3R2rbREe9mMkMhH021Aba47JlqBG1W5hZhrGuZimaztIOdGWwKkyzexyTsXHegXGN9XStpFCFR6OMl6FNNV7HvlgSrQre33s7GhNniALsxxds7fpmCYhLiEI6xBVoCvr7fg9kcKPmtYw56-BnRjdM9Kbccjvad_8a7SEqH1jcTu4yL--OMfZw4RXWT7WzgOnLDWYanF7YfkqfPDWD_OEf9iQRrqRHc5W_stZ052kUq8p-nwrDkaF0");'>
+                    </div>
+                    <h1 class="text-white text-lg font-bold leading-normal">Golden Lamtouch</h1>
+                </div>
+                <nav class="flex flex-col gap-2">
+                    <!-- Link 1: Dashboard -->
+                    <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 text-gray-300"
+                        href="dashboard.html">
+                        <span class="material-symbols-outlined">dashboard</span>
+                        <p class="text-sm font-semibold leading-normal">Dashboard</p>
+                    </a>
+                    
+                    <!-- Link 2: Form Management (This is now our ACTIVE page) -->
+                    <a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/20 text-primary" 
+                       href="form-management.html">
+                        <span class="material-symbols-outlined fill">description</span>
+                        <p class="text-sm font-medium leading-normal">Form Management</p>
+                    </a>
+                    
+                    <!-- Link 3: Form Creation -->
+                    <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 text-gray-300"
+                        href="form-creation.html">
+                        <span class="material-symbols-outlined">create_new_folder</span>
+                        <p class="text-sm font-medium leading-normal">Form Creation</p>
+                    </a>
+                    
+                    <!-- Link 4: Data Download -->
+                    <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 text-gray-300" href="#">
+                        <span class="material-symbols-outlined">download_for_offline</span>
+                        <p class="text-sm font-medium leading-normal">Data Download</p>
+                    </a>
+                    
+                    <!-- Link 5: System Logs -->
+                    <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 text-gray-300" href="#">
+                        <span class="material-symbols-outlined">manage_history</span>
+                        <p class="text-sm font-medium leading-normal">System Logs & Activity</p>
+                    </a>
+                    
+                    <!-- Link 6: Settings -->
+                    <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 text-gray-300" href="#">
+                        <span class="material-symbols-outlined">manage_accounts</span>
+                        <p class="text-sm font-medium leading-normal">Settings & User Roles</p>
+                    </a>
+                </nav>
+            </div>
+            <!-- Sign Out Button (at the bottom) -->
+            <div class="mt-auto pt-8">
+                <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 text-gray-300"
+                    href="#" id="sign-out-button">
+                    <span class="material-symbols-outlined">logout</span>
+                    <p class="text-sm font-medium leading-normal">Sign Out</p>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 flex-col p-8 overflow-y-auto h-screen">
+            <div class="flex flex-col gap-8">
+                <!-- PageHeading and Toolbar -->
+                <div class="flex flex-wrap justify-between items-center gap-4">
+                    <div class="flex flex-col gap-2">
+                        <p class="text-white text-3xl font-bold leading-tight">Form Management</p>
+                        <p class="text-gray-400 text-base font-normal leading-normal">Search, view, and manage all of your created forms.</p>
+                    </div>
+                    <!-- This is your new Search Bar -->
+                    <div class="relative w-full max-w-sm">
+                        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">search</span>
+                        <input id="form-search-input" class="w-full h-10 pl-10 pr-4 rounded-lg bg-surface-dark border border-border-dark text-white placeholder-gray-500 focus:ring-primary focus:border-primary text-sm" placeholder="Search by Form Name or Org..." type="text" />
+                    </div>
+                </div>
+
+                <!-- NEW Toolbar for Groups and Sorting -->
+                <div class="flex flex-wrap items-center justify-between gap-4">
+                    <!-- Left Side: Group Filters -->
+                    <div class="flex items-center gap-2">
+                        <label for="group-filter-select" class="text-sm font-medium text-gray-300">View by Group:</label>
+                        <select id="group-filter-select" class="w-48 h-10 px-4 rounded-lg bg-surface-dark border border-border-dark text-white focus:ring-primary focus:border-primary text-sm">
+                            <option value="all">All Groups</option>
+                            <!-- JavaScript will fill this list -->
+                        </select>
+                        <button id="create-group-button" class="flex items-center justify-center h-10 px-4 rounded-lg bg-surface-dark border border-border-dark text-sm text-gray-300 hover:bg-white/5 gap-2">
+                            <span class="material-symbols-outlined text-lg">add</span>
+                            <span>Create Group</span>
+                        </button>
+                        <button id="manage-groups-button" class="flex items-center justify-center h-10 px-4 rounded-lg bg-surface-dark border border-border-dark text-sm text-gray-300 hover:bg-white/5 gap-2">
+                            <span class="material-symbols-outlined text-lg">settings</span>
+                            <span>Manage Groups</span>
+                        </button>
+                    </div>
+                    <!-- Right Side: Sort Button -->
+                    <div class="flex">
+                        <button id="sort-az-button" class="flex items-center justify-center h-10 px-4 rounded-lg bg-surface-dark border border-border-dark text-sm text-gray-300 hover:bg-white/5 gap-2">
+                            <span class="material-symbols-outlined text-lg">sort_by_alpha</span>
+                            <span>Sort A-Z</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Form List Table -->
+                <div class="flex flex-col gap-4 rounded-xl bg-surface-dark border border-border-dark">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead>
+                                <tr class="border-b border-border-dark">
+                                    <th class="px-6 py-3 text-sm font-semibold text-gray-400">Form Name</th>
+                                    <th class="px-6 py-3 text-sm font-semibold text-gray-400">Organisation</th>
+                                    <th class="px-6 py-3 text-sm font-semibold text-gray-400">Payment Status</th>
+                                    <th class="px-6 py-3 text-sm font-semibold text-gray-400">Total OTPs</th>
+                                    <th class="px-6 py-3 text-sm font-semibold text-gray-400">Used OTPs</th>
+                                    <th class="px-6 py-3 text-sm font-semibold text-gray-400">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="form-table-body">
+                                <!-- JavaScript will fill this list -->
+                                <tr>
+                                    <td colspan="6" class="p-6 text-center text-gray-500">Loading forms...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- ====================================================== -->
+    <!-- START: FIREBASE SCRIPT BLOCK -->
+    <!-- ====================================================== -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-storage-compat.js"></script>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAJ-xyOPmJXmhe9PUCa1BU75fWJ_MWsHA0",
+            authDomain: "golden-lamtouch-project.firebaseapp.com",
+            projectId: "golden-lamtouch-project",
+            storageBucket: "golden-lamtouch-project.firebasestorage.app",
+            messagingSenderId: "528955254323",
+            appId: "1:528955254323:web:e71517dab7fcb78b842546"
+        };
+        const app = firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        const storage = firebase.storage();
+    </script>
+    <script src="auth-guard.js"></script>
+    <!-- This is our new (and empty) JS file for this page -->
+    <script src="form-management.js"></script>
+    <!-- ====================================================== -->
+    <!-- END: FIREBASE SCRIPT BLOCK -->
+    <!-- ====================================================== -->
+</body>
+
+</html>
