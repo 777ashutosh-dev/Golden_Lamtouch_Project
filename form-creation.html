@@ -81,8 +81,8 @@
                 <!-- PageHeading -->
                 <div class="flex flex-wrap justify-between items-center gap-4">
                     <div class="flex flex-col gap-2">
-                        <p class="text-white text-3xl font-bold leading-tight">Form Creation</I></p>
-                        <p class="text-gray-400 text-base font-normal leading-normal">Use this page to build a new data collection form.</p>
+                        <p class="text-white text-3xl font-bold leading-tight" id="page-title">Form Creation</p>
+                        <p class="text-gray-400 text-base font-normal leading-normal" id="page-subtitle">Use this page to build a new data collection form.</p>
                     </div>
                     <button id="save-form-button"
                         class="flex cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-lg h-12 bg-primary text-background-dark px-6 text-base font-bold leading-normal tracking-[0.015em]">
@@ -163,7 +163,8 @@
                 <div class="flex flex-col gap-4 rounded-xl p-6 bg-surface-dark border border-border-dark">
                     <div class="flex justify-between items-center">
                         <p class="text-lg font-semibold text-white">Step 3: Form Fields</p>
-                        <button id="add-field-button"
+                        <!-- THIS IS OUR FIRST BUTTON (NOW RENAMED) -->
+                        <button id="add-field-button-top"
                             class="flex cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-lg h-10 bg-primary/20 text-primary px-4 text-sm font-bold leading-normal tracking-[0.015em] hover:bg-primary/30">
                             <span class="material-symbols-outlined fill text-lg">add</span>
                             <span class="truncate">Add Field</span>
@@ -171,7 +172,15 @@
                     </div>
                     <!-- This container is where our JS will add the new field rows -->
                     <div id="fields-container" class="flex flex-col gap-4 pt-4">
-                        <!-- This is the empty container (as requested) -->
+                        <!-- 
+                            THIS IS OUR NEW, SECOND BUTTON! (Your idea)
+                            We place it at the *bottom* of the container.
+                        -->
+                        <button id="add-field-button-bottom"
+                            class="flex cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-lg h-10 bg-surface-dark border-2 border-dashed border-border-dark text-gray-400 px-4 text-sm font-bold leading-normal tracking-[0.015em] hover:border-primary hover:text-primary">
+                            <span class="material-symbols-outlined fill text-lg">add</span>
+                            <span class="truncate">Add Another Field</span>
+                        </button>
                     </div>
                 </div>
 

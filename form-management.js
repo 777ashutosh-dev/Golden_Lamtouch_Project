@@ -1,9 +1,8 @@
 /*
 This is the JavaScript file for your form-management.html page.
-Its first job is to:
-1.  Find the empty table body.
-2.  Fetch all the documents from our "forms" collection in Firestore.
-3.  Build and display a new row for each form we find.
+It now does TWO things:
+1.  Fetches and displays all the forms in the table (from M10).
+2.  Listens for clicks on the "Edit" button for each form (NEW - M11).
 */
 
 // We are telling the browser: "Don't run any of this code until the *entire* HTML page is loaded."
@@ -18,7 +17,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // (We will add the other buttons later)
 
     // =================================================================
-    // START: MILESTONE 10 CODE (Live Form Table)
+    // START: MILESTONE 10 CODE (Already Working)
+    // This code block populates our main table
     // =================================================================
 
     // We'll store all our forms here so we can search them
@@ -73,9 +73,12 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <button data-id="${formId}" class="assign-group-button p-2 text-gray-400 hover:bg-white/10 rounded-lg" title="Assign Group">
                                     <span class="material-symbols-outlined">label</span>
                                 </button>
+                                
+                                <!-- THIS IS THE BUTTON WE ARE WIRING UP -->
                                 <button data-id="${formId}" class="edit-form-button p-2 text-gray-400 hover:bg-white/10 rounded-lg" title="Edit Form">
                                     <span class="material-symbols-outlined">edit</span>
                                 </button>
+
                                 <button data-id="${formId}" class="delete-form-button p-2 text-red-500 hover:bg-red-500/10 rounded-lg" title="Delete Form">
                                     <span class="material-symbols-outlined">delete</span>
                                 </button>
@@ -94,6 +97,42 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
-    // (We will add the logic for the search bar, sort, and group buttons here in a future step)
+    // =================================================================
+    // END: MILESTONE 10 CODE
+    // =================================================================
 
-}); 
+
+    // =================================================================
+    // START: MILESTONE 11 CODE (Baby Step 59)
+    // This code "wires up" the "Edit" button
+    // =================================================================
+    
+    // We listen for clicks on the *entire* table body.
+    if (formTableBody) {
+        formTableBody.addEventListener('click', (e) => {
+            
+            // We check if the thing clicked (or its parent) is an "edit-form-button"
+            const editButton = e.target.closest('.edit-form-button');
+
+            if (editButton) {
+                // It was an edit button!
+                
+                // 1. Get the Form ID that we stored in the "data-id" attribute
+                const formId = editButton.dataset.id;
+                
+                // 2. Redirect the user to the form-creation page,
+                //    and add the form's ID to the URL as a "query parameter"
+                window.location.href = `form-creation.html?formId=${formId}`;
+            }
+            
+            // (In the future, we will add 'else if' blocks here
+            // to handle the 'delete-form-button', 'add-otp-button', etc.)
+
+        });
+    }
+
+    // =================================================================
+    // END: MILESTONE 11 CODE
+    // =================================================================
+
+});
