@@ -34,7 +34,7 @@
                     
                     <!-- Link 2: Form Management (This is now our ACTIVE page) -->
                     <a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/20 text-primary" 
-                       href="form-management.html">
+                        href="form-management.html">
                         <span class="material-symbols-outlined fill">description</span>
                         <p class="text-sm font-medium leading-normal">Form Management</p>
                     </a>
@@ -147,7 +147,7 @@
 
     <!-- 
       ======================================================
-      Modal (Pop-up) for "Create Group"
+      Modal 1: "Create Group" (Already working)
       ======================================================
     -->
     <div id="create-group-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
@@ -185,7 +185,7 @@
 
     <!-- 
       ======================================================
-      Modal (Pop-up) for "Manage Groups"
+      Modal 2: "Manage Groups" (Already working)
       ======================================================
     -->
     <div id="manage-groups-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
@@ -203,14 +203,7 @@
                 <p class="text-sm text-gray-400 mb-4">Click the trash icon to delete a group. This will not delete any forms, it will only un-assign them from this group.</p>
                 <!-- This is where our JS will add the list of groups -->
                 <div id="group-list-container" class="flex flex-col gap-3 max-h-60 overflow-y-auto">
-                    <!-- Example of a row (JS will build this):
-                    <div class="flex justify-between items-center p-3 bg-background-dark rounded-lg">
-                        <span class="text-white">Schools</span>
-                        <button class="p-1 text-gray-500 hover:text-red-500">
-                            <span class="material-symbols-outlined">delete</span>
-                        </button>
-                    </div>
-                    -->
+                    <!-- Example of a row (JS will build this) -->
                     <p id="no-groups-message" class="text-gray-500 text-center">No groups created yet.</p>
                 </div>
             </div>
@@ -219,9 +212,7 @@
     
     <!-- 
       ======================================================
-      START: NEW HIDDEN MODAL (POP-UP) FOR "ASSIGN GROUP"
-      This is the *only* new HTML block for this step.
-      It is "hidden" by default.
+      Modal 3: "Assign Group" (Already working)
       ======================================================
     -->
     <div id="assign-group-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
@@ -254,6 +245,47 @@
                 <button id="save-assign-button"
                     class="flex cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-lg h-10 bg-primary text-background-dark px-4 text-sm font-bold leading-normal tracking-[0.015em]">
                     <span class="truncate">Save Assignment</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 
+      ======================================================
+      START: NEW MODAL (POP-UP) FOR "ADD OTPs" (Baby Step 68a)
+      This is the *only* new HTML block for this step.
+      It is "hidden" by default.
+      ======================================================
+    -->
+    <div id="add-otp-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+        <!-- Modal Content -->
+        <div class="bg-surface-dark rounded-xl shadow-2xl border border-border-dark w-full max-w-md">
+            <!-- Modal Header -->
+            <div class="flex justify-between items-center p-6 border-b border-border-dark">
+                <h3 class="text-xl font-semibold text-white">Add OTPs for <span id="otp-form-name" class="text-primary"></span></h3>
+                <button id="close-otp-modal-button" class="p-1 rounded-full text-gray-400 hover:bg-white/10 hover:text-white">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <!-- Modal Body -->
+            <div class="p-6">
+                <div class="flex flex-col gap-2">
+                    <label for="otp-quantity-input" class="text-sm font-medium text-gray-300">Quantity to Generate</label>
+                    <input id="otp-quantity-input" type="number" placeholder="e.g., 50"
+                        class="w-full h-10 px-4 rounded-lg bg-background-dark border border-border-dark text-white placeholder-gray-500 focus:ring-primary focus:border-primary text-sm" />
+                    <span id="otp-error-message" class="text-sm text-red-400 h-4 mt-1"></span>
+                </div>
+            </div>
+            <!-- Modal Footer -->
+            <div class="flex justify-end items-center gap-4 p-6 border-t border-border-dark">
+                <button id="cancel-otp-modal-button"
+                    class="h-10 px-4 rounded-lg bg-surface-dark border border-border-dark text-sm text-gray-300 hover:bg-white/10">
+                    Cancel
+                </button>
+                <button id="generate-otp-button"
+                    class="flex cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-lg h-10 bg-primary text-background-dark px-4 text-sm font-bold leading-normal tracking-[0.015em]">
+                    <span class="material-symbols-outlined text-lg">autorenew</span>
+                    <span class="truncate">Generate</span>
                 </button>
             </div>
         </div>

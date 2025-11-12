@@ -1,17 +1,13 @@
 /*
-  M12 - COMPLETE & CLEAN (Baby Step 67 - FINAL FIX)
+  M13 - COMPLETE (Baby Step 68b)
   -----------------------------------------------------
-  This is a 100% clean, verified file.
-  It fixes all Syntax Errors and fully implements M12.
+  This file now contains all logic for M12 AND M13.
   
   This file handles:
-  1. Loading all Forms (Real-time)
-  2. Loading all Groups (Real-time)
-  3. Search, Sort, and Filter Logic
-  4. "Create Group" Modal (Full logic)
-  5. "Manage Groups" Modal (Full logic, incl. delete)
-  6. "Assign Group" Modal (Full logic)
-  7. Table Actions (Edit, Assign, Delete)
+  1. All M12 features (Groups, Sort, Filter)
+  2. (NEW) "Add OTPs" Modal Logic
+  3. (NEW) A function to generate lowercase alphanumeric codes
+  4. (NEW) Logic to save new OTPs to the 'otps' collection
 */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -51,10 +47,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const assignGroupSelect = document.getElementById('assign-group-select');
     const assignGroupErrorMessage = document.getElementById('assign-group-error-message');
 
+    // --- (NEW) OTP Modal Targets (Baby Step 68b) ---
+    const addOtpModal = document.getElementById('add-otp-modal');
+    const closeOtpModalButton = document.getElementById('close-otp-modal-button');
+    const cancelOtpModalButton = document.getElementById('cancel-otp-modal-button');
+    const generateOtpButton = document.getElementById('generate-otp-button');
+    const otpFormName = document.getElementById('otp-form-name');
+    const otpQuantityInput = document.getElementById('otp-quantity-input');
+    const otpErrorMessage = document.getElementById('otp-error-message');
+
     // --- Global variables to store our data ---
     let allForms = []; // This will hold our *master list* of forms from the database
     let allGroups = []; // This will hold our *master list* of groups
     let currentAssignFormId = null; // Tracks which form we are assigning
+    let currentOtpFormId = null; // (NEW) Tracks which form we are adding OTPs to
 
 
     // =================================================================
@@ -97,7 +103,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- 3. Populate All Group Dropdowns ---
-    // (This runs whenever 'allGroups' is updated)
     function populateGroupDropdowns() {
         // a. The main filter dropdown
         if (groupFilterSelect) {
@@ -143,7 +148,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Find the group name.
             const group = allGroups.find(g => g.id === data.groupId);
-            // If group exists, show a badge. Otherwise, show nothing.
             const groupBadge = group 
               ? `<span class="ml-2 px-2 py-0.5 text-xs font-medium bg-primary/20 text-primary rounded-full">${group.groupName}</span>` 
               : '';
@@ -184,42 +188,27 @@ document.addEventListener('DOMContentLoaded', () => {
     // START: FILTERING & SORTING LOGIC
     // =================================================================
 
-    // --- Master "Filter, Sort, and Render" Function ---
     function applyFiltersAndSort() {
         let filteredForms = [...allForms]; 
-        
-        // 1. Get the current filter values
         const searchTerm = searchInput.value.toLowerCase();
         const selectedGroupId = groupFilterSelect.value;
         const isSortAz = sortAzButton.dataset.sorted === 'true';
 
-        // 2. Apply Search Filter
         if (searchTerm) {
             filteredForms = filteredForms.filter(form => 
                 (form.formName && form.formName.toLowerCase().includes(searchTerm)) ||
                 (form.orgName && form.orgName.toLowerCase().includes(searchTerm))
             );
         }
-
-        // 3. Apply Group Filter
         if (selectedGroupId !== 'all') {
             filteredForms = filteredForms.filter(form => form.groupId === selectedGroupId);
         }
-
-        // 4. Apply Sort
         if (isSortAz) {
-            filteredForms.sort((a, b) => {
-                const nameA = a.formName || '';
-                const nameB = b.formName || '';
-                return nameA.localeCompare(nameB);
-            });
+            filteredForms.sort((a, b) => (a.formName || '').localeCompare(b.formName || ''));
         }
-        
-        // 5. Finally, re-render the table with our new filtered/sorted list
         renderTable(filteredForms);
     }
     
-    // --- Add all our "listeners" ---
     if (searchInput) {
         searchInput.addEventListener('input', applyFiltersAndSort);
     }
@@ -274,7 +263,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
                 alert(`Success! Group "${groupName}" has been created.`);
-                // No need to refresh, onSnapshot will catch it.
                 createGroupModal.classList.add('hidden');
             } catch (error) {
                 console.error("Error saving group: ", error);
@@ -290,10 +278,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // START: MODAL 2: "MANAGE GROUPS"
     // =================================================================
 
-    // --- Logic to OPEN and CLOSE the modal ---
     if (manageGroupsButton) {
         manageGroupsButton.addEventListener('click', () => {
-            renderManageGroupsList(); // Re-draw the list just in case
+            renderManageGroupsList(); 
             manageGroupsModal.classList.remove('hidden');
         });
     }
@@ -303,16 +290,15 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- Logic to render the list of groups *inside* the modal ---
     function renderManageGroupsList() {
         if (!groupListContainer) return;
         
         if (allGroups.length === 0) {
             noGroupsMessage.classList.remove('hidden');
-            groupListContainer.innerHTML = ''; // Clear old list
+            groupListContainer.innerHTML = ''; 
         } else {
             noGroupsMessage.classList.add('hidden');
-            groupListContainer.innerHTML = ''; // Clear old list
+            groupListContainer.innerHTML = ''; 
             
             allGroups.forEach(group => {
                 const row = document.createElement('div');
@@ -328,7 +314,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- Logic to handle clicks *inside* the "Manage Groups" list ---
     if (groupListContainer) {
         groupListContainer.addEventListener('click', async (e) => {
             const deleteButton = e.target.closest('.delete-group-button');
@@ -338,7 +323,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     try {
                         await db.collection('groups').doc(groupId).delete();
                         alert('Group deleted.');
-                        // No need to refresh, onSnapshot will catch it
                     } catch (error) {
                         console.error("Error deleting group: ", error);
                         alert('Error deleting group.');
@@ -351,11 +335,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // =================================================================
     // START: MODAL 3: "ASSIGN GROUP"
     // =================================================================
-
-    // --- This logic is part of the main table click listener ---
-    // (See "START: TABLE ACTION BUTTONS" below)
     
-    // --- Logic to CLOSE the modal ---
     if (closeAssignModalButton) {
         closeAssignModalButton.addEventListener('click', () => assignGroupModal.classList.add('hidden'));
     }
@@ -363,7 +343,6 @@ document.addEventListener('DOMContentLoaded', () => {
         cancelAssignModalButton.addEventListener('click', () => assignGroupModal.classList.add('hidden'));
     }
 
-    // --- Logic to SAVE the assignment ---
     if (saveAssignButton) {
         saveAssignButton.addEventListener('click', async () => {
             if (!currentAssignFormId) {
@@ -372,31 +351,106 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
             const selectedGroupId = assignGroupSelect.value;
-            
-            // "Saving" state
             saveAssignButton.disabled = true;
             saveAssignButton.querySelector('.truncate').textContent = 'Saving...';
             
             try {
-                // If user picks "No Group", we save 'null'
                 const newGroupValue = selectedGroupId === 'none' ? null : selectedGroupId;
-                
-                // Update the 'groupId' field on the specific form document
                 await db.collection('forms').doc(currentAssignFormId).update({
                     groupId: newGroupValue
                 });
-                
                 assignGroupModal.classList.add('hidden');
-                // No need to refresh, onSnapshot will catch it!
-            
             } catch (error) {
                 console.error("Error assigning group: ", error);
                 assignGroupErrorMessage.textContent = 'An error occurred.';
             } finally {
-                // "Reset" state
                 saveAssignButton.disabled = false;
                 saveAssignButton.querySelector('.truncate').textContent = 'Save Assignment';
-                currentAssignFormId = null; // Clear the selected form
+                currentAssignFormId = null;
+            }
+        });
+    }
+
+    // =================================================================
+    // START: (NEW) M13 - "ADD OTPs" LOGIC (Baby Step 68b)
+    // =================================================================
+
+    // --- 1. New Function to generate a random code ---
+    // Rule: 6 characters, lowercase alphanumeric
+    function generateRandomCode() {
+        const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+        let code = '';
+        for (let i = 0; i < 6; i++) {
+            code += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return code;
+    }
+
+    // --- 2. Logic to CLOSE the modal ---
+    if (closeOtpModalButton) {
+        closeOtpModalButton.addEventListener('click', () => addOtpModal.classList.add('hidden'));
+    }
+    if (cancelOtpModalButton) {
+        cancelOtpModalButton.addEventListener('click', () => addOtpModal.classList.add('hidden'));
+    }
+
+    // --- 3. Logic to GENERATE the codes ---
+    if (generateOtpButton) {
+        generateOtpButton.addEventListener('click', async () => {
+            const quantity = parseInt(otpQuantityInput.value, 10);
+            
+            // Validation
+            if (isNaN(quantity) || quantity <= 0) {
+                otpErrorMessage.textContent = 'Please enter a valid number (1 or more).';
+                return;
+            }
+            if (quantity > 1000) { // Safety limit
+                otpErrorMessage.textContent = 'You can only generate 1000 codes at a time.';
+                return;
+            }
+            if (!currentOtpFormId) {
+                otpErrorMessage.textContent = 'Error: No form selected.';
+                return;
+            }
+            
+            otpErrorMessage.textContent = '';
+            generateOtpButton.disabled = true;
+            generateOtpButton.querySelector('.truncate').textContent = 'Generating...';
+            
+            try {
+                // This is a "batch" write. It's much faster than saving one by one.
+                const batch = db.batch();
+                
+                for (let i = 0; i < quantity; i++) {
+                    const newCode = generateRandomCode();
+                    
+                    // Create a new document in the 'otps' collection
+                    const newOtpRef = db.collection('otps').doc(); 
+                    
+                    const otpDoc = {
+                        formId: currentOtpFormId,
+                        code: newCode,
+                        isUsed: false,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    };
+                    
+                    batch.set(newOtpRef, otpDoc);
+                }
+                
+                // Commit (save) all the new codes to Firebase at once
+                await batch.commit();
+                
+                alert(`Success! ${quantity} new OTPs have been generated.`);
+                addOtpModal.classList.add('hidden');
+                
+            } catch (error) {
+                console.error("Error generating OTPs: ", error);
+                otpErrorMessage.textContent = 'An error occurred. Please try again.';
+            } finally {
+                generateOtpButton.disabled = false;
+                generateOtpButton.querySelector('.truncate').textContent = 'Generate';
+                otpQuantityInput.value = '';
+                currentOtpFormId = null;
             }
         });
     }
@@ -419,16 +473,14 @@ document.addEventListener('DOMContentLoaded', () => {
             // 2. Check for "Assign Group" button
             const assignButton = e.target.closest('.assign-group-button');
             if (assignButton) {
-                currentAssignFormId = assignButton.dataset.id; // Save which form we're working on
+                currentAssignFormId = assignButton.dataset.id; 
                 const formName = assignButton.dataset.name;
                 const currentGroupId = assignButton.dataset.groupId;
                 
-                // Pre-fill the modal
                 assignFormName.textContent = formName;
                 assignGroupSelect.value = currentGroupId;
                 assignGroupErrorMessage.textContent = '';
                 
-                // Open the modal
                 assignGroupModal.classList.remove('hidden');
                 return;
             }
@@ -440,11 +492,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 const formName = deleteButton.dataset.formName;
                 
                 if (confirm(`Are you sure you want to delete "${formName}"? This cannot be undone.`)) {
-                    // In the future (M14) this will call a Cloud Function
-                    // For now, we just delete the form doc.
                     try {
                         db.collection('forms').doc(formId).delete();
-                        // onSnapshot will auto-update the table
                     } catch (error) {
                         console.error("Error deleting form: ", error);
                         alert('Error deleting form.');
@@ -453,8 +502,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // (Add other buttons like 'add-otp-button' here in M13)
+            // 4. (NEW) Check for "Add OTP" button (Baby Step 68b)
+            const otpButton = e.target.closest('.add-otp-button');
+            if (otpButton) {
+                const formId = otpButton.dataset.id;
+                // Find the form name from our 'allForms' array
+                const form = allForms.find(f => f.id === formId);
+                const formName = form ? form.formName : 'this form';
 
+                currentOtpFormId = formId; // Save which form we're working on
+                
+                // Pre-fill the modal
+                otpFormName.textContent = formName;
+                otpQuantityInput.value = '';
+                otpErrorMessage.textContent = '';
+                
+                // Open the modal
+                addOtpModal.classList.remove('hidden');
+                otpQuantityInput.focus();
+                return;
+            }
         });
     }
 
