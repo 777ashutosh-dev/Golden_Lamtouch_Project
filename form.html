@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Golden Lamtouch - Form Submission</title>
+    
+    <!-- This links to our *existing* compiled stylesheet -->
+    <link rel="stylesheet" href="style.css">
+
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&amp;display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+</head>
+
+<body class="bg-background-dark font-display text-white antialiased">
+
+    <!-- Main Container -->
+    <div class="relative flex min-h-screen w-full flex-col items-center justify-center p-4">
+        
+        <!-- Logo and Title -->
+        <div class="flex flex-col items-center gap-4 mb-8">
+            <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-16"
+                style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBHcVL9mAEPMxg1o1fNfX5aOf3R2rbREe9mMkMhH021Aba47JlqBG1W5hZhrGuZimaztIOdGWwKkyzexyTsXHegXGN9XStpFCFR6OMl6FNNV7HvlgSrQre33s7GhNniALsxxds7fpmCYhLiEI6xBVoCvr7fg9kcKPmtYw56-BnRjdM9Kbccjvad_8a7SEqH1jcTu4yL--OMfZw4RXWT7WzgOnLDWYanF7YfkqfPDWD_OEf9iQRrqRHc5W_stZ052kUq8p-nwrDkaF0");'>
+            </div>
+            <h1 class="text-white tracking-light text-center text-3xl font-bold leading-tight" id="form-title">Form Submission</h1>
+            <p class="text-gray-400 text-lg" id="form-org-name">Loading...</p>
+        </div>
+
+        <!-- 
+          ======================================================
+          START: M16 - Part 1: The "OTP Gate"
+          This is visible by default.
+          ======================================================
+        -->
+        <div id="otp-gate-container" class="w-full max-w-md rounded-xl bg-surface-dark p-8 shadow-2xl border border-border-dark">
+            <div class="flex flex-col gap-4">
+                <h2 class="text-xl font-semibold text-white">Please Enter Your Code</h2>
+                <p class="text-sm text-gray-400">You need a valid, one-time code to access this form.</p>
+                
+                <!-- OTP Input -->
+                <div>
+                    <label class="pb-2 text-sm font-medium text-gray-300" for="otp-input">Enter 6-Digit Code</label>
+                    <input class="form-input h-12 w-full mt-2 min-w-0 flex-1 resize-none overflow-hidden rounded-lg border border-border-dark bg-background-dark p-3 text-lg font-medium tracking-widest text-white text-center placeholder:text-gray-600 focus:border-primary focus:outline-0 focus:ring-2 focus:ring-primary/50" 
+                           id="otp-input" 
+                           placeholder="A B C 1 2 3" 
+                           type="text" 
+                           maxlength="6" />
+                </div>
+                
+                <!-- Verify Button -->
+                <div class="flex flex-col pt-2">
+                    <button class="flex h-12 min-w-[84px] w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg bg-primary px-5 text-base font-bold leading-normal tracking-[0.015em] text-background-dark transition-colors hover:bg-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 focus:ring-offset-surface-dark" 
+                            id="verify-otp-button" 
+                            type="button">
+                        <span class="truncate">Verify Code</span>
+                    </button>
+                </div>
+                
+                <!-- Error Message -->
+                <span id="otp-error-message" class="text-sm text-red-400 h-4 mt-1 text-center"></span>
+            </div>
+        </div>
+        <!-- ======================================================
+             END: M16 - Part 1
+             ====================================================== -->
+        
+        
+        <!-- 
+          ======================================================
+          START: M16 - Part 2: The "Form Content"
+          This is HIDDEN by default.
+          ======================================================
+        -->
+        <div id="form-content-container" class="hidden w-full max-w-3xl rounded-xl bg-surface-dark p-8 shadow-2xl border border-border-dark">
+            
+            <!-- Warning Note (from your idea) -->
+            <div id="pro-photo-warning" class="hidden p-4 mb-6 rounded-lg bg-yellow-500/10 border border-yellow-500/30">
+                <p class="text-sm text-yellow-300"><span class="font-bold">Photo Requirement:</span> Please upload a professional, passport-style photo. No hats, glasses, or shades.</p>
+            </div>
+
+            <!-- This is where our JS will build the form fields -->
+            <div id="dynamic-form-fields" class="flex flex-col gap-6">
+                <!-- JS will add fields here -->
+            </div>
+
+            <!-- Submit Button -->
+            <div class="flex flex-col pt-8 mt-8 border-t border-border-dark">
+                <button class="flex h-12 min-w-[84px] w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg bg-primary px-5 text-base font-bold leading-normal tracking-[0.015em] text-background-dark transition-colors hover:bg-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 focus:ring-offset-surface-dark" 
+                        id="submit-form-button" 
+                        type="button">
+                    <span class="truncate">Submit Form</span>
+                </button>
+            </div>
+            
+        </div>
+        <!-- ======================================================
+             END: M16 - Part 2
+             ====================================================== -->
+        
+    </div>
+
+    <!-- ====================================================== -->
+    <!-- START: FIREBASE SCRIPT BLOCK -->
+    <!-- ====================================================== -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-storage-compat.js"></script>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAJ-xyOPmJXmhe9PUCa1BU75fWJ_MWsHA0",
+            authDomain: "golden-lamtouch-project.firebaseapp.com",
+            projectId: "golden-lamtouch-project",
+            storageBucket: "golden-lamtouch-project.firebasestorage.app",
+            messagingSenderId: "528955254323",
+            appId: "1:528955254323:web:e71517dab7fcb78b842546"
+        };
+        const app = firebase.initializeApp(firebaseConfig);
+        // This is a public page, so we don't need auth
+        const db = firebase.firestore();
+        const storage = firebase.storage();
+    </script>
+    
+    <!-- We also need to add Cropper.js for Part 3 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
+
+    <!-- This links to our *new* JS file -->
+    <script src="form.js"></script>
+    <!-- ====================================================== -->
+    <!-- END: FIREBASE SCRIPT BLOCK -->
+    <!-- ====================================================== -->
+</body>
+</html>
