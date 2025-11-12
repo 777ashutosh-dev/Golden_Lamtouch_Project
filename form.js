@@ -288,8 +288,11 @@ document.addEventListener('DOMContentLoaded', () => {
                             <!-- Upload Widget -->
                             <div class="flex-1 flex flex-col gap-3">
                                 <!-- This is the preview box -->
-                                <div id="${fieldId}-preview-box" class="hidden items-center justify-center w-36 h-48 rounded-lg bg-background-dark border border-primary">
+                                <div id="${fieldId}-preview-box" class="hidden relative w-36 h-48 rounded-lg bg-background-dark border border-border-dark">
                                     <img id="${fieldId}-preview-img" src="" alt="Your Crop" class="w-full h-full object-cover rounded-lg">
+                                    <button type="button" class="discard-image-btn absolute top-1 right-1 p-0.5 bg-black/60 rounded-full text-white hover:bg-red-500" data-field-id="${fieldId}" data-field-name="${field.fieldName}">
+                                        <span class="material-symbols-outlined text-lg">close</span>
+                                    </button>
                                 </div>
                                 <!-- This is the initial state -->
                                 <div id="${fieldId}-upload-box" class="flex flex-col gap-3">
@@ -373,6 +376,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 const fieldId = button.dataset.fieldId;
                 const fieldName = button.dataset.fieldName;
                 startCamera(fieldId, fieldName);
+            };
+        });
+
+        // --- 3. (NEW - Baby Step 73d) "Discard" buttons ---
+        document.querySelectorAll('.discard-image-btn').forEach(button => {
+            // (FIX) Remove old listeners
+            button.onclick = () => {
+                const fieldId = button.dataset.fieldId;
+                const fieldName = button.dataset.fieldName;
+
+                // 1. Hide preview, show upload box
+                document.getElementById(`${fieldId}-preview-box`).classList.add('hidden');
+                document.getElementById(`${fieldId}-upload-box`).classList.remove('hidden');
+
+                // 2. Clear the error message
+                document.getElementById(`${fieldId}-error`).textContent = '';
+
+                // 3. Delete the image from memory
+                if (currentImageBlobs[fieldName]) {
+                    delete currentImageBlobs[fieldName];
+                }
             };
         });
     }
