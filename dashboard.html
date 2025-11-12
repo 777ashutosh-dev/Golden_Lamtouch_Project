@@ -13,7 +13,7 @@
 
 <body class="bg-background-dark font-display text-white">
     <div class="relative flex min-h-screen w-full">
-        <!-- SideNavBar -->
+        <!-- SideNavBar (No changes) -->
         <aside
             class="flex h-screen w-64 flex-col bg-surface-dark p-4 border-r border-border-dark sticky top-0 overflow-y-auto">
             <div class="flex flex-col gap-8">
@@ -32,9 +32,9 @@
                         <p class="text-sm font-semibold leading-normal">Dashboard</p>
                     </a>
                     
-                    <!-- Link 2: Form Management (This is the line we will change) -->
+                    <!-- Link 2: Form Management -->
                     <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 text-gray-300" 
-                       href="form-management.html"> 
+                        href="form-management.html"> 
                         <span class="material-symbols-outlined">description</span>
                         <p class="text-sm font-medium leading-normal">Form Management</p>
                     </a>
@@ -75,7 +75,7 @@
             </div>
         </aside>
 
-        <!-- Main Content -->
+        <!-- Main Content (All new M15 HTML) -->
         <main class="flex-1 flex-col p-8 overflow-y-auto h-screen">
             <div class="flex flex-col gap-8">
                 <!-- PageHeading -->
@@ -86,125 +86,149 @@
                             control panel.</p>
                     </div>
                 </div>
-                <!-- Stats -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <!-- Card 1: Total Forms -->
-                    <div class="flex flex-col gap-2 rounded-xl p-6 bg-surface-dark border border-border-dark">
-                        <p class="text-gray-300 text-base font-medium leading-normal">Total Forms</p>
-                        <p class="text-white text-3xl font-bold leading-tight" id="total-forms-display">43</p>
-                    </div>
-                    
-                    <!-- Card 2: OTPs -->
-                    <div class="flex flex-col gap-2 rounded-xl p-6 bg-surface-dark border border-border-dark">
-                        <p class="text-gray-300 text-base font-medium leading-normal">OTPs</p>
-                        <div class="flex items-baseline gap-4">
-                            <div class="flex items-baseline gap-2">
-                                <p class="text-white text-3xl font-bold leading-tight" id="otps-generated-display">2000</p>
-                                <span class="text-gray-400 text-sm">Generated</span>
-                            </div>
-                            <div class="flex items-baseline gap-2">
-                                <p class="text-white text-3xl font-bold leading-tight" id="otps-used-display">1500</p>
-                                <span class="text-gray-400 text-sm">Used</span>
-                            </div>
-                        </div>
-                    </div>
 
-                    <!-- Card 3: Total Submissions -->
+                <!-- 
+                  ======================================================
+                  START: M15 - Part A: New "Today's Submissions" Card
+                  ======================================================
+                -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- We only have one card now, but we keep the grid for future expansion -->
                     <div class="flex flex-col gap-2 rounded-xl p-6 bg-surface-dark border border-border-dark">
-                        <p class="text-gray-300 text-base font-medium leading-normal">Total Submissions</p>
-                        <p class="text-white text-3xl font-bold leading-tight" id="total-submissions-display">12,450</p>
+                        <!-- This card will show date AND count -->
+                        <p class="text-gray-300 text-base font-medium leading-normal" id="today-date-display">Loading date...</p>
+                        <p class="text-white text-3xl font-bold leading-tight" id="today-count-display">0</p>
+                        <p class="text-gray-400 text-sm">Total Submissions Today</p>
+                    </div>
+                    <!-- The other two cards ("OTPs" and "Total Submissions") are now DELETED -->
+                </div>
+                <!-- ======================================================
+                     END: M15 - Part A
+                     ====================================================== -->
+
+                
+                <!-- 
+                  ======================================================
+                  START: M15 - Part B: New "Tabbed UI"
+                  ======================================================
+                -->
+                <div class="flex flex-col gap-4">
+                    <!-- Tab Buttons -->
+                    <nav class="flex border-b border-border-dark">
+                        <!-- Tab 1: Form Analytics (Default) -->
+                        <button id="analytics-tab-button"
+                            class="flex items-center gap-2 px-4 py-3 border-b-2 border-primary text-primary text-sm font-medium">
+                            <span class="material-symbols-outlined text-lg">bar_chart</span>
+                            <span>Form Analytics</span>
+                        </button>
+                        <!-- Tab 2: OTP Lookup -->
+                        <button id="lookup-tab-button"
+                            class="flex items-center gap-2 px-4 py-3 border-b-2 border-transparent text-gray-400 hover:text-white text-sm font-medium">
+                            <span class="material-symbols-outlined text-lg">pin</span>
+                            <span>OTP Lookup</span>
+                        </button>
+                    </nav>
+
+                    <!-- Tab Content Panes -->
+                    <div class="pt-4">
+                        <!-- 
+                          ======================================================
+                          START: M15 - Part C: "Form Analytics" Pane (Visible by default)
+                          ======================================================
+                        -->
+                        <div id="analytics-pane" class="flex flex-col gap-4">
+                            <!-- Filter Bar -->
+                            <div class="flex flex-wrap items-center gap-2">
+                                <button data-filter="today" class="analytics-filter-btn px-3 py-1.5 text-sm font-medium rounded-lg bg-primary/20 text-primary">Today</button>
+                                <button data-filter="7day" class="analytics-filter-btn px-3 py-1.5 text-sm font-medium rounded-lg text-gray-300 hover:bg-white/10">Last 7 Days</button>
+                                <button data-filter="15day" class="analytics-filter-btn px-3 py-1.5 text-sm font-medium rounded-lg text-gray-300 hover:bg-white/10">15 Days</button>
+                                <button data-filter="30day" class="analytics-filter-btn px-3 py-1.5 text-sm font-medium rounded-lg text-gray-300 hover:bg-white/10">1 Month</button>
+                                <button data-filter="6month" class="analytics-filter-btn px-3 py-1.5 text-sm font-medium rounded-lg text-gray-300 hover:bg-white/10">6 Months</button>
+                                <button data-filter="all" class="analytics-filter-btn px-3 py-1.5 text-sm font-medium rounded-lg text-gray-300 hover:bg-white/10">All Time</button>
+                            </div>
+                            
+                            <!-- New "Constant Table" for Analytics -->
+                            <div class="rounded-xl bg-surface-dark border border-border-dark overflow-hidden">
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-left">
+                                        <thead>
+                                            <tr class="border-b border-border-dark">
+                                                <th class="px-6 py-3 text-sm font-semibold text-gray-400">Rank</th>
+                                                <th class="px-6 py-3 text-sm font-semibold text-gray-400">Form Name</th>
+                                                <th class="px-6 py-3 text-sm font-semibold text-gray-400">Group</th>
+                                                <th class="px-6 py-3 text-sm font-semibold text-gray-400">Submissions (Period)</th>
+                                                <!-- Sortable Column -->
+                                                <th id="sort-total-btn" class="px-6 py-3 text-sm font-semibold text-gray-400 cursor-pointer hover:text-white flex items-center gap-1">
+                                                    <span>Total Submissions</span>
+                                                    <span class="material-symbols-outlined text-base">unfold_more</span>
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="analytics-table-body">
+                                            <tr>
+                                                <td colspan="5" class="p-6 text-center text-gray-500">Loading analytics...</td>
+                                            </tr>
+                                            <!-- JS will fill this with ALL forms -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- ======================================================
+                             END: M15 - Part C
+                             ====================================================== -->
+
+                        <!-- 
+                          ======================================================
+                          START: M15 - Part D: "OTP Lookup" Pane (Hidden by default)
+                          ======================================================
+                        -->
+                        <div id="lookup-pane" class="hidden flex-col gap-4">
+                            <!-- OTP Search Bar -->
+                            <div class="relative w-full max-w-sm">
+                                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1.5 text-gray-400">pin</span>
+                                <input id="otp-search-input" class="w-full h-10 pl-10 pr-4 rounded-lg bg-surface-dark border border-border-dark text-white placeholder-gray-500 focus:ring-primary focus:border-primary text-sm" placeholder="Search by OTP..." type="text" />
+                            </div>
+
+                            <!-- OTP Results Table (Hidden by default) -->
+                            <div id="otp-results-container" class="hidden rounded-xl bg-surface-dark border border-border-dark overflow-hidden">
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-left">
+                                        <thead>
+                                            <tr class="border-b border-border-dark">
+                                                <th class="px-6 py-3 text-sm font-semibold text-gray-400">Serial No</th>
+                                                <th class="px-6 py-3 text-sm font-semibold text-gray-400">Name</th>
+                                                <th class="px-6 py-3 text-sm font-semibold text-gray-400">Form</th>
+                                                <th class="px-6 py-3 text-sm font-semibold text-gray-400">OTP</th>
+                                                <th class="px-6 py-3 text-sm font-semibold text-gray-400">Submission Date</th>
+                                                <th class="px-6 py-3 text-sm font-semibold text-gray-400">Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="otp-results-table-body">
+                                            <!-- JS will fill this with the ONE result -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <!-- Message for no results -->
+                            <p id="otp-no-results-message" class="hidden text-gray-500 text-center p-6">No submission found with that OTP.</p>
+                        </div>
+                        <!-- ======================================================
+                             END: M15 - Part D
+                             ====================================================== -->
+
                     </div>
                 </div>
-                <!-- Toolbar and Table Section -->
-                <div class="flex flex-col gap-4 rounded-xl bg-surface-dark border border-border-dark">
-                    <!-- ToolBar -->
-                    <div class="flex flex-wrap justify-between items-center gap-4 px-6 pt-4">
-                        <div class="relative w-full max-w-sm">
-                            <span
-                                class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">search</span>
-                            <input
-                                class="w-full h-10 pl-10 pr-4 rounded-lg bg-background-dark border border-border-dark text-white placeholder-gray-500 focus:ring-primary focus:border-primary text-sm"
-                                placeholder="Search by OTP..." type="text" />
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <button
-                                class="flex items-center justify-center h-10 px-4 rounded-lg bg-background-dark border border-border-dark text-sm text-gray-300 hover:bg-white/5 gap-2">
-                                <span>Form</span>
-                                <span class="material-symbols-outlined text-base">arrow_drop_down</span>
-                            </button>
-                            <button
-                                class="flex items-center justify-center h-10 px-4 rounded-lg bg-background-dark border border-border-dark text-sm text-gray-300 hover:bg-white/5 gap-2">
-                                <span>Name</span>
-                                <span class="material-symbols-outlined text-base">arrow_drop_down</span>
-                            </button>
-                        </div>
-                    </div>
-                    <!-- Table -->
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left">
-                            <thead>
-                                <tr class="border-b border-border-dark">
-                                    <th class="px-6 py-3 text-sm font-semibold text-gray-400">Serial No</th>
-                                    <th class="px-6 py-3 text-sm font-semibold text-gray-400">Name</th>
-                                    <th class="px-6 py-3 text-sm font-semibold text-gray-400">Form</th>
-                                    <th class="px-6 py-3 text-sm font-semibold text-gray-400">OTP</th>
-                                    <th class="px-6 py-3 text-sm font-semibold text-gray-400">Submission Date</th>
-                                    <th class="px-6 py-3 text-sm font-semibold text-gray-400">Status</th>
-                                </tr>
-                            </thead>
-                            <!-- This is our "target" for the data rows. -->
-                            <tbody id="submission-table-body">
-                                <!-- 
-                                    Our dashboard.js file will automatically delete 
-                                    these placeholder rows and add the live data.
-                                -->
-                                <tr class="border-b border-border-dark hover:bg-white/5">
-                                    <td class="px-6 py-4 text-sm font-medium text-gray-300">250001</td>
-                                    <td class="px-6 py-4 text-sm text-white">Ashutosh RK</td>
-                                    <td class="px-6 py-4 text-sm text-gray-300">XYZ</td>
-                                    <td class="px-6 py-4 text-sm text-gray-300">A5X5T7</td>
-                                    <td class="px-6 py-4 text-sm text-gray-300">2024-06-25 12:11</td>
-                                    <td class="px-6 py-4 text-sm"><span
-                                            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-500/20 text-green-400">Submitted</span>
-                                    </td>
-                                </tr>
-                                <tr class="border-b border-border-dark hover:bg-white/5">
-                                    <td class="px-6 py-4 text-sm font-medium text-gray-300">250002</td>
-                                    <td class="px-6 py-4 text-sm text-white">Hetal Shah</td>
-                                    <td class="px-6 py-4 text-sm text-gray-300">XYZ</td>
-                                    <td class="px-6 py-4 text-sm text-gray-300">A5X5T9</td>
-                                    <td class="px-6 py-4 text-sm text-gray-300">2024-06-26 11:29</td>
-                                    <td class="px-6 py-4 text-sm"><span
-                                            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-500/20 text-red-400">Rejected</span>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <!-- Pagination -->
-                    <div class="flex items-center justify-between p-4 border-t border-border-dark">
-                        <span class="text-sm text-gray-400">Showing 1 to 2 of 2 results</span>
-                        <div class="flex items-center gap-2">
-                            <button
-                                class="flex items-center justify-center h-8 w-8 rounded-md border border-border-dark bg-background-dark text-gray-300 hover:bg-white/5"
-                                disabled>
-                                <span class="material-symbols-outlined text-lg">chevron_left</span>
-                            </button>
-                            <button
-                                class="flex items-center justify-center h-8 w-8 rounded-md border border-border-dark bg-primary text-background-dark text-sm font-bold">1</button>
-                            <button
-                                class="flex items-center justify-center h-8 w-8 rounded-md border border-border-dark bg-background-dark text-gray-300 hover:bg-white/5"
-                                disabled>
-                                <span class="material-symbols-outlined text-lg">chevron_right</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                <!-- ======================================================
+                     END: M15 - Part B
+                     ====================================================== -->
+
             </div>
         </main>
     </div>
+    
     <!-- ====================================================== -->
-    <!-- START: FIREBASE SCRIPT BLOCK -->
+    <!-- START: FIREBASE SCRIPT BLOCK (No changes) -->
     <!-- ====================================================== -->
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
@@ -225,6 +249,7 @@
         const storage = firebase.storage();
     </script>
     <script src="auth-guard.js"></script>
+    <!-- This links to our *old* JS file, which will be broken. This is OK. -->
     <script src="dashboard.js"></script>
     <!-- ====================================================== -->
     <!-- END: FIREBASE SCRIPT BLOCK -->
