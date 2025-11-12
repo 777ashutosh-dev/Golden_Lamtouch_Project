@@ -5,13 +5,29 @@
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>Golden Lamtouch - Form Submission</title>
     
-    <!-- This links to our *existing* compiled stylesheet -->
     <link rel="stylesheet" href="style.css">
 
     <link href="https://fonts.googleapis.com" rel="preconnect" />
     <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&amp;display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+
+    <!-- 
+      ======================================================
+      START: NEW LIBRARIES FOR BABY STEP 73a
+      ======================================================
+    -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css" />
+    <style>
+        /* This makes the cropper image visible */
+        .cropper-container img {
+            max-width: 100%;
+        }
+    </style>
+    <!-- ======================================================
+         END: NEW LIBRARIES
+         ====================================================== -->
+
 </head>
 
 <body class="bg-background-dark font-display text-white antialiased">
@@ -30,8 +46,7 @@
 
         <!-- 
           ======================================================
-          START: M16 - Part 1: The "OTP Gate"
-          This is visible by default.
+          M16 - Part 1: The "OTP Gate" (Already built)
           ======================================================
         -->
         <div id="otp-gate-container" class="w-full max-w-md rounded-xl bg-surface-dark p-8 shadow-2xl border border-border-dark">
@@ -39,7 +54,6 @@
                 <h2 class="text-xl font-semibold text-white">Please Enter Your Code</h2>
                 <p class="text-sm text-gray-400">You need a valid, one-time code to access this form.</p>
                 
-                <!-- OTP Input -->
                 <div>
                     <label class="pb-2 text-sm font-medium text-gray-300" for="otp-input">Enter 6-Digit Code</label>
                     <input class="form-input h-12 w-full mt-2 min-w-0 flex-1 resize-none overflow-hidden rounded-lg border border-border-dark bg-background-dark p-3 text-lg font-medium tracking-widest text-white text-center placeholder:text-gray-600 focus:border-primary focus:outline-0 focus:ring-2 focus:ring-primary/50" 
@@ -49,7 +63,6 @@
                            maxlength="6" />
                 </div>
                 
-                <!-- Verify Button -->
                 <div class="flex flex-col pt-2">
                     <button class="flex h-12 min-w-[84px] w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg bg-primary px-5 text-base font-bold leading-normal tracking-[0.015em] text-background-dark transition-colors hover:bg-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 focus:ring-offset-surface-dark" 
                             id="verify-otp-button" 
@@ -58,34 +71,27 @@
                     </button>
                 </div>
                 
-                <!-- Error Message -->
                 <span id="otp-error-message" class="text-sm text-red-400 h-4 mt-1 text-center"></span>
             </div>
         </div>
-        <!-- ======================================================
-             END: M16 - Part 1
-             ====================================================== -->
         
         
         <!-- 
           ======================================================
-          START: M16 - Part 2: The "Form Content"
+          M16 - Part 2: The "Form Content" (Already built)
           This is HIDDEN by default.
           ======================================================
         -->
         <div id="form-content-container" class="hidden w-full max-w-3xl rounded-xl bg-surface-dark p-8 shadow-2xl border border-border-dark">
             
-            <!-- Warning Note (from your idea) -->
             <div id="pro-photo-warning" class="hidden p-4 mb-6 rounded-lg bg-yellow-500/10 border border-yellow-500/30">
                 <p class="text-sm text-yellow-300"><span class="font-bold">Photo Requirement:</span> Please upload a professional, passport-style photo. No hats, glasses, or shades.</p>
             </div>
 
-            <!-- This is where our JS will build the form fields -->
             <div id="dynamic-form-fields" class="flex flex-col gap-6">
                 <!-- JS will add fields here -->
             </div>
 
-            <!-- Submit Button -->
             <div class="flex flex-col pt-8 mt-8 border-t border-border-dark">
                 <button class="flex h-12 min-w-[84px] w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg bg-primary px-5 text-base font-bold leading-normal tracking-[0.015em] text-background-dark transition-colors hover:bg-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 focus:ring-offset-surface-dark" 
                         id="submit-form-button" 
@@ -95,11 +101,61 @@
             </div>
             
         </div>
-        <!-- ======================================================
-             END: M16 - Part 2
-             ====================================================== -->
         
     </div>
+
+    <!-- 
+      ======================================================
+      START: NEW HTML FOR BABY STEP 73a
+      This is the new "Cropper Modal" and "Camera Modal"
+      They are hidden by default.
+      ======================================================
+    -->
+    
+    <!-- Modal 1: The Image Cropper -->
+    <div id="cropper-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+        <!-- Modal Content -->
+        <div class="bg-surface-dark rounded-xl shadow-2xl border border-border-dark w-full max-w-lg">
+            <!-- Modal Header -->
+            <div class="flex justify-between items-center p-6 border-b border-border-dark">
+                <h3 class="text-xl font-semibold text-white">Crop Your Photo</h3>
+                <button id="close-cropper-button" class="p-1 rounded-full text-gray-400 hover:bg-white/10 hover:text-white">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <!-- Modal Body -->
+            <div class="p-6">
+                <p class="text-sm text-gray-400 mb-4">Please crop your photo to a passport-style ratio. (3:4)</p>
+                <div class="w-full h-64 bg-background-dark rounded-lg">
+                    <!-- Cropper.js will attach to this image -->
+                    <img id="cropper-image" src="" alt="Image to crop">
+                </div>
+            </div>
+            <!-- Modal Footer -->
+            <div class="flex justify-end items-center gap-4 p-6 border-t border-border-dark">
+                <button id="save-crop-button"
+                    class="flex cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-lg h-10 bg-primary text-background-dark px-4 text-sm font-bold leading-normal tracking-[0.015em]">
+                    <span class="material-symbols-outlined text-lg">crop</span>
+                    <span class="truncate">Crop and Save</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal 2: The Camera Overlay -->
+    <div id="camera-modal" class="hidden fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/90 p-4">
+        <video id="camera-video" class="w-full max-w-lg rounded-lg" autoplay playsinline></video>
+        <button id="capture-photo-button" class="mt-4 flex h-16 w-16 items-center justify-center rounded-full bg-white ring-4 ring-white/30">
+            <span class="material-symbols-outlined text-4xl text-black">camera</span>
+        </button>
+        <button id="close-camera-button" class="absolute top-4 right-4 p-2 rounded-full bg-white/10 text-white">
+            <span class="material-symbols-outlined">close</span>
+        </button>
+    </div>
+    <!-- ======================================================
+         END: NEW HTML FOR BABY STEP 73a
+         ====================================================== -->
+
 
     <!-- ====================================================== -->
     <!-- START: FIREBASE SCRIPT BLOCK -->
@@ -118,16 +174,13 @@
             appId: "1:528955254323:web:e71517dab7fcb78b842546"
         };
         const app = firebase.initializeApp(firebaseConfig);
-        // This is a public page, so we don't need auth
         const db = firebase.firestore();
         const storage = firebase.storage();
     </script>
     
-    <!-- We also need to add Cropper.js for Part 3 -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css" />
+    <!-- (NEW) This is the Cropper.js library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
 
-    <!-- This links to our *new* JS file -->
     <script src="form.js"></script>
     <!-- ====================================================== -->
     <!-- END: FIREBASE SCRIPT BLOCK -->
