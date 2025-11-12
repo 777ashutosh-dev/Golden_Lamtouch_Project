@@ -91,10 +91,10 @@
                     </div>
                 </div>
 
-                <!-- NEW Toolbar for Groups and Sorting -->
+                <!-- NEW Toolbar for Groups and Sorting (This is all new) -->
                 <div class="flex flex-wrap items-center justify-between gap-4">
                     <!-- Left Side: Group Filters -->
-                    <div class="flex items-center gap-2">
+                    <div class="flex flex-wrap items-center gap-2">
                         <label for="group-filter-select" class="text-sm font-medium text-gray-300">View by Group:</label>
                         <select id="group-filter-select" class="w-48 h-10 px-4 rounded-lg bg-surface-dark border border-border-dark text-white focus:ring-primary focus:border-primary text-sm">
                             <option value="all">All Groups</option>
@@ -144,6 +144,81 @@
             </div>
         </main>
     </div>
+
+    <!-- 
+      ======================================================
+      NEW HIDDEN MODAL (POP-UP) FOR "CREATE GROUP"
+      It is "hidden" by default.
+      ======================================================
+    -->
+    <div id="create-group-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+        <!-- Modal Content -->
+        <div class="bg-surface-dark rounded-xl shadow-2xl border border-border-dark w-full max-w-md">
+            <!-- Modal Header -->
+            <div class="flex justify-between items-center p-6 border-b border-border-dark">
+                <h3 class="text-xl font-semibold text-white">Create a New Group</h3>
+                <button id="close-create-modal-button" class="p-1 rounded-full text-gray-400 hover:bg-white/10 hover:text-white">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <!-- Modal Body -->
+            <div class="p-6">
+                <div class="flex flex-col gap-2">
+                    <label for="group-name-input" class="text-sm font-medium text-gray-300">Group Name</label>
+                    <input id="group-name-input" type="text" placeholder="e.g., 'Schools' or 'Corporate Clients'"
+                        class="w-full h-10 px-4 rounded-lg bg-background-dark border border-border-dark text-white placeholder-gray-500 focus:ring-primary focus:border-primary text-sm" />
+                    <span id="create-group-error-message" class="text-sm text-red-400 h-4 mt-1"></span>
+                </div>
+            </div>
+            <!-- Modal Footer -->
+            <div class="flex justify-end items-center gap-4 p-6 border-t border-border-dark">
+                <button id="cancel-create-modal-button"
+                    class="h-10 px-4 rounded-lg bg-surface-dark border border-border-dark text-sm text-gray-300 hover:bg-white/10">
+                    Cancel
+                </button>
+                <button id="save-group-button"
+                    class="flex cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-lg h-10 bg-primary text-background-dark px-4 text-sm font-bold leading-normal tracking-[0.015em]">
+                    <span class="truncate">Save Group</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 
+      ======================================================
+      NEW HIDDEN MODAL (POP-UP) FOR "MANAGE GROUPS"
+      It is "hidden" by default.
+      ======================================================
+    -->
+    <div id="manage-groups-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+        <!-- Modal Content -->
+        <div class="bg-surface-dark rounded-xl shadow-2xl border border-border-dark w-full max-w-md">
+            <!-- Modal Header -->
+            <div class="flex justify-between items-center p-6 border-b border-border-dark">
+                <h3 class="text-xl font-semibold text-white">Manage Groups</h3>
+                <button id="close-manage-modal-button" class="p-1 rounded-full text-gray-400 hover:bg-white/10 hover:text-white">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <!-- Modal Body -->
+            <div class="p-6">
+                <p class="text-sm text-gray-400 mb-4">Click the trash icon to delete a group. This will not delete any forms, it will only un-assign them from this group.</p>
+                <!-- This is where our JS will add the list of groups -->
+                <div id="group-list-container" class="flex flex-col gap-3 max-h-60 overflow-y-auto">
+                    <!-- Example of a row (JS will build this):
+                    <div class="flex justify-between items-center p-3 bg-background-dark rounded-lg">
+                        <span class="text-white">Schools</span>
+                        <button class="p-1 text-gray-500 hover:text-red-500">
+                            <span class="material-symbols-outlined">delete</span>
+                        </button>
+                    </div>
+                    -->
+                    <p id="no-groups-message" class="text-gray-500 text-center">No groups created yet.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
 
     <!-- ====================================================== -->
     <!-- START: FIREBASE SCRIPT BLOCK -->
