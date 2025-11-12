@@ -147,8 +147,7 @@
 
     <!-- 
       ======================================================
-      NEW HIDDEN MODAL (POP-UP) FOR "CREATE GROUP"
-      It is "hidden" by default.
+      Modal (Pop-up) for "Create Group"
       ======================================================
     -->
     <div id="create-group-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
@@ -186,8 +185,7 @@
 
     <!-- 
       ======================================================
-      NEW HIDDEN MODAL (POP-UP) FOR "MANAGE GROUPS"
-      It is "hidden" by default.
+      Modal (Pop-up) for "Manage Groups"
       ======================================================
     -->
     <div id="manage-groups-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
@@ -218,6 +216,51 @@
             </div>
         </div>
     </div>
+    
+    <!-- 
+      ======================================================
+      START: NEW HIDDEN MODAL (POP-UP) FOR "ASSIGN GROUP"
+      This is the *only* new HTML block for this step.
+      It is "hidden" by default.
+      ======================================================
+    -->
+    <div id="assign-group-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+        <!-- Modal Content -->
+        <div class="bg-surface-dark rounded-xl shadow-2xl border border-border-dark w-full max-w-md">
+            <!-- Modal Header -->
+            <div class="flex justify-between items-center p-6 border-b border-border-dark">
+                <h3 class="text-xl font-semibold text-white">Assign Group for <span id="assign-form-name" class="text-primary"></span></h3>
+                <button id="close-assign-modal-button" class="p-1 rounded-full text-gray-400 hover:bg-white/10 hover:text-white">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <!-- Modal Body -->
+            <div class="p-6">
+                <div class="flex flex-col gap-2">
+                    <label for="assign-group-select" class="text-sm font-medium text-gray-300">Select a Group</label>
+                    <select id="assign-group-select" class="w-full h-10 px-4 rounded-lg bg-background-dark border border-border-dark text-white focus:ring-primary focus:border-primary text-sm">
+                        <option value="none">No Group (Un-assign)</option>
+                        <!-- JavaScript will fill this list with our groups -->
+                    </select>
+                    <span id="assign-group-error-message" class="text-sm text-red-400 h-4 mt-1"></span>
+                </div>
+            </div>
+            <!-- Modal Footer -->
+            <div class="flex justify-end items-center gap-4 p-6 border-t border-border-dark">
+                <button id="cancel-assign-modal-button"
+                    class="h-10 px-4 rounded-lg bg-surface-dark border border-border-dark text-sm text-gray-300 hover:bg-white/10">
+                    Cancel
+                </button>
+                <button id="save-assign-button"
+                    class="flex cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-lg h-10 bg-primary text-background-dark px-4 text-sm font-bold leading-normal tracking-[0.015em]">
+                    <span class="truncate">Save Assignment</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- ======================================================
+         END: NEW HIDDEN MODAL
+         ====================================================== -->
 
 
     <!-- ====================================================== -->
