@@ -14,7 +14,7 @@
 
     <!-- 
       ======================================================
-      Cropper.js Libraries (from Baby Step 73a)
+      Cropper.js Libraries
       ======================================================
     -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css" />
@@ -25,8 +25,8 @@
         }
     </style>
     <!-- ======================================================
-         END: Cropper.js Libraries
-         ====================================================== -->
+          END: Cropper.js Libraries
+          ====================================================== -->
 
 </head>
 
@@ -57,10 +57,10 @@
                 <div>
                     <label class="pb-2 text-sm font-medium text-gray-300" for="otp-input">Enter 6-Digit Code</label>
                     <input class="form-input h-12 w-full mt-2 min-w-0 flex-1 resize-none overflow-hidden rounded-lg border border-border-dark bg-background-dark p-3 text-lg font-medium tracking-widest text-white text-center placeholder:text-gray-600 focus:border-primary focus:outline-0 focus:ring-2 focus:ring-primary/50" 
-                           id="otp-input" 
-                           placeholder="A B C 1 2 3" 
-                           type="text" 
-                           maxlength="6" />
+                            id="otp-input" 
+                            placeholder="A B C 1 2 3" 
+                            type="text" 
+                            maxlength="6" />
                 </div>
                 
                 <div class="flex flex-col pt-2">
@@ -90,10 +90,14 @@
             <span id="submit-error-message" class="text-sm text-red-400 h-4 mt-4 text-center block"></span>
 
             <div class="flex flex-col pt-4 mt-4 border-t border-border-dark">
+                <!-- 
+                  (CHANGE - 75b) This button no longer submits.
+                  It validates and opens the "Preview Modal".
+                -->
                 <button class="flex h-12 min-w-[84px] w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg bg-primary px-5 text-base font-bold leading-normal tracking-[0.015em] text-background-dark transition-colors hover:bg-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 focus:ring-offset-surface-dark" 
                         id="submit-form-button" 
                         type="button">
-                    <span class="truncate">Submit Form</span>
+                    <span class="truncate">Preview & Submit</span>
                 </button>
             </div>
             
@@ -103,7 +107,7 @@
 
     <!-- 
       ======================================================
-      Cropper & Camera Modals (from Baby Step 73a)
+      Cropper & Camera Modals
       ======================================================
     -->
     
@@ -129,7 +133,7 @@
             <!-- Modal Footer -->
             <div class="flex justify-end items-center gap-4 p-6 border-t border-border-dark">
                 <button id="save-crop-button"
-                    class="flex cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-lg h-10 bg-primary text-background-dark px-4 text-sm font-bold leading-normal tracking-[0.015em]">
+                        class="flex cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-lg h-10 bg-primary text-background-dark px-4 text-sm font-bold leading-normal tracking-[0.015em]">
                     <span class="material-symbols-outlined text-lg">crop</span>
                     <span class="truncate">Crop and Save</span>
                 </button>
@@ -148,15 +152,64 @@
         </button>
     </div>
     <!-- ======================================================
-         END: Cropper & Camera Modals
-         ====================================================== -->
+          END: Cropper & Camera Modals
+          ====================================================== -->
 
     
     <!-- 
       ======================================================
-      (DELETED) The buggy "global-file-input" is now GONE.
+      NEW: M16 - Part 4: The "Preview Modal" (Baby Step 75a)
       ======================================================
     -->
+    <div id="preview-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+        <!-- Modal Content -->
+        <div class="bg-surface-dark rounded-xl shadow-2xl border border-border-dark w-full max-w-2xl flex flex-col max-h-[90vh]">
+            <!-- Modal Header -->
+            <div class="flex justify-between items-center p-6 border-b border-border-dark flex-shrink-0">
+                <h3 class="text-xl font-semibold text-white">Confirm Your Details</h3>
+                <button id="close-preview-button" class="p-1 rounded-full text-gray-400 hover:bg-white/10 hover:text-white">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            
+            <!-- Modal Body (Scrollable) -->
+            <div class="p-6 overflow-y-auto">
+                <p class="text-sm text-yellow-300 mb-4">Please review all your details carefully. This action is final.</p>
+                <!-- This container will be filled by JS -->
+                <div id="preview-data-container" class="flex flex-col gap-4">
+                    <!-- JS will generate preview rows here -->
+                    <!-- 
+                      Example of a text row:
+                      <div>
+                        <p class="text-xs text-gray-400">Candidate Name</p>
+                        <p class="text-base text-white font-medium">Ashutosh</p>
+                      </div>
+                      Example of an image row:
+                      <div>
+                        <p class="text-xs text-gray-400">Photo</p>
+                        <img src="..." class="w-32 h-40 object-cover rounded-lg mt-2 border border-border-dark">
+                      </div>
+                    -->
+                </div>
+            </div>
+            
+            <!-- Modal Footer -->
+            <div class="flex justify-between items-center gap-4 p-6 border-t border-border-dark flex-shrink-0">
+                <button id="cancel-preview-button"
+                        class="h-10 px-4 rounded-lg bg-surface-dark border border-border-dark text-sm text-gray-300 hover:bg-white/10">
+                    Go Back & Edit
+                </button>
+                <button id="confirm-submit-button"
+                        class="flex cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-lg h-10 bg-primary text-background-dark px-4 text-sm font-bold leading-normal tracking-[0.015em]">
+                    <span class="material-symbols-outlined text-lg">task_alt</span>
+                    <span class="truncate">Confirm & Submit</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- ======================================================
+          END: "Preview Modal"
+          ====================================================== -->
 
 
     <!-- ====================================================== -->

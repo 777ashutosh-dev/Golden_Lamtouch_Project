@@ -1,11 +1,15 @@
 /*
-  M16 - The Public-Facing Form (Baby Step 74o - "Syntax Fix")
+  M16 - The Public-Facing Form (Baby Step 75b)
   -----------------------------
-  This file is identical to 74n, but removes a single
-  stray line of code (.catch) that was causing a syntax
-  error and disabling the entire file.
+  This file adds the "Preview Modal" logic.
   
-  This fixes the "dead" Verify OTP button.
+  1. ADDS new targets for the "Preview Modal".
+  2. ADDS a new global object 'collectedData' to hold form values.
+  3. CHANGES the 'submitFormButton' listener:
+     - It now validates, collects data, and opens the preview.
+  4. ADDS new 'confirmSubmitButton' listener:
+     - This button now holds all the Firebase submission logic.
+  5. ADDS 'populatePreviewModal' to build the preview.
 */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -21,6 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // This will hold our final data
     let currentImageBlobs = {};
+    let collectedData = {}; // (NEW - 75b)
     let currentImageField = null; 
 
     let cropper = null; 
@@ -57,6 +62,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const cameraVideo = document.getElementById('camera-video');
     const capturePhotoButton = document.getElementById('capture-photo-button');
     const closeCameraButton = document.getElementById('close-camera-button');
+
+    // (NEW - 75b) Part 4: "Preview Modal" Targets
+    const previewModal = document.getElementById('preview-modal');
+    const closePreviewButton = document.getElementById('close-preview-button');
+    const cancelPreviewButton = document.getElementById('cancel-preview-button');
+    const confirmSubmitButton = document.getElementById('confirm-submit-button');
+    const previewDataContainer = document.getElementById('preview-data-container');
 
 
     // =================================================================
@@ -660,41 +672,97 @@ document.addEventListener('DOMContentLoaded', () => {
             submitErrorMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
 
-        // --- THIS IS THE STRAY LINE THAT WAS REMOVED ---
-
         return isValid;
     }
 
+    // (NEW - 75b) Gathers data from the form and stores it
+    function collectDataForPreview() {
+        collectedData = {}; // Clear previous data
 
+        document.querySelectorAll('.field-input').forEach(input => {
+            const fieldName = input.dataset.fieldName;
+            collectedData[fieldName] = input.value || '';
+        });
+        
+        document.querySelectorAll('.field-input-checkbox').forEach(input => {
+            const fieldName = input.dataset.fieldName;
+            collectedData[fieldName] = input.checked;
+        });
+        
+        document.querySelectorAll('input[type="radio"]:checked').forEach(input => {
+            const fieldName = input.dataset.fieldName;
+            collectedData[fieldName] = input.value;
+        });
+    }
+
+    // (NEW - 75b) Builds the HTML for the preview modal
+    function populatePreviewModal() {
+        previewDataContainer.innerHTML = ''; // Clear old data
+
+        formFields.forEach(field => {
+            if (field.dataType === 'hidden' || field.dataType === 'header') return;
+
+            const fieldName = field.fieldName;
+            let valueHTML = '';
+
+            if (field.dataType === 'image' || field.dataType === 'signature') {
+                const blob = currentImageBlobs[fieldName];
+                if (blob) {
+                    const url = URL.createObjectURL(blob);
+                    const aspectClass = field.dataType === 'signature' ? 'w-48 h-18' : 'w-32 h-40';
+                    valueHTML = `<img src="${url}" class="${aspectClass} object-cover rounded-lg mt-1 border border-border-dark">`;
+                } else {
+                    valueHTML = '<p class="text-base text-gray-500 font-medium">No image uploaded</p>';
+                }
+            } else {
+                let value = collectedData[fieldName];
+                if (typeof value === 'boolean') {
+                    value = value ? 'Yes' : 'No';
+                }
+                if (!value || value.trim() === '') {
+                    value = '<span class="text-gray-500">N/A</span>';
+                }
+                valueHTML = `<p class="text-base text-white font-medium">${value}</p>`;
+            }
+
+            const row = document.createElement('div');
+            row.innerHTML = `
+                <p class="text-xs text-gray-400 uppercase tracking-wide">${fieldName}</p>
+                ${valueHTML}
+            `;
+            previewDataContainer.appendChild(row);
+        });
+    }
+
+    // (CHANGED - 75b) This button now opens the preview
     if (submitFormButton) {
-        submitFormButton.addEventListener('click', async () => {
+        submitFormButton.addEventListener('click', () => {
             
             const isValid = validateForm();
             if (!isValid) {
                 return;
             }
             
-            submitFormButton.disabled = true;
-            submitFormButton.querySelector('.truncate').textContent = 'Submitting...';
+            // 1. Collect all data
+            collectDataForPreview();
+            
+            // 2. Build the modal HTML
+            populatePreviewModal();
+
+            // 3. Show the modal
+            previewModal.classList.remove('hidden');
+        });
+    }
+
+    // (NEW - 75b) This button does the *actual* submission
+    if (confirmSubmitButton) {
+        confirmSubmitButton.addEventListener('click', async () => {
+            
+            confirmSubmitButton.disabled = true;
+            confirmSubmitButton.querySelector('.truncate').textContent = 'Submitting...';
 
             try {
-                let textData = {};
-
-                document.querySelectorAll('.field-input').forEach(input => {
-                    const fieldName = input.dataset.fieldName;
-                    textData[fieldName] = input.value;
-                });
-                
-                document.querySelectorAll('.field-input-checkbox').forEach(input => {
-                    const fieldName = input.dataset.fieldName;
-                    textData[fieldName] = input.checked;
-                });
-                
-                document.querySelectorAll('input[type="radio"]:checked').forEach(input => {
-                    const fieldName = input.dataset.fieldName;
-                    textData[fieldName] = input.value;
-                });
-
+                // We already gathered text data, now just get image URLs
                 const imageURLs = {};
                 const uploadPromises = []; 
 
@@ -718,7 +786,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 await Promise.all(uploadPromises);
 
                 const finalSubmission = {
-                    ...textData,  
+                    ...collectedData,  // Use the data we already collected
                     ...imageURLs, 
                     formId: currentFormId,
                     otp: validOtpCode,
@@ -732,7 +800,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 await db.collection('otps').doc(validOtpDocId).update({
                     isUsed: true
                 });
-
+                
+                // Hide the modal
+                previewModal.classList.add('hidden');
+                
+                // Show the final success message
                 formContentContainer.innerHTML = `
                     <div class="flex flex-col items-center justify-center gap-4 p-8">
                         <span class="material-symbols-outlined text-6xl text-green-400">task_alt</span>
@@ -743,11 +815,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
             } catch (err) {
                 console.error("Error submitting form: ", err);
+                // We can show the error on the main page
+                previewModal.classList.add('hidden');
                 submitErrorMessage.textContent = 'An error occurred during submission. Please refresh the page and try again.';
 
-                submitFormButton.disabled = false;
-                submitFormButton.querySelector('.truncate').textContent = 'Submit Form';
+                confirmSubmitButton.disabled = false;
+                confirmSubmitButton.querySelector('.truncate').textContent = 'Confirm & Submit';
             }
+        });
+    }
+
+    // (NEW - 75b) Listeners for closing the preview modal
+    if (closePreviewButton) {
+        closePreviewButton.addEventListener('click', () => {
+            previewModal.classList.add('hidden');
+        });
+    }
+    if (cancelPreviewButton) {
+        cancelPreviewButton.addEventListener('click', () => {
+            previewModal.classList.add('hidden');
         });
     }
     
