@@ -90,10 +90,6 @@
             <span id="submit-error-message" class="text-sm text-red-400 h-4 mt-4 text-center block"></span>
 
             <div class="flex flex-col pt-4 mt-4 border-t border-border-dark">
-                <!-- 
-                  (CHANGE - 75b) This button no longer submits.
-                  It validates and opens the "Preview Modal".
-                -->
                 <button class="flex h-12 min-w-[84px] w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg bg-primary px-5 text-base font-bold leading-normal tracking-[0.015em] text-background-dark transition-colors hover:bg-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 focus:ring-offset-surface-dark" 
                         id="submit-form-button" 
                         type="button">
@@ -158,12 +154,15 @@
     
     <!-- 
       ======================================================
-      NEW: M16 - Part 4: The "Preview Modal" (Baby Step 75a)
+      M16 - Part 4: The "Preview Modal"
       ======================================================
     -->
     <div id="preview-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+        
         <!-- Modal Content -->
-        <div class="bg-surface-dark rounded-xl shadow-2xl border border-border-dark w-full max-w-2xl flex flex-col max-h-[90vh]">
+        <!-- (CHANGED) Added 'relative' and 'overflow-hidden' for the new overlay -->
+        <div class="bg-surface-dark rounded-xl shadow-2xl border border-border-dark w-full max-w-2xl flex flex-col max-h-[90vh] relative overflow-hidden">
+            
             <!-- Modal Header -->
             <div class="flex justify-between items-center p-6 border-b border-border-dark flex-shrink-0">
                 <h3 class="text-xl font-semibold text-white">Confirm Your Details</h3>
@@ -178,23 +177,11 @@
                 <!-- This container will be filled by JS -->
                 <div id="preview-data-container" class="flex flex-col gap-4">
                     <!-- JS will generate preview rows here -->
-                    <!-- 
-                      Example of a text row:
-                      <div>
-                        <p class="text-xs text-gray-400">Candidate Name</p>
-                        <p class="text-base text-white font-medium">Ashutosh</p>
-                      </div>
-                      Example of an image row:
-                      <div>
-                        <p class="text-xs text-gray-400">Photo</p>
-                        <img src="..." class="w-32 h-40 object-cover rounded-lg mt-2 border border-border-dark">
-                      </div>
-                    -->
                 </div>
             </div>
             
             <!-- Modal Footer -->
-            <div class="flex justify-between items-center gap-4 p-6 border-t border-border-dark flex-shrink-0">
+            <div classs="flex justify-between items-center gap-4 p-6 border-t border-border-dark flex-shrink-0">
                 <button id="cancel-preview-button"
                         class="h-10 px-4 rounded-lg bg-surface-dark border border-border-dark text-sm text-gray-300 hover:bg-white/10">
                     Go Back & Edit
@@ -205,6 +192,26 @@
                     <span class="truncate">Confirm & Submit</span>
                 </button>
             </div>
+
+            <!-- 
+              ======================================================
+              START: (NEW) Step 73a - "Vibe" Loading Overlay
+              ======================================================
+            -->
+            <div id="submission-overlay" class="hidden absolute inset-0 z-10 flex flex-col items-center justify-center gap-4 bg-black/60 backdrop-blur-sm">
+                <!-- Large Yellow Spinner -->
+                <svg class="animate-spin h-12 w-12 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <!-- Warning Text -->
+                <p class="text-lg font-medium text-white">Submitting...</p>
+                <p class="text-sm text-gray-300">Please do not refresh or close this page.</p>
+            </div>
+            <!-- ======================================================
+                 END: "Vibe" Loading Overlay
+                 ====================================================== -->
+
         </div>
     </div>
     <!-- ======================================================
@@ -235,6 +242,18 @@
     
     <!-- This is the Cropper.js library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
+    
+    <!-- 
+      ======================================================
+      NEW: M16 - Part 5: PDF Libraries (Baby Step 76a)
+      ======================================================
+    -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- ======================================================
+          END: PDF Libraries
+          ====================================================== -->
+
 
     <script src="form.js"></script>
     <!-- ====================================================== -->

@@ -1,15 +1,11 @@
 /*
-  M16 - The Public-Facing Form (Baby Step 75b)
+  M16 - The Public-Facing Form (Step 77 - Date Fix)
   -----------------------------
-  This file adds the "Preview Modal" logic.
-  
-  1. ADDS new targets for the "Preview Modal".
-  2. ADDS a new global object 'collectedData' to hold form values.
-  3. CHANGES the 'submitFormButton' listener:
-     - It now validates, collects data, and opens the preview.
-  4. ADDS new 'confirmSubmitButton' listener:
-     - This button now holds all the Firebase submission logic.
-  5. ADDS 'populatePreviewModal' to build the preview.
+  Updates:
+  1. (BUG FIX) Added "Submission Date" to the on-screen 'receiptHTML'
+     so it appears on the success screen.
+  2. (BUG FIX) Removed the duplicate date-adding logic from the
+     'generatePDF' function, as the PDF now clones the correct receipt.
 */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -25,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // This will hold our final data
     let currentImageBlobs = {};
-    let collectedData = {}; // (NEW - 75b)
+    let collectedData = {}; 
     let currentImageField = null; 
 
     let cropper = null; 
@@ -63,12 +59,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const capturePhotoButton = document.getElementById('capture-photo-button');
     const closeCameraButton = document.getElementById('close-camera-button');
 
-    // (NEW - 75b) Part 4: "Preview Modal" Targets
+    // Part 4: "Preview Modal" Targets
     const previewModal = document.getElementById('preview-modal');
     const closePreviewButton = document.getElementById('close-preview-button');
     const cancelPreviewButton = document.getElementById('cancel-preview-button');
     const confirmSubmitButton = document.getElementById('confirm-submit-button');
     const previewDataContainer = document.getElementById('preview-data-container');
+    
+    // Step 73b: The "Vibe" Overlay
+    const submissionOverlay = document.getElementById('submission-overlay');
 
 
     // =================================================================
@@ -255,7 +254,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 id="${fieldId}-${index}"
                                 name="${fieldId}"
                                 value="${opt}"
-                                class="field-input-radio h-4 w-4 bg-background-dark border-border-dark text-primary focus:ring-primary"
+                                class="field-input-radio h-4 w-4 bg-background-dark border border-border-dark text-primary focus:ring-primary"
                                 data-field-name="${field.fieldName}"
                             >
                             <span class="text-sm text-gray-300">${opt}</span>
@@ -277,7 +276,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             <input
                                 type="checkbox"
                                 id="${fieldId}"
-                                class="field-input-checkbox h-5 w-5 rounded bg-background-dark border-border-dark text-primary focus:ring-primary"
+                                class="field-input-checkbox h-5 w-5 rounded bg-background-dark border border-border-dark text-primary focus:ring-primary"
                                 data-field-name="${field.fieldName}"
                             >
                             <span class="text-sm font-medium text-gray-300">${field.fieldName}</span>
@@ -675,7 +674,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return isValid;
     }
 
-    // (NEW - 75b) Gathers data from the form and stores it
     function collectDataForPreview() {
         collectedData = {}; // Clear previous data
 
@@ -695,7 +693,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // (NEW - 75b) Builds the HTML for the preview modal
     function populatePreviewModal() {
         previewDataContainer.innerHTML = ''; // Clear old data
 
@@ -712,7 +709,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const aspectClass = field.dataType === 'signature' ? 'w-48 h-18' : 'w-32 h-40';
                     valueHTML = `<img src="${url}" class="${aspectClass} object-cover rounded-lg mt-1 border border-border-dark">`;
                 } else {
-                    valueHTML = '<p class="text-base text-gray-500 font-medium">No image uploaded</p>';
+                    valueHTML = '<p class.text-base text-gray-500 font-medium">No image uploaded</p>';
                 }
             } else {
                 let value = collectedData[fieldName];
@@ -734,7 +731,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // (CHANGED - 75b) This button now opens the preview
     if (submitFormButton) {
         submitFormButton.addEventListener('click', () => {
             
@@ -743,30 +739,34 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             
-            // 1. Collect all data
             collectDataForPreview();
-            
-            // 2. Build the modal HTML
             populatePreviewModal();
-
-            // 3. Show the modal
             previewModal.classList.remove('hidden');
         });
     }
 
-    // (NEW - 75b) This button does the *actual* submission
+    // (CHANGED - 77) Final Date Fix
     if (confirmSubmitButton) {
         confirmSubmitButton.addEventListener('click', async () => {
             
+            console.log("DEBUG: 'Confirm & Submit' clicked.");
+            
+            // --- Show Overlay ---
+            if (submissionOverlay) submissionOverlay.classList.remove('hidden');
             confirmSubmitButton.disabled = true;
-            confirmSubmitButton.querySelector('.truncate').textContent = 'Submitting...';
+            cancelPreviewButton.disabled = true;
+            
+            // --- Capture timestamp ---
+            const submissionTimestamp = new Date();
 
             try {
-                // We already gathered text data, now just get image URLs
+                console.log("DEBUG: Inside 'try' block. Starting image upload...");
+                
                 const imageURLs = {};
                 const uploadPromises = []; 
 
                 for (const fieldName in currentImageBlobs) {
+                    console.log(`DEBUG: Uploading image for: ${fieldName}`);
                     const blob = currentImageBlobs[fieldName];
                     
                     const fileName = `${currentFormId}_${validOtpDocId}_${fieldName.replace(/[^a-zA-Z0-9-]/g, '_')}.jpg`;
@@ -779,11 +779,13 @@ document.addEventListener('DOMContentLoaded', () => {
                         uploadTask.then(async (snapshot) => {
                             const downloadURL = await snapshot.ref.getDownloadURL();
                             imageURLs[fieldName] = downloadURL; 
+                            console.log(`DEBUG: SUCCESS uploading ${fieldName}. URL: ${downloadURL}`);
                         })
                     );
                 }
 
                 await Promise.all(uploadPromises);
+                console.log("DEBUG: All image uploads complete.");
 
                 const finalSubmission = {
                     ...collectedData,  // Use the data we already collected
@@ -791,41 +793,118 @@ document.addEventListener('DOMContentLoaded', () => {
                     formId: currentFormId,
                     otp: validOtpCode,
                     otpId: validOtpDocId,
-                    submissionDate: firebase.firestore.FieldValue.serverTimestamp(),
+                    submissionDate: submissionTimestamp, // Use our client-side timestamp
                     status: 'Submitted' 
                 };
                 
+                console.log("DEBUG: Saving data to 'submissions' collection...");
                 await db.collection('submissions').add(finalSubmission);
+                console.log("DEBUG: Data saved successfully.");
                 
+                console.log("DEBUG: Updating OTP as 'isUsed: true'...");
                 await db.collection('otps').doc(validOtpDocId).update({
                     isUsed: true
                 });
+                console.log("DEBUG: OTP updated successfully.");
                 
-                // Hide the modal
+                // --- Get the preview data *before* hiding the modal
+                const previewHTML = previewDataContainer.innerHTML;
+                
+                // Hide the modal & overlay
                 previewModal.classList.add('hidden');
+                if (submissionOverlay) submissionOverlay.classList.add('hidden');
                 
-                // Show the final success message
-                formContentContainer.innerHTML = `
-                    <div class="flex flex-col items-center justify-center gap-4 p-8">
-                        <span class="material-symbols-outlined text-6xl text-green-400">task_alt</span>
-                        <h2 class="text-2xl font-semibold text-white">Submission Successful!</h2>
-                        <p class="text-gray-300 text-center">Your form has been submitted successfully. You can now close this window.</p>
+                const formNameStr = formTitle.textContent;
+
+                // --- (NEW) Step 76: Hide the main page header text ---
+                if (formTitle) formTitle.textContent = 'Submission Complete';
+                if (formOrgName) formOrgName.classList.add('hidden');
+                // --- End of Step 76 fix ---
+
+                // --- (NEW) Step 77: Format date string for the on-screen receipt ---
+                const dateString = submissionTimestamp.toLocaleString('en-IN', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: true
+                });
+
+                // --- (CHANGED) Updated receiptHTML ---
+                const receiptHTML = `
+                    <div class="flex flex-col items-center justify-center gap-4 p-4">
+                        <div id="receipt-content-for-pdf" 
+                             class="w-full max-w-xl p-6 bg-surface-dark rounded-lg border border-border-dark">
+                            
+                            <div class="flex flex-col items-center text-center border-b border-border-dark pb-4">
+                                <span class="material-symbols-outlined text-6xl text-green-400">task_alt</span>
+                                <h2 class="text-2xl font-semibold text-white mt-2">Submission Successful!</h2>
+                                <p class="text-gray-300 text-center">Your receipt for: ${formNameStr}</p>
+                            </div>
+                            
+                            <div class="py-4 flex flex-col gap-3">
+                                
+                                <div class="flex justify-between">
+                                    <span class="text-sm text-gray-400">Your Code</span>
+                                    <span class="text-sm text-white font-medium">${validOtpCode}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-sm text-gray-400">Status</span>
+                                    <span class="text-sm text-green-400 font-medium">Submitted</span>
+                                </div>
+                                <!-- (NEW) Step 77: Added Date/Time row -->
+                                <div class="flex justify-between">
+                                    <span class="text-sm text-gray-400">Submission Date</span>
+                                    <span class="text-sm text-white font-medium">${dateString}</span>
+                                </div>
+                            </div>
+
+                            <!-- This is the submitted data -->
+                            <div class="border-t border-border-dark pt-4 mt-4">
+                                <h3 class="text-lg font-semibold text-white mb-4">Your Submitted Data</h3>
+                                <div class="flex flex-col gap-4">
+                                    ${previewHTML}
+                                </div>
+                            </div>
+                            
+                            <p class="text-xs text-gray-500 text-center pt-4 border-t border-border-dark mt-4">
+                                You may now close this window or download a copy of your receipt.
+                            </p>
+                        </div>
+                        
+                        <button id="download-pdf-button" class="flex h-12 min-w-[84px] w-full max-w-xl mt-6 cursor-pointer items-center justify-center overflow-hidden rounded-lg bg-primary px-5 text-base font-bold leading-normal tracking-[0.015em] text-background-dark transition-colors hover:bg-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 focus:ring-offset-surface-dark">
+                            <span class="material-symbols-outlined">download</span>
+                            <span class="truncate ml-2">Download PDF Receipt</span>
+                        </button>
                     </div>
                 `;
+                
+                formContentContainer.innerHTML = receiptHTML;
+                console.log("DEBUG: Success! Showing receipt screen.");
+
+                // Add the listener for the new button, passing the timestamp
+                document.getElementById('download-pdf-button').addEventListener('click', () => {
+                    const fileName = `${formNameStr.replace(/ /g, '_')}_Receipt_${validOtpCode}.pdf`;
+                    generatePDF(fileName, submissionTimestamp); // Pass timestamp
+                });
 
             } catch (err) {
-                console.error("Error submitting form: ", err);
+                console.error("--- DEBUG: SUBMIT FAILED! ---");
+                console.error(err);
+                
                 // We can show the error on the main page
                 previewModal.classList.add('hidden');
-                submitErrorMessage.textContent = 'An error occurred during submission. Please refresh the page and try again.';
+                submitErrorMessage.textContent = 'An error occurred during submission. Please check the console and try again.';
 
+                // --- Hide overlay on error ---
+                if (submissionOverlay) submissionOverlay.classList.add('hidden');
                 confirmSubmitButton.disabled = false;
-                confirmSubmitButton.querySelector('.truncate').textContent = 'Confirm & Submit';
+                cancelPreviewButton.disabled = false;
             }
         });
     }
 
-    // (NEW - 75b) Listeners for closing the preview modal
     if (closePreviewButton) {
         closePreviewButton.addEventListener('click', () => {
             previewModal.classList.add('hidden');
@@ -835,6 +914,88 @@ document.addEventListener('DOMContentLoaded', () => {
         cancelPreviewButton.addEventListener('click', () => {
             previewModal.classList.add('hidden');
         });
+    }
+    
+    // =================================================================
+    // START: M16 - PART 5 - PDF Generation
+    // =================================================================
+
+    // (CHANGED) Function now accepts submissionTimestamp
+    async function generatePDF(fileName = 'receipt.pdf', submissionTimestamp = null) {
+        const button = document.getElementById('download-pdf-button');
+        if (button) {
+            button.disabled = true;
+            button.querySelector('.truncate').textContent = 'Generating PDF...';
+        }
+
+        // Get the PDF "tools" from the window
+        const { jsPDF } = window.jspdf;
+        
+        // This is the *real* content we want to print
+        const contentToPrint = document.getElementById('receipt-content-for-pdf');
+        
+        // (CHANGED) We no longer need to format the date here,
+        // because it's already in the 'contentToPrint' we are cloning.
+        
+        // We MUST clone it to avoid issues.
+        const pdfWrapper = contentToPrint.cloneNode(true);
+        
+        // --- We still need to apply the layout fix to the cloned PDF wrapper ---
+        const headerContainer = pdfWrapper.querySelector('.py-4');
+        if (headerContainer) {
+            
+            // 1. Fix OTP Layout
+            const otpRow = headerContainer.children[0]; // The "Your Code" row
+            if(otpRow) {
+                otpRow.children[1].classList.add('break-all', 'max-w-[50%]', 'text-right');
+            }
+            
+            // 2. (BUG FIX) We no longer add the timestamp row here.
+            // It is already part of the 'contentToPrint' clone.
+        }
+
+        // We must add this wrapper to the *body* to be rendered, but make it invisible
+        pdfWrapper.style.width = "800px"; // Set a fixed width for good PDF layout
+        pdfWrapper.style.position = "absolute";
+        pdfWrapper.style.left = "-9999px";
+        pdfWrapper.style.padding = "20px"; // Add padding for canvas spacing
+        pdfWrapper.classList.add("bg-surface-dark"); // Ensure it has our dark BG
+        document.body.appendChild(pdfWrapper);
+
+        try {
+            const canvas = await html2canvas(pdfWrapper, {
+                scale: 2, // Improve quality
+                useCORS: true, // (CRITICAL) for loading the blob: images
+                backgroundColor: '#2C2C2C' // Match our 'bg-surface-dark'
+            });
+            
+            const imgData = canvas.toDataURL('image/png');
+            
+            // Set PDF dimensions based on the canvas
+            const pdfWidth = 800; // Our fixed width
+            const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+            
+            const doc = new jsPDF({
+                orientation: 'portrait',
+                unit: 'px',
+                format: [pdfWidth, pdfHeight]
+            });
+
+            doc.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+            doc.save(fileName);
+
+        } catch (err) {
+            console.error('Error generating PDF:', err);
+            alert('An error occurred while generating the PDF. Please try again.');
+        } finally {
+            // Clean up
+            document.body.removeChild(pdfWrapper);
+            
+            if (button) {
+                button.disabled = false;
+                button.querySelector('.truncate').textContent = 'Download PDF Receipt';
+            }
+        }
     }
     
     // --- This starts the entire page ---
