@@ -1462,10 +1462,6 @@ video {
   text-transform: uppercase;
 }
 
-.lowercase {
-  text-transform: lowercase;
-}
-
 .leading-normal {
   line-height: 1.5;
 }
@@ -1680,6 +1676,10 @@ video {
 .hover\:bg-amber-400:hover {
   --tw-bg-opacity: 1;
   background-color: rgb(251 191 36 / var(--tw-bg-opacity));
+}
+
+.hover\:bg-green-500\/10:hover {
+  background-color: rgb(34 197 94 / 0.1);
 }
 
 .hover\:bg-primary\/20:hover {

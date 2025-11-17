@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Golden Lamtouch - Settings</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+</head>
+
+<body class="bg-background-dark font-display text-white">
+    <div class="relative flex min-h-screen w-full">
+        <!-- SideNavBar -->
+        <aside
+            class="flex h-screen w-64 flex-col bg-surface-dark p-4 border-r border-border-dark sticky top-0 overflow-y-auto">
+            <div class="flex flex-col gap-8">
+                <div class="flex items-center gap-3 px-3">
+                    <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10"
+                        data-alt="Golden Lamtouch company logo"
+                        style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBHcVL9mAEPMxg1o1fNfX5aOf3R2rbREe9mMkMhH021Aba47JlqBG1W5hZhrGuZimaztIOdGWwKkyzexyTsXHegXGN9XStpFCFR6OMl6FNNV7HvlgSrQre33s7GhNniALsxxds7fpmCYhLiEI6xBVoCvr7fg9kcKPmtYw56-BnRjdM9Kbccjvad_8a7SEqH1jcTu4yL--OMfZw4RXWT7WzgOnLDWYanF7YfkqfPDWD_OEf9iQRrqRHc5W_stZ052kUq8p-nwrDkaF0");'>
+                    </div>
+                    <h1 class="text-white text-lg font-bold leading-normal">Golden Lamtouch</h1>
+                </div>
+                <nav class="flex flex-col gap-2">
+                    <!-- Link 1: Dashboard -->
+                    <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 text-gray-300"
+                        href="dashboard.html">
+                        <span class="material-symbols-outlined">dashboard</span>
+                        <p class="text-sm font-semibold leading-normal">Dashboard</p>
+                    </a>
+                    
+                    <!-- Link 2: Form Management -->
+                    <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 text-gray-300" 
+                        href="form-management.html"> 
+                        <span class="material-symbols-outlined">description</span>
+                        <p class="text-sm font-medium leading-normal">Form Management</p>
+                    </a>
+                    
+                    <!-- Link 3: Form Creation -->
+                    <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 text-gray-300"
+                        href="form-creation.html">
+                        <span class="material-symbols-outlined">create_new_folder</span>
+                        <p class="text-sm font-medium leading-normal">Form Creation</p>
+                    </a>
+                    
+                    <!-- Link 4: Data Download -->
+                    <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 text-gray-300" href="#">
+                        <span class="material-symbols-outlined">download_for_offline</span>
+                        <p class="text-sm font-medium leading-normal">Data Download</p>
+                    </a>
+                    
+                    <!-- Link 5: System Logs -->
+                    <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 text-gray-300" href="#">
+                        <span class="material-symbols-outlined">manage_history</span>
+                        <p class="text-sm font-medium leading-normal">System Logs & Activity</p>
+                    </a>
+                    
+                    <!-- Link 6: Settings (NOW ACTIVE) -->
+                    <a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/20 text-primary" href="settings.html">
+                        <span class="material-symbols-outlined fill">manage_accounts</span>
+                        <p class="text-sm font-medium leading-normal">Settings & User Roles</p>
+                    </a>
+                </nav>
+            </div>
+            <!-- Sign Out Button (at the bottom) -->
+            <div class="mt-auto pt-8">
+                <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 text-gray-300"
+                    href="#" id="sign-out-button">
+                    <span class="material-symbols-outlined">logout</span>
+                    <p class="text-sm font-medium leading-normal">Sign Out</p>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 flex-col p-8 overflow-y-auto h-screen">
+            <div class="flex flex-col gap-8">
+                <!-- PageHeading -->
+                <div class="flex flex-wrap justify-between gap-3">
+                    <div class="flex flex-col gap-2">
+                        <p class="text-white text-3xl font-bold leading-tight">Settings & User Roles</p>
+                        <p class="text-gray-400 text-base font-normal leading-normal">Manage global settings for the entire application.</p>
+                    </div>
+                </div>
+
+                <!-- Global Settings Card -->
+                <div class="flex flex-col gap-4 rounded-xl p-6 bg-surface-dark border border-border-dark max-w-xl">
+                    <p class="text-lg font-semibold text-white">Global Settings</p>
+                    <p class="text-sm text-gray-400">This prefix will be added to all new submission serial numbers (e.g., "25" -> "250001"). This is typically set once per year.</p>
+                    
+                    <!-- Serial Prefix Input -->
+                    <div>
+                        <label for="serial-prefix-input" class="text-sm font-medium text-gray-300">Global Serial Prefix</label>
+                        <input id="serial-prefix-input" type="text" placeholder="e.g., 25"
+                            class="w-full h-10 px-4 mt-2 rounded-lg bg-background-dark border border-border-dark text-white placeholder-gray-500 focus:ring-primary focus:border-primary text-sm max-w-xs" />
+                    </div>
+
+                    <!-- Save Button -->
+                    <div class="flex items-center gap-4 pt-4 border-t border-border-dark">
+                        <button id="save-settings-button"
+                            class="flex cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-lg h-10 bg-primary text-background-dark px-4 text-sm font-bold leading-normal tracking-[0.015em] hover:bg-amber-400">
+                            <span class="material-symbols-outlined text-lg">save</span>
+                            <span class="truncate">Save Settings</span>
+                        </button>
+                        <span id="save-success-message" class="hidden text-sm font-medium text-green-400">
+                            Settings saved successfully!
+                        </span>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+    
+    <!-- ====================================================== -->
+    <!-- START: FIREBASE SCRIPT BLOCK -->
+    <!-- ====================================================== -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAJ-xyOPmJXmhe9PUCa1BU75fWJ_MWsHA0",
+            authDomain: "golden-lamtouch-project.firebaseapp.com",
+            projectId: "golden-lamtouch-project",
+            storageBucket: "golden-lamtouch-project.firebasestorage.app",
+            messagingSenderId: "528955254323",
+            appId: "1:528955254323:web:e71517dab7fcb78b842546"
+        };
+        const app = firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+    </script>
+    <script src="auth-guard.js"></script>
+    <!-- We will create this file in the next step -->
+    <script src="settings.js"></script>
+    <!-- ====================================================== -->
+    <!-- END: FIREBASE SCRIPT BLOCK -->
+    <!-- ====================================================== -->
+</body>
+
+</html>
