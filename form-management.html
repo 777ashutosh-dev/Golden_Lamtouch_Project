@@ -91,7 +91,7 @@
                     </div>
                 </div>
 
-                <!-- NEW Toolbar for Groups and Sorting (This is all new) -->
+                <!-- NEW Toolbar for Groups and Sorting -->
                 <div class="flex flex-wrap items-center justify-between gap-4">
                     <!-- Left Side: Group Filters -->
                     <div class="flex flex-wrap items-center gap-2">
@@ -145,11 +145,7 @@
         </main>
     </div>
 
-    <!-- 
-      ======================================================
-      Modal 1: "Create Group" (Already working)
-      ======================================================
-    -->
+    <!-- Modal 1: "Create Group" -->
     <div id="create-group-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
         <!-- Modal Content -->
         <div class="bg-surface-dark rounded-xl shadow-2xl border border-border-dark w-full max-w-md">
@@ -183,11 +179,7 @@
         </div>
     </div>
 
-    <!-- 
-      ======================================================
-      Modal 2: "Manage Groups" (Already working)
-      ======================================================
-    -->
+    <!-- Modal 2: "Manage Groups" -->
     <div id="manage-groups-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
         <!-- Modal Content -->
         <div class="bg-surface-dark rounded-xl shadow-2xl border border-border-dark w-full max-w-md">
@@ -210,11 +202,7 @@
         </div>
     </div>
     
-    <!-- 
-      ======================================================
-      Modal 3: "Assign Group" (Already working)
-      ======================================================
-    -->
+    <!-- Modal 3: "Assign Group" -->
     <div id="assign-group-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
         <!-- Modal Content -->
         <div class="bg-surface-dark rounded-xl shadow-2xl border border-border-dark w-full max-w-md">
@@ -250,13 +238,7 @@
         </div>
     </div>
     
-    <!-- 
-      ======================================================
-      START: NEW MODAL (POP-UP) FOR "ADD OTPs" (Baby Step 68a)
-      This is the *only* new HTML block for this step.
-      It is "hidden" by default.
-      ======================================================
-    -->
+    <!-- Modal 4: "Add OTP" (FIXED VERSION) -->
     <div id="add-otp-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
         <!-- Modal Content -->
         <div class="bg-surface-dark rounded-xl shadow-2xl border border-border-dark w-full max-w-md">
@@ -290,18 +272,14 @@
             </div>
         </div>
     </div>
-    <!-- ======================================================
-         END: NEW HIDDEN MODAL
-         ====================================================== -->
 
-
-    <!-- ====================================================== -->
-    <!-- START: FIREBASE SCRIPT BLOCK -->
-    <!-- ====================================================== -->
+    <!-- Firebase Scripts -->
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-storage-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-functions-compat.js"></script>
+    
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyAJ-xyOPmJXmhe9PUCa1BU75fWJ_MWsHA0",
@@ -315,13 +293,10 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
         const storage = firebase.storage();
+        const functions = firebase.functions();
     </script>
     <script src="auth-guard.js"></script>
-    <!-- This is our new (and empty) JS file for this page -->
-    <script src="form-management.js"></script>
-    <!-- ====================================================== -->
-    <!-- END: FIREBASE SCRIPT BLOCK -->
-    <!-- ====================================================== -->
+    <script src="form-management.js?v=93"></script>
 </body>
 
 </html>
