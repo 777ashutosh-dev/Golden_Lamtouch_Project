@@ -1,33 +1,32 @@
 /*
-  M17 - (STEP 92) "Firestore Index" FIX
+  M18 - (Step 97) "Download OTPs" CSV Export
   -----------------------------------------------------
-  This is the definitive, correct file.
+  This file now contains the logic for M18.
   
-  THE ROOT CAUSE:
-  The query "orderBy('createdAt', 'desc')" was
-  failing because it required a custom Firestore index.
-  
-  THE FIX:
-  1. Removed ".orderBy('createdAt', 'desc')" from the
-     Firestore query.
-  2. Added a JavaScript ".sort()" command to sort the
-     forms *after* they are loaded.
-  
-  This file ALSO contains all previous fixes.
+  UPDATES:
+  1.  New global "memory" array: `allSubmissions = []`.
+  2.  New function: `loadAllSubmissions()` to fill that memory.
+  3.  New "click" listener for the `.download-otp-button`.
+  4.  New "brain" function: `downloadOtpCsv(formId, formName)`
+      This function is "smart":
+      - It finds the *dynamic* field names for "Name" and "Email"
+        from the form's `fields` array.
+      - It cross-references `otps` with `submissions`.
+      - It builds and triggers a CSV download.
+  5.  New helper: `escapeCsvCell(str)` to safely handle
+      commas in names (e.g., "Doe, John").
+  6.  Table `rowHTML` updated with the new "Download OTPs" button.
 */
 
 document.addEventListener('DOMContentLoaded', () => {
 
     const db = firebase.firestore();
     
-    // (NEW) Step 78c: Get our "callable" function
     const onFormDelete = firebase.functions().httpsCallable('onFormDelete');
 
     // --- Find all our "targets" in the HTML ---
     
-    // (FIX 1) The HTML ID is 'form-table-body'.
     const formTableBody = document.getElementById('form-table-body'); 
-    
     const searchInput = document.getElementById('form-search-input');
     
     // --- Filter/Sort Targets ---
@@ -37,10 +36,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Global variables to store our data ---
     let allForms = []; // Master list of forms
     let allGroups = []; // Master list of groups
-    let allOtps = []; // (NEW) Master list of OTPs
+    let allOtps = []; // Master list of OTPs
+    let allSubmissions = []; // (NEW) Master list of Submissions
     
     let currentAssignFormId = null; 
-    let currentOtpFormId = null; // This is the key variable
+    let currentOtpFormId = null; 
 
 
     // =================================================================
@@ -51,15 +51,14 @@ document.addEventListener('DOMContentLoaded', () => {
     function loadAllForms() {
         if (formTableBody) { 
             
-            // (THE FIX IS HERE)
-            // Removed ".orderBy('createdAt', 'desc')"
+            // (M17 FIX) Removed .orderBy('createdAt', 'desc')
             db.collection('forms').onSnapshot(querySnapshot => {
                 allForms = []; 
                 querySnapshot.forEach(doc => {
                     allForms.push({ id: doc.id, ...doc.data() });
                 });
                 
-                // (FIX PART 2) We sort with JavaScript instead.
+                // (M17 FIX) We sort with JavaScript instead.
                 allForms.sort((a, b) => {
                     const dateA = a.createdAt ? a.createdAt.seconds : 0;
                     const dateB = b.createdAt ? b.createdAt.seconds : 0;
@@ -89,23 +88,35 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- 3. (NEW) Load All OTPs from Firestore (Live) ---
+    // --- 3. Load All OTPs from Firestore (Live) ---
     function loadAllOtps() {
         db.collection('otps').onSnapshot(snapshot => {
             allOtps = [];
             snapshot.forEach(doc => {
                 allOtps.push({ id: doc.id, ...doc.data() });
             });
-            // When OTPs change (like after generating new ones),
-            // we MUST re-render the table to show the new counts.
             applyFiltersAndSort();
         }, (error) => {
             console.error("Error loading OTPs: ", error);
         });
     }
+    
+    // --- 4. (NEW) Load All Submissions from Firestore (Live) ---
+    function loadAllSubmissions() {
+        db.collection('submissions').onSnapshot(snapshot => {
+            allSubmissions = [];
+            snapshot.forEach(doc => {
+                allSubmissions.push({ id: doc.id, ...doc.data() });
+            });
+            // We don't need to re-render the table on *submission*
+            // changes, only when the user clicks "Download".
+        }, (error) => {
+            console.error("Error loading Submissions: ", error);
+        });
+    }
 
 
-    // --- 4. Populate All Group Dropdowns ---
+    // --- 5. Populate All Group Dropdowns ---
     function populateGroupDropdowns() {
         if (groupFilterSelect) {
             const currentVal = groupFilterSelect.value;
@@ -131,13 +142,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- 5. Master "Draw the Table" Function (UPGRADED for M14) ---
+    // --- 6. Master "Draw the Table" Function (UPGRADED for M18) ---
     function renderTable(formsToRender) {
         if (!formTableBody) return; // Safety check
         
         formTableBody.innerHTML = ''; 
 
         if (formsToRender.length === 0) {
+            // (FIX) Colspan is 6
             formTableBody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-gray-500">No forms match your search.</td></tr>';
             return;
         }
@@ -155,15 +167,11 @@ document.addEventListener('DOMContentLoaded', () => {
               ? `<span class="ml-2 px-2 py-0.5 text-xs font-medium bg-primary/20 text-primary rounded-full">${group.groupName}</span>` 
               : '';
 
-            // --- (NEW) OTP Counting Logic (Baby Step 69) ---
-            // 1. Get all OTPs that match this form's ID
             const otpsForThisForm = allOtps.filter(otp => otp.formId === formId);
-            // 2. Count the total
             const totalOtps = otpsForThisForm.length;
-            // 3. Count only the ones that are 'isUsed: true'
             const usedOtps = otpsForThisForm.filter(otp => otp.isUsed === true).length;
-            // --- End of new logic ---
 
+            // (NEW) Updated rowHTML with the new button
             const rowHTML = `
                 <tr class="border-b border-border-dark hover:bg-white/5">
                     <td class="px-6 py-4 text-sm font-semibold text-white">
@@ -173,12 +181,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     <td class="px-6 py-4 text-sm text-gray-300">${data.orgName || 'N/A'}</td>
                     <td class="px-6 py-4 text-sm">${paymentStatus}</td>
                     
-                    <!-- (UPGRADED) Show the live counts -->
                     <td class="px-6 py-4 text-sm text-white font-medium">${totalOtps}</td>
                     <td class="px-6 py-4 text-sm text-gray-300">${usedOtps}</td>
                     
                     <td class="px-6 py-4 text-sm">
                         <div class="flex items-center gap-2">
+                            <!-- (NEW) Download OTPs Button -->
+                            <button data-id="${formId}" data-name="${data.formName || 'Untitled Form'}" class="download-otp-button p-2 text-green-400 hover:bg-green-500/10 rounded-lg" title="Download OTPs (CSV)">
+                                <span class="material-symbols-outlined">download</span>
+                            </button>
+                            
                             <button data-id="${formId}" class="add-otp-button p-2 text-primary hover:bg-primary/20 rounded-lg" title="Add OTPs">
                                 <span class="material-symbols-outlined">vpn_key</span>
                             </button>
@@ -204,11 +216,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // =================================================================
 
     function applyFiltersAndSort() {
-        // This function now runs whenever FORMS, GROUPS, or OTPs change.
-        // It will always re-calculate and re-draw the table with fresh data.
         let filteredForms = [...allForms]; 
         
-        // (FIX) Check if searchInput exists before accessing .value
         const searchTerm = searchInput ? searchInput.value : ''; 
         const selectedGroupId = groupFilterSelect ? groupFilterSelect.value : 'all';
         const isSortAz = sortAzButton ? sortAzButton.dataset.sorted === 'true' : false;
@@ -309,12 +318,41 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     // =================================================================
-    // START: TABLE ACTION BUTTONS (This logic is now stable)
+    // START: TABLE ACTION BUTTONS (UPDATED FOR M18)
     // =================================================================
     
     if (formTableBody) {
         formTableBody.addEventListener('click', (e) => {
             
+            // --- (NEW) Download OTPs Button ---
+            const downloadButton = e.target.closest('.download-otp-button');
+            if (downloadButton) {
+                const formId = downloadButton.dataset.id;
+                const formName = downloadButton.dataset.name;
+                
+                // Show a quick loading message
+                downloadButton.classList.add('cursor-not-allowed', 'opacity-50');
+                const icon = downloadButton.querySelector('.material-symbols-outlined');
+                const originalIcon = icon.textContent;
+                icon.textContent = 'hourglass_top';
+                
+                // We use a timeout to let the UI update *before*
+                // we run the heavy CSV logic.
+                setTimeout(() => {
+                    try {
+                        downloadOtpCsv(formId, formName);
+                    } catch (err) {
+                        console.error("Error generating CSV:", err);
+                        alert("An error occurred while generating the CSV. Check the console.");
+                    } finally {
+                        // Reset the button
+                        downloadButton.classList.remove('cursor-not-allowed', 'opacity-50');
+                        icon.textContent = originalIcon;
+                    }
+                }, 50); // 50ms delay
+                return;
+            }
+
             const editButton = e.target.closest('.edit-form-button');
             if (editButton) {
                 const formId = editButton.dataset.id;
@@ -324,9 +362,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const assignButton = e.target.closest('.assign-group-button');
             if (assignButton) {
-                // (FIXED) This "Logic" is "Simple & Stable"
-                // It finds the elements *after* the click,
-                // so they are guaranteed to exist.
                 const assignGroupModal = document.getElementById('assign-group-modal');
                 const assignFormName = document.getElementById('assign-form-name');
                 const assignGroupSelect = document.getElementById('assign-group-select');
@@ -343,26 +378,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // --- (M17) This "Logic" is stable ---
             const deleteButton = e.target.closest('.delete-form-button');
             if (deleteButton) {
                 const formId = deleteButton.dataset.id;
                 const formName = deleteButton.dataset.formName;
                 
-                // We still use the "ugly" confirm pop-up (for now)
                 if (confirm(`Are you sure you want to delete "${formName}"? This will delete all related submissions and OTPs. This cannot be undone.`)) {
                     
-                    // (NEW) We "call" the Cloud Function
                     onFormDelete({ formId: formId })
                         .then((result) => {
-                            // The "Brain" (Cloud Function) was successful!
                             console.log('Cloud Function Success:', result.data.message);
                             alert(`Success! "${formName}" and all its data have been deleted.`);
-                            // Since our 'loadAllForms' has a live 'onSnapshot'
-                            // listener, the table will refresh automatically!
                         })
                         .catch((error) => {
-                            // The "Brain" (Cloud Function) failed!
                             console.error('Cloud Function Error:', error);
                             alert('An error occurred. The form could not be deleted. Check the console.');
                         });
@@ -370,29 +398,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // --- (This is the Step 88 fix, which is still correct) ---
             const otpButton = e.target.closest('.add-otp-button');
             if (otpButton) {
-                
-                // (FIXED) This "Logic" is now 100% "Simple & Stable".
-                
-                // 1. Get the formId from the button
                 const formId = otpButton.dataset.id;
-                
-                // 2. Find the form data from our 'allForms' "memory"
                 const form = allForms.find(f => f.id === formId);
                 const formName = form ? (form.formName || 'Untitled Form') : 'this form';
                 
-                // 3. Set the global variable
                 currentOtpFormId = formId; 
                 
-                // 4. NOW, find all the modal elements
                 const addOtpModal = document.getElementById('add-otp-modal');
                 const otpFormName = document.getElementById('otp-form-name');
                 const otpQuantityInput = document.getElementById('otp-quantity-input');
                 const otpErrorMessage = document.getElementById('otp-error-message');
 
-                // 5. Safely update them. This prevents all 'TypeError' crashes.
                 if (otpFormName) {
                     otpFormName.textContent = formName;
                 }
@@ -417,7 +435,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // START: ALL MODAL BUTTONS (THE "CONSOLIDATED" LISTENER)
     // =================================================================
     
-    // (NEW) This is our ONE listener for all modal pop-ups
     document.body.addEventListener('click', async (e) => {
         
         // --- Create Group Modal: "Cancel" / "Close" ---
@@ -473,7 +490,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 try {
                     await db.collection('groups').doc(groupId).delete();
                     alert('Group deleted.');
-                    // renderManageGroupsList(); // This is already called by the 'onSnapshot'
                 } catch (error) {
                     console.error("Error deleting group: ", error);
                     alert('Error deleting group.');
@@ -533,18 +549,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const quantity = parseInt(otpQuantityInput.value, 10);
             
             if (isNaN(quantity) || quantity <= 0) {
-                // This is the check that proves the new code is running.
                 otpErrorMessage.textContent = 'Please enter a valid number (1 or more).';
                 return;
             }
             if (quantity > 1000) {
-                // We allow 1000, but not *more* than 1000
                 otpErrorMessage.textContent = 'You can only generate 1000 codes at a time.';
                 return;
             }
             
-            // (FIXED) This 'currentOtpFormId' should now be
-            // correctly set by the *other* listener.
             if (!currentOtpFormId) {
                 otpErrorMessage.textContent = 'Error: No form selected. Please close and re-open this modal.';
                 return;
@@ -555,7 +567,6 @@ document.addEventListener('DOMContentLoaded', () => {
             generateOtpButton.querySelector('.truncate').textContent = 'Generating...';
             
             try {
-                // We must use multiple batches if quantity > 500
                 const batchLimit = 500;
                 let batch = db.batch();
                 let count = 0;
@@ -565,14 +576,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     const newOtpRef = db.collection('otps').doc(); 
                     const otpDoc = {
                         formId: currentOtpFormId,
-                        code: newCode.toLowerCase(), // (FIX) Store as lowercase
+                        code: newCode.toLowerCase(), 
                         isUsed: false,
                         createdAt: firebase.firestore.FieldValue.serverTimestamp()
                     };
                     batch.set(newOtpRef, otpDoc);
                     count++;
                     
-                    // If we hit the batch limit, commit and start a new batch
                     if (count === batchLimit) {
                         await batch.commit();
                         batch = db.batch();
@@ -580,7 +590,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
                 
-                // Commit any remaining items
                 if (count > 0) {
                     await batch.commit();
                 }
@@ -595,7 +604,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 generateOtpButton.disabled = false;
                 generateOtpButton.querySelector('.truncate').textContent = 'Generate';
                 otpQuantityInput.value = '';
-                currentOtpFormId = null; // Clear the ID
+                currentOtpFormId = null; 
             }
         }
     });
@@ -609,12 +618,136 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         return result;
     }
+    
+    // =================================================================
+    // START: (NEW) M18 - CSV EXPORT "BRAIN"
+    // =================================================================
+
+    /**
+     * This is a "stable" helper function to make sure
+     * text with commas (like "Doe, John") doesn't break
+     * the CSV format.
+     */
+    function escapeCsvCell(str) {
+        if (str === null || str === undefined) {
+            return '';
+        }
+        let result = String(str);
+        // If the string contains a comma, a quote, or a newline,
+        // wrap it in double quotes and escape any existing quotes.
+        if (result.includes(',') || result.includes('"') || result.includes('\n')) {
+            result = '"' + result.replace(/"/g, '""') + '"';
+        }
+        return result;
+    }
+
+    /**
+     * This is the "master" function for downloading the OTP report.
+     */
+    function downloadOtpCsv(formId, formName = 'report') {
+        
+        // --- 1. Find the "Smart" Field Names ---
+        const form = allForms.find(f => f.id === formId);
+        let nameFieldName = null;
+        let emailFieldName = null;
+
+        if (form && form.fields) {
+            // Find the *first* string field (assume it's the name)
+            const nameField = form.fields.find(f => f.dataType === 'string');
+            if (nameField) {
+                nameFieldName = nameField.fieldName;
+            }
+            // Find the *first* email field
+            const emailField = form.fields.find(f => f.dataType === 'email');
+            if (emailField) {
+                emailFieldName = emailField.fieldName;
+            }
+        }
+        
+        console.log(`Smart Fields Found: Name='${nameFieldName}', Email='${emailFieldName}'`);
+
+        // --- 2. Filter OTPs and Submissions ---
+        const otpsForThisForm = allOtps.filter(otp => otp.formId === formId);
+        
+        // (NEW) We also need to sort the OTPs by when they were
+        // created so the "Serial Number" is consistent.
+        otpsForThisForm.sort((a, b) => {
+            const dateA = a.createdAt ? a.createdAt.seconds : 0;
+            const dateB = b.createdAt ? b.createdAt.seconds : 0;
+            return dateA - dateB; // Ascending order (oldest first)
+        });
+
+        // --- 3. Build the CSV Data ---
+        const csvRows = [];
+        // Header Row (as you requested)
+        csvRows.push('"Serial Number","OTP","Status","Used By Name","Used By Email"');
+
+        otpsForThisForm.forEach((otp, index) => {
+            const serial = index + 1;
+            const code = otp.code;
+            const status = otp.isUsed ? "Used" : "Unused";
+            
+            let name = "";
+            let email = "";
+
+            // If the OTP is used, find the matching submission
+            if (otp.isUsed) {
+                const submission = allSubmissions.find(sub => sub.otpId === otp.id);
+                if (submission) {
+                    // Use our "smart" field names to get the data
+                    if (nameFieldName && submission[nameFieldName]) {
+                        name = submission[nameFieldName];
+                    }
+                    if (emailFieldName && submission[emailFieldName]) {
+                        email = submission[emailFieldName];
+                    }
+                }
+            }
+            
+            // Add the row, escaping each cell
+            csvRows.push([
+                serial,
+                escapeCsvCell(code),
+                escapeCsvCell(status),
+                escapeCsvCell(name),
+                escapeCsvCell(email)
+            ].join(','));
+        });
+
+        if (csvRows.length <= 1) {
+            alert("No OTPs found for this form.");
+            return;
+        }
+
+        // --- 4. Create and Trigger the Download ---
+        const csvContent = csvRows.join('\n');
+        
+        // We need to add a "BOM" (Byte Order Mark) so that
+        // Excel opens non-English characters correctly.
+        const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+        
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        
+        // Clean up the form name and add a date
+        const safeName = formName.replace(/[^a-zA-Z0-9]/g, '_');
+        const date = new Date().toISOString().split('T')[0]; // '2025-11-17'
+        link.setAttribute("download", `${safeName}_OTPs_${date}.csv`);
+        
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
 
     // =================================================================
     // --- This is what starts everything ---
     // =================================================================
-    loadAllGroups(); // Load groups
-    loadAllForms();  // Load forms
-    loadAllOtps();   // (NEW) Load OTPs
+    loadAllGroups();
+    loadAllForms();
+    loadAllOtps();
+    loadAllSubmissions(); // (NEW) Load submissions into memory
 
 });

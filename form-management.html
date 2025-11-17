@@ -124,17 +124,19 @@
                         <table class="w-full text-left">
                             <thead>
                                 <tr class="border-b border-border-dark">
-                                    <th class="px-6 py-3 text-sm font-semibold text-gray-400">Form Name</th>
-                                    <th class="px-6 py-3 text-sm font-semibold text-gray-400">Organisation</th>
-                                    <th class="px-6 py-3 text-sm font-semibold text-gray-400">Payment Status</th>
+                                    <th class="px-6 py-3 text-sm font-semibold text-gray-400 min-w-[200px]">Form Name</th>
+                                    <th class="px-6 py-3 text-sm font-semibold text-gray-400 min-w-[150px]">Organisation</th>
+                                    <th class="px-6 py-3 text-sm font-semibold text-gray-400 min-w-[100px]">Payment Status</th>
                                     <th class="px-6 py-3 text-sm font-semibold text-gray-400">Total OTPs</th>
                                     <th class="px-6 py-3 text-sm font-semibold text-gray-400">Used OTPs</th>
-                                    <th class="px-6 py-3 text-sm font-semibold text-gray-400">Actions</th>
+                                    <!-- (CHANGED) The Actions column is now wider to fit the new button -->
+                                    <th class="px-6 py-3 text-sm font-semibold text-gray-400 min-w-[200px]">Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="form-table-body">
                                 <!-- JavaScript will fill this list -->
                                 <tr>
+                                    <!-- (CHANGED) Colspan is now 6 -->
                                     <td colspan="6" class="p-6 text-center text-gray-500">Loading forms...</td>
                                 </tr>
                             </tbody>
@@ -296,7 +298,7 @@
         const functions = firebase.functions();
     </script>
     <script src="auth-guard.js"></script>
-    <script src="form-management.js?v=93"></script>
+    <script src="form-management.js"></script>
 </body>
 
 </html>

@@ -1,11 +1,11 @@
 /*
-  M16 - The Public-Facing Form (Step 77 - Date Fix)
+  M17 - (Step 96) Email Validation FIX
   -----------------------------
   Updates:
-  1. (BUG FIX) Added "Submission Date" to the on-screen 'receiptHTML'
-     so it appears on the success screen.
-  2. (BUG FIX) Removed the duplicate date-adding logic from the
-     'generatePDF' function, as the PDF now clones the correct receipt.
+  1. (BUG FIX) The `validateForm()` function now
+     includes a regex check to ensure that any field
+     with the `dataType: 'email'` is a valid email
+     format before allowing submission.
 */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -611,6 +611,9 @@ document.addEventListener('DOMContentLoaded', () => {
         let missingFields = [];
         submitErrorMessage.textContent = ''; 
         
+        // (NEW) Simple regex for email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        
         formFields.forEach(field => {
             if (field.dataType === 'hidden' || field.dataType === 'header') return; 
             
@@ -635,8 +638,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 case 'dropdown':
                     const input = document.getElementById(fieldId);
                     if (!input || input.value.trim() === '') {
+                        // --- This is the EMPTY check ---
                         isValid = false;
                         missingFields.push(field.fieldName);
+                        if (container) container.classList.add('border-red-500', 'border-2');
+                    
+                    } else if (field.dataType === 'email' && !emailRegex.test(input.value.trim())) {
+                        // --- (NEW) This is the EMAIL FORMAT check ---
+                        isValid = false;
+                        missingFields.push(field.fieldName + " (invalid format)");
                         if (container) container.classList.add('border-red-500', 'border-2');
                     }
                     break;
