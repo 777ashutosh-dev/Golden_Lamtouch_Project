@@ -4,16 +4,16 @@
 <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title>Golden Lamtouch - Settings</title>
+    <title>Golden Lamtouch - Settings & Roles</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
         rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
 </head>
 
 <body class="bg-background-dark font-display text-white">
     <div class="relative flex min-h-screen w-full">
-        <!-- SideNavBar (Updated for M21 v3) -->
+        <!-- SideNavBar -->
         <aside
             class="flex h-screen w-64 flex-col bg-surface-dark p-4 border-r border-border-dark sticky top-0 overflow-y-auto">
             <div class="flex flex-col gap-8">
@@ -25,47 +25,41 @@
                     <h1 class="text-white text-lg font-bold leading-normal">Golden Lamtouch</h1>
                 </div>
                 <nav class="flex flex-col gap-2">
-                    <!-- Link 1: Dashboard -->
+                    <!-- Dashboard -->
                     <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 text-gray-300"
                         href="dashboard.html">
                         <span class="material-symbols-outlined">dashboard</span>
                         <p class="text-sm font-semibold leading-normal">Dashboard</p>
                     </a>
-                    
-                    <!-- Link 2: Form Management -->
+                    <!-- Form Management -->
                     <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 text-gray-300" 
                         href="form-management.html"> 
                         <span class="material-symbols-outlined">description</span>
                         <p class="text-sm font-medium leading-normal">Form Management</p>
                     </a>
-                    
-                    <!-- Link 3: Form Creation -->
+                    <!-- Form Creation -->
                     <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 text-gray-300"
                         href="form-creation.html">
                         <span class="material-symbols-outlined">create_new_folder</span>
                         <p class="text-sm font-medium leading-normal">Form Creation</p>
                     </a>
-                    
-                    <!-- Link 4: Data Download (CONSISTENT LINK) -->
+                    <!-- Data Download -->
                     <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 text-gray-300" href="data-download.html">
                         <span class="material-symbols-outlined">download_for_offline</span>
                         <p class="text-sm font-medium leading-normal">Data Download</p>
                     </a>
-                    
-                    <!-- Link 5: System Logs (Placeholder) -->
+                    <!-- System Logs -->
                     <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 text-gray-300" href="#">
                         <span class="material-symbols-outlined">manage_history</span>
                         <p class="text-sm font-medium leading-normal">System Logs & Activity</p>
                     </a>
-                    
-                    <!-- Link 6: Settings (NOW ACTIVE) -->
+                    <!-- Settings (Active) -->
                     <a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/20 text-primary" href="settings.html">
                         <span class="material-symbols-outlined fill">manage_accounts</span>
                         <p class="text-sm font-medium leading-normal">Settings & User Roles</p>
                     </a>
                 </nav>
             </div>
-            <!-- Sign Out Button (at the bottom) -->
             <div class="mt-auto pt-8">
                 <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 text-gray-300"
                     href="#" id="sign-out-button">
@@ -75,52 +69,180 @@
             </div>
         </aside>
 
-        <!-- Main Content (No changes) -->
+        <!-- Main Content -->
         <main class="flex-1 flex-col p-8 overflow-y-auto h-screen">
-            <div class="flex flex-col gap-8">
-                <!-- PageHeading -->
-                <div class="flex flex-wrap justify-between gap-3">
-                    <div class="flex flex-col gap-2">
-                        <p class="text-white text-3xl font-bold leading-tight">Settings & User Roles</p>
-                        <p class="text-gray-400 text-base font-normal leading-normal">Manage global settings for the entire application.</p>
+            <div class="flex flex-col gap-8 max-w-6xl">
+                <!-- Header -->
+                <div class="flex flex-col gap-2">
+                    <p class="text-white text-3xl font-bold leading-tight">Settings & User Roles</p>
+                    <p class="text-gray-400 text-base font-normal leading-normal">Manage global configurations, security, and coordinator access.</p>
+                </div>
+
+                <!-- ZONE 1: COORDINATOR MANAGEMENT -->
+                <div class="flex flex-col gap-4 rounded-xl p-6 bg-surface-dark border border-border-dark">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <p class="text-lg font-semibold text-white">Coordinator Management</p>
+                            <p class="text-sm text-gray-400">Manage "Middle Men" and their form access.</p>
+                        </div>
+                        <button id="add-coordinator-btn" class="flex items-center gap-2 h-10 px-4 rounded-lg bg-primary text-background-dark font-bold hover:bg-amber-400 transition-colors">
+                            <span class="material-symbols-outlined text-lg">person_add</span>
+                            <span>Add Coordinator</span>
+                        </button>
+                    </div>
+
+                    <!-- Coordinators List (Expanded Columns) -->
+                    <div class="overflow-x-auto rounded-lg border border-border-dark mt-4">
+                        <table class="w-full text-left min-w-[800px]">
+                            <thead class="bg-black/20">
+                                <tr>
+                                    <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Name</th>
+                                    <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Organisation</th>
+                                    <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Phone</th>
+                                    <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Email</th>
+                                    <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Access</th>
+                                    <th class="px-4 py-3 text-xs font-bold text-gray-500 uppercase text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="coordinators-list-body">
+                                <tr>
+                                    <td colspan="6" class="p-6 text-center text-gray-500">Loading coordinators...</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
-                <!-- Global Settings Card -->
-                <div class="flex flex-col gap-4 rounded-xl p-6 bg-surface-dark border border-border-dark max-w-xl">
-                    <p class="text-lg font-semibold text-white">Global Settings</p>
-                    <p class="text-sm text-gray-400">This prefix will be added to all new submission serial numbers (e.g., "25" -> "250001"). This is typically set once per year.</p>
+                <!-- ZONE 2: ADMIN SECURITY -->
+                <div class="flex flex-col gap-4 rounded-xl p-6 bg-surface-dark border border-border-dark">
+                    <p class="text-lg font-semibold text-white">Admin Security</p>
+                    <p class="text-sm text-gray-400 mb-2">Update your master password.</p>
                     
-                    <!-- Serial Prefix Input -->
-                    <div>
-                        <label for="serial-prefix-input" class="text-sm font-medium text-gray-300">Global Serial Prefix</label>
-                        <input id="serial-prefix-input" type="text" placeholder="e.g., 25"
-                            class="w-full h-10 px-4 mt-2 rounded-lg bg-background-dark border border-border-dark text-white placeholder-gray-500 focus:ring-primary focus:border-primary text-sm max-w-xs" />
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="text-sm font-medium text-gray-300">Current Password</label>
+                            <input id="current-password" type="password" placeholder="••••••••"
+                                class="w-full h-10 px-4 mt-1 rounded-lg bg-background-dark border border-border-dark text-white focus:border-primary focus:ring-1 focus:ring-primary" />
+                        </div>
+                        <div>
+                            <label class="text-sm font-medium text-gray-300">New Password</label>
+                            <input id="new-password" type="password" placeholder="••••••••"
+                                class="w-full h-10 px-4 mt-1 rounded-lg bg-background-dark border border-border-dark text-white focus:border-primary focus:ring-1 focus:ring-primary" />
+                        </div>
                     </div>
-
-                    <!-- Save Button -->
-                    <div class="flex items-center gap-4 pt-4 border-t border-border-dark">
-                        <button id="save-settings-button"
-                            class="flex cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-lg h-10 bg-primary text-background-dark px-4 text-sm font-bold leading-normal tracking-[0.015em] hover:bg-amber-400">
-                            <span class="material-symbols-outlined text-lg">save</span>
-                            <span class="truncate">Save Settings</span>
+                    <div class="flex justify-end pt-2">
+                        <button id="update-password-btn" class="h-10 px-6 rounded-lg bg-white/10 hover:bg-white/20 text-white font-medium border border-border-dark transition-colors">
+                            Update Password
                         </button>
-                        <span id="save-success-message" class="hidden text-sm font-medium text-green-400">
-                            Settings saved successfully!
-                        </span>
+                    </div>
+                </div>
+
+                <!-- ZONE 3: GLOBAL CONFIG (LOCKED) -->
+                <div class="flex flex-col gap-4 rounded-xl p-6 bg-surface-dark border border-border-dark relative overflow-hidden">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-lg font-semibold text-white">Global Serial Configuration</p>
+                            <p class="text-sm text-gray-400">Prefix for all new submissions (e.g., "25" -> "250001").</p>
+                        </div>
+                        <button id="unlock-settings-btn" class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-sm text-primary border border-primary/30 transition-colors">
+                            <span class="material-symbols-outlined text-base">lock</span>
+                            <span>Unlock to Edit</span>
+                        </button>
+                    </div>
+                    
+                    <div class="relative mt-2">
+                        <label class="text-sm font-medium text-gray-500 uppercase tracking-wider">Current Prefix</label>
+                        <div class="flex gap-4 mt-1">
+                            <!-- Locked Input -->
+                            <input id="serial-prefix-input" type="text" value="25" disabled
+                                class="w-32 h-12 px-4 rounded-lg bg-black/30 border border-border-dark text-white text-xl font-bold text-center opacity-50 cursor-not-allowed" />
+                            
+                            <!-- Save Button (Hidden by default) -->
+                            <button id="save-prefix-btn" class="hidden h-12 px-6 rounded-lg bg-primary text-background-dark font-bold hover:bg-amber-400">
+                                Save New Prefix
+                            </button>
+                        </div>
                     </div>
                 </div>
 
             </div>
         </main>
     </div>
-    
-    <!-- ====================================================== -->
-    <!-- START: FIREBASE SCRIPT BLOCK -->
-    <!-- ====================================================== -->
+
+    <!-- MODAL 1: RE-AUTH -->
+    <div id="reauth-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+        <div class="bg-surface-dark rounded-xl shadow-2xl border border-border-dark w-full max-w-sm p-6">
+            <h3 class="text-lg font-bold text-white mb-2">Security Check</h3>
+            <p class="text-sm text-gray-400 mb-4">Please enter your password to unlock global settings.</p>
+            <input id="reauth-password" type="password" placeholder="Enter Password" class="w-full h-10 px-4 mb-4 rounded-lg bg-background-dark border border-border-dark text-white focus:border-primary" />
+            <div class="flex justify-end gap-3">
+                <button id="cancel-reauth" class="px-4 py-2 rounded-lg text-gray-400 hover:text-white">Cancel</button>
+                <button id="confirm-reauth" class="px-4 py-2 rounded-lg bg-primary text-background-dark font-bold">Unlock</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 2: ADD/EDIT COORDINATOR -->
+    <div id="coordinator-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+        <div class="bg-surface-dark rounded-xl shadow-2xl border border-border-dark w-full max-w-lg flex flex-col max-h-[90vh]">
+            <div class="p-6 border-b border-border-dark">
+                <h3 id="coordinator-modal-title" class="text-xl font-bold text-white">Add New Coordinator</h3>
+            </div>
+            
+            <div class="p-6 overflow-y-auto">
+                <div class="flex flex-col gap-4">
+                    <!-- Personal Info -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-sm font-medium text-gray-300">Full Name</label>
+                            <input id="coord-name" type="text" class="w-full h-10 px-4 mt-1 rounded-lg bg-background-dark border border-border-dark text-white focus:border-primary" />
+                        </div>
+                        <div>
+                            <label class="text-sm font-medium text-gray-300">Organisation</label>
+                            <input id="coord-org" type="text" class="w-full h-10 px-4 mt-1 rounded-lg bg-background-dark border border-border-dark text-white focus:border-primary" />
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-sm font-medium text-gray-300">Phone Number</label>
+                            <input id="coord-phone" type="text" class="w-full h-10 px-4 mt-1 rounded-lg bg-background-dark border border-border-dark text-white focus:border-primary" />
+                        </div>
+                        <div>
+                            <label class="text-sm font-medium text-gray-300">Email (Login ID)</label>
+                            <input id="coord-email" type="email" class="w-full h-10 px-4 mt-1 rounded-lg bg-background-dark border border-border-dark text-white focus:border-primary" />
+                        </div>
+                    </div>
+
+                    <!-- Password -->
+                    <div>
+                        <label class="text-sm font-medium text-gray-300" id="coord-password-label">Set Password</label>
+                        <input id="coord-password" type="text" placeholder="Min 6 characters" class="w-full h-10 px-4 mt-1 rounded-lg bg-background-dark border border-border-dark text-white focus:border-primary" />
+                        <p id="password-hint" class="text-xs text-gray-500 mt-1 hidden">Leave blank to keep existing password.</p>
+                    </div>
+
+                    <!-- Form Access Checklist -->
+                    <div>
+                        <label class="text-sm font-medium text-gray-300 mb-2 block">Assign Access (Select Forms)</label>
+                        <div id="form-access-list" class="flex flex-col gap-2 p-3 rounded-lg bg-background-dark border border-border-dark max-h-48 overflow-y-auto">
+                            <p class="text-gray-500 text-sm">Loading forms...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-6 border-t border-border-dark flex justify-end gap-3">
+                <button id="cancel-coord" class="px-4 py-2 rounded-lg text-gray-400 hover:text-white">Cancel</button>
+                <button id="save-coord" class="px-6 py-2 rounded-lg bg-primary text-background-dark font-bold">Create Account</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase Scripts -->
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-functions-compat.js"></script>
+    
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyAJ-xyOPmJXmhe9PUCa1BU75fWJ_MWsHA0",
@@ -133,12 +255,10 @@
         const app = firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
+        const functions = firebase.functions();
     </script>
     <script src="auth-guard.js"></script>
     <script src="settings.js"></script>
-    <!-- ====================================================== -->
-    <!-- END: FIREBASE SCRIPT BLOCK -->
-    <!-- ====================================================== -->
 </body>
 
 </html>

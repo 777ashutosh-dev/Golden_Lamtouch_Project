@@ -2,49 +2,42 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // --- (NEW) CONFIG COLLECTION ---
+    // --- CONFIG COLLECTION ---
     match /config/{docId} {
-      // Only a logged-in Admin can read or write global settings
       allow read, write: if request.auth != null;
     }
 
     // --- FORMS COLLECTION ---
     match /forms/{formId} {
-      // ANYONE can read the form (to see the questions)
       allow read: if true;
-      // Only Admins can create or change forms
       allow create, update: if request.auth != null;
       
-      // (NEW) Rule for the private counter sub-collection
       match /private/{counterId} {
-        // ONLY the server-side "Brain" (Cloud Functions)
-        // should be able to read/write the counter.
-        // We block ALL client-side access for security.
         allow read, write: if false;
       }
     }
     
     // --- GROUPS COLLECTION ---
     match /groups/{groupId} {
-      // Only Admins can touch groups
       allow read, write: if request.auth != null;
     }
     
     // --- SUBMISSIONS COLLECTION ---
     match /submissions/{submissionId} {
-      // Admins can see the data
       allow read: if request.auth != null;
-      // ANYONE can create (submit) data
       allow create: if true;
-      // (NEW) Only Admins OR our "Brain" can update a submission
-      // (This allows the "Brain" to add the serialNumber)
       allow update: if request.auth != null;
     }
     
     // --- OTPS COLLECTION ---
     match /otps/{otpId} {
-      // Public needs to read (verify) and write (mark as used) OTPs
       allow read, write: if true;
+    }
+
+    // --- COORDINATORS COLLECTION ---
+    // This is the rule that was missing or not updated
+    match /coordinators/{coordId} {
+      allow read, write: if request.auth != null;
     }
   }
 }

@@ -1,10 +1,14 @@
 /**
- * M23 v22 - (CSV EXTENSION REMOVAL) Cloud Brain
+ * M26 v3 - (FULL CLOUD BRAIN + UPDATE LOGIC)
  *
- * Updates:
- * 1. CSV Logic: Image columns in CSV now show ONLY the Serial Number (e.g., "250001").
- * - Removed the ".jpg" extension from the spreadsheet data.
- * 2. Preserved: Strict column ordering and Folder structure inside the zip.
+ * Includes:
+ * 1. Serial Number Generator (India Region)
+ * 2. Cascading Delete (Forms + Data)
+ * 3. Smart Data Download (Ranges + Organized Zip + CSV Order)
+ * 4. Coordinator Engine:
+ * - createCoordinatorAccount (Create Auth + Doc)
+ * - updateCoordinatorAccount (Update Auth + Doc + Access)
+ * - deleteCoordinatorAuth (Cleanup Auth)
  */
 
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
@@ -25,6 +29,7 @@ admin.initializeApp({
 });
 
 const db = admin.firestore();
+const auth = admin.auth(); // Access to Auth Management
 const storage = admin.storage().bucket(BUCKET_NAME);
 
 /**
@@ -127,7 +132,7 @@ function escapeCsvCell(cell) {
 }
 
 /**
- * 3. Create Full Report .zip (UPDATED: EXTENSION REMOVED)
+ * 3. Create Full Report .zip
  */
 exports.createFullReportZip = onCall(
   { 
@@ -191,7 +196,6 @@ exports.createFullReportZip = onCall(
         
         // Special Handling for Image Columns in CSV
         if (imageFields.includes(h)) {
-            // --- UPDATED: Just the number, NO extension ---
             val = sub["serialNumber"] || ""; 
             if (sub[h]) imageCount++;
         }
@@ -240,7 +244,6 @@ exports.createFullReportZip = onCall(
                  
                  // Folder Logic
                  const folderName = field.replace(/[^a-zA-Z0-9]/g, "_");
-                 // File inside zip still keeps .jpg for validity
                  const zipPath = `${folderName}/${serial}.jpg`;
 
                  archive.append(file.createReadStream(), { name: zipPath });
@@ -263,3 +266,112 @@ exports.createFullReportZip = onCall(
     return { success: true, downloadUrl: url, fileName: `${formName}_Report.zip` };
   }
 );
+
+/**
+ * 4. Create Coordinator Account (NEW)
+ */
+exports.createCoordinatorAccount = onCall({ cors: true }, async (request) => {
+    if (!request.auth) {
+        throw new HttpsError("unauthenticated", "Admin only.");
+    }
+    
+    const { email, password, name, org, phone, accessList } = request.data;
+
+    try {
+        // 1. Create User in Firebase Auth
+        const userRecord = await auth.createUser({
+            email: email,
+            password: password,
+            displayName: name || "Coordinator"
+        });
+
+        // 2. Create Coordinator Document in Firestore
+        await db.collection("coordinators").add({
+            uid: userRecord.uid,
+            email: email,
+            name: name || "",
+            org: org || "",
+            phone: phone || "",
+            accessList: accessList || [],
+            createdAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+        
+        // 3. Set Custom Claims (Crucial for future RBAC logic)
+        await auth.setCustomUserClaims(userRecord.uid, { role: 'coordinator' });
+
+        return { success: true, uid: userRecord.uid };
+
+    } catch (error) {
+        console.error("Error creating coordinator:", error);
+        throw new HttpsError("internal", error.message);
+    }
+});
+
+/**
+ * 5. Update Coordinator Account (NEW)
+ * Handles updates to email, password, and profile data.
+ */
+exports.updateCoordinatorAccount = onCall({ cors: true }, async (request) => {
+    if (!request.auth) {
+        throw new HttpsError("unauthenticated", "Admin only.");
+    }
+    
+    const { docId, email, password, name, org, phone, accessList } = request.data;
+    
+    try {
+        // 1. Get the existing Firestore Doc to find the UID
+        const coordDoc = await db.collection("coordinators").doc(docId).get();
+        if (!coordDoc.exists) {
+            throw new HttpsError("not-found", "Coordinator profile not found.");
+        }
+        const uid = coordDoc.data().uid;
+
+        // 2. Update Firebase Auth (if email/password provided)
+        const authUpdates = {};
+        if (email) authUpdates.email = email;
+        if (password && password.length >= 6) authUpdates.password = password;
+        if (name) authUpdates.displayName = name;
+        
+        if (Object.keys(authUpdates).length > 0) {
+            await auth.updateUser(uid, authUpdates);
+        }
+
+        // 3. Update Firestore Document
+        const firestoreUpdates = {
+            email: email,
+            name: name,
+            org: org,
+            phone: phone,
+            accessList: accessList
+        };
+        
+        // Remove undefined keys
+        Object.keys(firestoreUpdates).forEach(key => firestoreUpdates[key] === undefined && delete firestoreUpdates[key]);
+
+        await db.collection("coordinators").doc(docId).update(firestoreUpdates);
+
+        return { success: true };
+
+    } catch (error) {
+        console.error("Error updating coordinator:", error);
+        throw new HttpsError("internal", error.message);
+    }
+});
+
+/**
+ * 6. Delete Coordinator Auth
+ */
+exports.deleteCoordinatorAuth = onCall({ cors: true }, async (request) => {
+    if (!request.auth) {
+        throw new HttpsError("unauthenticated", "Admin only.");
+    }
+    
+    const { uid } = request.data;
+    try {
+        await auth.deleteUser(uid);
+        return { success: true };
+    } catch (error) {
+         console.warn("Error deleting auth user:", error);
+         return { success: false };
+    }
+});
