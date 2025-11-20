@@ -1,9 +1,10 @@
 /**
- * M23 v18 - (INDIA REGION & SERIAL FIX)
+ * M23 v20 - (SMART PARTIAL DOWNLOADS)
  *
  * Updates:
- * 1. Region Fix: onSubmissionCreate now listens in 'asia-south1' (India).
- * 2. Code Cleanup: Removed duplicate transaction logic.
+ * 1. Range Filtering: createFullReportZip now accepts 'startSerial' and 'endSerial'.
+ * 2. Query Logic: Applies >= and <= filters to the 'serialNumber' field if ranges are provided.
+ * 3. Preserved: Folder structure for images (Photo/250001.jpg).
  */
 
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
@@ -28,12 +29,11 @@ const storage = admin.storage().bucket(BUCKET_NAME);
 
 /**
  * 1. Serial Number Generator
- * FIXED: Now listens in 'asia-south1' to match your database.
  */
 exports.onSubmissionCreate = onDocumentCreated(
   {
     document: "submissions/{submissionId}",
-    region: "asia-south1" // <--- CRITICAL FIX: MUST MATCH DB REGION
+    region: "asia-south1" 
   },
   async (event) => {
     const snap = event.data;
@@ -49,7 +49,6 @@ exports.onSubmissionCreate = onDocumentCreated(
       const counterRef = db.collection("forms").doc(formId).collection("private").doc("counter");
 
       // --- ROBUST TRANSACTION BLOCK ---
-      // This safely reads the last number, increments it, and saves it.
       const finalSerial = await db.runTransaction(async (t) => {
           // 1. Read Global Prefix (Default to "25")
           const configDoc = await t.get(configRef);
@@ -128,7 +127,7 @@ function escapeCsvCell(cell) {
 }
 
 /**
- * 3. Create Full Report .zip
+ * 3. Create Full Report .zip (UPDATED FOR PARTIAL DOWNLOAD)
  */
 exports.createFullReportZip = onCall(
   { 
@@ -141,25 +140,38 @@ exports.createFullReportZip = onCall(
        throw new HttpsError("unauthenticated", "Admin only.");
     }
     
-    // --- Lazy Load ---
     const archiver = require("archiver");
     const { v4: uuidv4 } = require("uuid");
 
     const formId = request.data.formId;
+    
+    // --- NEW: Get Ranges from Request ---
+    const startSerial = request.data.startSerial; // e.g., "250001"
+    const endSerial = request.data.endSerial;     // e.g., "250050"
+
     const formDoc = await db.collection("forms").doc(formId).get();
     if (!formDoc.exists) throw new HttpsError("not-found", "Form not found.");
     
     const form = formDoc.data();
     const formName = (form.formName || "form").replace(/[^a-zA-Z0-9]/g, "_");
     
-    // Query for submissions
-    // NOTE: This depends on 'serialNumber' existing. 
-    const submissionsSnap = await db.collection("submissions")
+    // --- BUILD QUERY ---
+    let query = db.collection("submissions")
       .where("formId", "==", formId)
-      .orderBy("serialNumber", "asc")
-      .get();
+      .orderBy("serialNumber", "asc");
 
-    if (submissionsSnap.empty) return { success: false, message: "No data found." };
+    // Apply Start Range
+    if (startSerial) {
+        query = query.where("serialNumber", ">=", startSerial);
+    }
+    // Apply End Range
+    if (endSerial) {
+        query = query.where("serialNumber", "<=", endSerial);
+    }
+
+    const submissionsSnap = await query.get();
+
+    if (submissionsSnap.empty) return { success: false, message: "No data found for this range." };
 
     const allSubmissions = submissionsSnap.docs.map((d) => d.data());
     
@@ -207,6 +219,7 @@ exports.createFullReportZip = onCall(
       for (const sub of allSubmissions) {
         const serial = sub.serialNumber || sub.otp;
         if (!serial) continue;
+        
         for (const field of imageFields) {
           const url = sub[field];
           if (!url) continue;
@@ -216,7 +229,15 @@ exports.createFullReportZip = onCall(
              if (parts.length >= 2) {
                  const path = decodeURIComponent(parts[1]);
                  const file = storage.file(path);
-                 archive.append(file.createReadStream(), { name: `${serial}_${field}.jpg` });
+                 
+                 // --- FOLDER LOGIC ---
+                 // 1. Create a safe folder name
+                 const folderName = field.replace(/[^a-zA-Z0-9]/g, "_");
+                 
+                 // 2. Path: Folder/SerialNumber.jpg
+                 const zipPath = `${folderName}/${serial}.jpg`;
+
+                 archive.append(file.createReadStream(), { name: zipPath });
              }
           } catch (e) { console.warn("Skipping image", e); }
         }

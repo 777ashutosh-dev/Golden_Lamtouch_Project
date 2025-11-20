@@ -1,11 +1,10 @@
 /*
-  M23 v18 - (UI COMPLETE RESTORATION) Form Management Brain
+  M23 v22 - (ANTI-DUPLICATION: GROUPS) Form Management Brain
   -----------------------------------------------------
   Updates:
-  1. Logic: Populates the restored "View by Group" dropdown.
-  2. Logic: Renders "Organisation" and "Payment Status" columns.
-  3. Style: "Add OTP" Key icon is Yellow. "Download OTP" Pin is Green.
-  4. Filter: Filters table by BOTH Search and Selected Group.
+  1. SECURITY: Added Duplicate Check to "Create Group".
+     - Checks 'allGroups' memory before saving.
+     - Prevents duplicate names (case-insensitive).
 */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -172,6 +171,12 @@ document.addEventListener('DOMContentLoaded', () => {
         formsToRender.forEach(form => {
             const formId = form.id;
             
+            // --- Group Badge Logic ---
+            const group = allGroups.find(g => g.id === form.groupId);
+            const groupBadge = group 
+              ? `<span class="ml-2 px-2 py-0.5 text-xs font-medium bg-primary/20 text-primary rounded-full">${group.groupName}</span>` 
+              : '';
+            
             // Organisation Name
             const orgName = form.orgName || 'N/A';
 
@@ -183,9 +188,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const rowHTML = `
                 <tr class="border-b border-border-dark hover:bg-white/5">
-                    <!-- Col 1: Form Name -->
+                    <!-- Col 1: Form Name (With Badge) -->
                     <td class="px-6 py-4 text-sm font-semibold text-white">
                         <span>${form.formName || 'Untitled Form'}</span>
+                        ${groupBadge}
                     </td>
 
                     <!-- Col 2: Organisation -->
@@ -212,7 +218,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <span class="material-symbols-outlined">pin</span>
                             </button>
                             
-                            <!-- Add OTP Button (Yellow Key) - Restored -->
+                            <!-- Add OTP Button (Yellow Key) -->
                             <button data-id="${formId}" class="add-otp-button p-2 text-primary hover:bg-primary/10 rounded-lg" title="Add OTPs">
                                 <span class="material-symbols-outlined">vpn_key</span>
                             </button>
@@ -292,6 +298,8 @@ document.addEventListener('DOMContentLoaded', () => {
             groupListContainer.innerHTML = ''; 
             allGroups.forEach(group => {
                 const row = document.createElement('div');
+                // Add an ID to the row so we can find it later for manual removal
+                row.id = `group-row-${group.id}`;
                 row.className = 'flex justify-between items-center p-3 bg-background-dark rounded-lg';
                 row.innerHTML = `
                     <span class="text-white">${group.groupName}</span>
@@ -408,20 +416,63 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.target.closest('#close-create-modal-button') || e.target.closest('#cancel-create-modal-button')) {
             document.getElementById('create-group-modal').classList.add('hidden');
         }
+        
+        // --- SAVE GROUP LOGIC (UPDATED with Validation) ---
         if (e.target.closest('#save-group-button')) {
+            const saveBtn = e.target.closest('#save-group-button');
+            const originalText = '<span class="truncate">Save Group</span>'; // Store original text structure
+            
             const groupNameInput = document.getElementById('group-name-input');
             const groupErrorMessage = document.getElementById('create-group-error-message');
             const groupName = groupNameInput.value.trim();
+            
             if (groupName === '') {
                 groupErrorMessage.textContent = 'Group Name cannot be empty.';
                 return; 
             }
+
+            // --- DUPLICATE CHECK ---
+            const isDuplicate = allGroups.some(g => g.groupName.toLowerCase() === groupName.toLowerCase());
+            if (isDuplicate) {
+                groupErrorMessage.textContent = 'Error: A group with this name already exists.';
+                return;
+            }
+            
+            // 1. Loading State
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<span class="truncate">Saving...</span>';
+            groupErrorMessage.textContent = '';
+
             try {
                 await db.collection('groups').add({ groupName: groupName });
-                document.getElementById('create-group-modal').classList.add('hidden');
+                
+                // 2. Success State (Green)
+                saveBtn.classList.remove('bg-primary', 'text-background-dark');
+                saveBtn.classList.add('bg-green-500', 'text-white');
+                saveBtn.innerHTML = '<span class="truncate">Saved!</span>';
+                
+                // 3. Wait 1s, then close and reset
+                setTimeout(() => {
+                    document.getElementById('create-group-modal').classList.add('hidden');
+                    
+                    // Reset Inputs
+                    groupNameInput.value = '';
+                    
+                    // Reset Button Style
+                    saveBtn.disabled = false;
+                    saveBtn.innerHTML = originalText;
+                    saveBtn.classList.add('bg-primary', 'text-background-dark');
+                    saveBtn.classList.remove('bg-green-500', 'text-white');
+                    
+                }, 1000);
+                
             } catch (error) {
                 console.error("Error saving group: ", error);
                 groupErrorMessage.textContent = 'An error occurred. Please try again.';
+                
+                // Reset Button on Error
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = originalText;
             }
         }
 
@@ -432,11 +483,37 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.target.closest('#close-manage-modal-button')) {
             document.getElementById('manage-groups-modal').classList.add('hidden');
         }
+        
+        // --- DELETE GROUP LOGIC (OPTIMISTIC UI) ---
         const deleteGroupButton = e.target.closest('.delete-group-button');
         if (deleteGroupButton) {
             const groupId = deleteGroupButton.dataset.id;
+            const rowToRemove = deleteGroupButton.closest('div'); // The row element
+            
             if (confirm('Are you sure? This will not delete forms.')) {
-                db.collection('groups').doc(groupId).delete().catch(error => alert('Error deleting group.'));
+                // Visually disable the button to prevent double-clicks
+                deleteGroupButton.disabled = true;
+                deleteGroupButton.innerHTML = '<span class="material-symbols-outlined animate-spin">sync</span>'; // Spinner icon
+
+                db.collection('groups').doc(groupId).delete()
+                    .then(() => {
+                        // SUCCESS: Manually remove the row instantly!
+                        if (rowToRemove) rowToRemove.remove();
+                        
+                        // If list is empty now, show "No groups" message
+                        const container = document.getElementById('group-list-container');
+                        if (container && container.children.length === 0) {
+                             const msg = document.getElementById('no-groups-message');
+                             if(msg) msg.classList.remove('hidden');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error deleting group:', error);
+                        alert('Error deleting group.');
+                        // Revert button state on error
+                        deleteGroupButton.disabled = false;
+                        deleteGroupButton.innerHTML = '<span class="material-symbols-outlined">delete</span>';
+                    });
             }
         }
 

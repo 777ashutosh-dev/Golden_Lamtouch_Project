@@ -1,10 +1,11 @@
 /*
-  M23 v12 - (INDIA REGION FIX) Browser Brain
+  M23 v21 - (SMART DOWNLOAD LOGIC) Browser Brain
   -----------------------------------------------------
   Updates:
-  1. Region Fix: Explicitly connects to 'asia-south1' (India).
-  This fixes the "CORS" error which was actually a "404 Not Found"
-  because we were calling the US server by mistake.
+  1. Region: Explicitly connects to 'asia-south1' (India).
+  2. Smart Columns: Calculates "Latest Serial" and reads "Last Downloaded".
+  3. Modal Logic: Handles the new "Download Options" popup.
+  4. Range Logic: Passes start/end serials to the Cloud Function.
 */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -12,7 +13,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const db = firebase.firestore();
     
     // --- FIX: TELL FIREBASE TO USE INDIA ---
-    // We access the specific app instance and request the 'asia-south1' region.
     const functions = firebase.app().functions('asia-south1');
 
     // --- Page "Memory" ---
@@ -22,12 +22,17 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // --- State for Sorting & Filtering ---
     let currentFilter = {
-        period: 'all' // Default to "All Time"
+        period: 'all'
     };
     let currentSort = {
-        column: 'name', // Default sort
+        column: 'name',
         direction: 'asc'
     };
+    
+    // --- State for the Active Download ---
+    let currentDownloadFormId = null;
+    let currentLatestSerial = 0;
+    let currentLastDownloadedSerial = 0;
 
     // --- DOM Targets ---
     const dateFilterSelect = document.getElementById('date-filter-select');
@@ -38,9 +43,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const sortNameButton = document.getElementById('sort-name-button');
     const sortPeriodButton = document.getElementById('sort-period-button');
     
-    // --- Modal Targets ---
+    // --- Modal Targets (Status) ---
     const downloadStatusModal = document.getElementById('download-status-modal');
     const downloadStatusText = document.getElementById('download-status-text');
+
+    // --- Modal Targets (Options) ---
+    const optionsModal = document.getElementById('download-options-modal');
+    const closeOptionsBtn = document.getElementById('close-options-modal');
+    const cancelDownloadBtn = document.getElementById('cancel-download-btn');
+    const confirmDownloadBtn = document.getElementById('confirm-download-btn');
+    const rangeInputsContainer = document.getElementById('range-inputs-container');
+    const rangeStartInput = document.getElementById('range-start-input');
+    const rangeEndInput = document.getElementById('range-end-input');
+    const radioButtons = document.getElementsByName('download-type');
 
     // =================================================================
     // START: DATA LOADING
@@ -53,7 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
             querySnapshot.forEach(doc => {
                 allForms.push({ id: doc.id, ...doc.data() });
             });
-            applyFiltersAndSort(); // Re-render the table
+            applyFiltersAndSort();
         }, (error) => {
             console.error("Error fetching forms: ", error);
             if(dataTableBody) dataTableBody.innerHTML = '<tr><td colspan="5" class="p-6 text-center text-red-400">Error loading forms.</td></tr>';
@@ -69,11 +84,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 allSubmissions.push({
                     id: doc.id,
                     ...data,
-                    // IMPORTANT: Convert Firebase Timestamps to JS Date objects
                     submissionDate: data.submissionDate ? data.submissionDate.toDate() : null
                 });
             });
-            applyFiltersAndSort(); // Re-render the table
+            applyFiltersAndSort();
         }, (error) => {
             console.error("Error loading Submissions: ", error);
         });
@@ -86,17 +100,16 @@ document.addEventListener('DOMContentLoaded', () => {
             snapshot.forEach(doc => {
                 allOtps.push({ id: doc.id, ...doc.data() });
             });
-            applyFiltersAndSort(); // Re-render the table
+            applyFiltersAndSort();
         }, (error) => {
             console.error("Error loading OTPs: ", error);
         });
     }
     
     // =================================================================
-    // START: FILTERING & SORTING (The "Analytics Brain")
+    // START: FILTERING & SORTING
     // =================================================================
 
-    // --- Event Listeners for Toolbar ---
     if (searchInput) {
         searchInput.addEventListener('input', () => {
             applyFiltersAndSort();
@@ -109,7 +122,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- Event Listeners for Sortable Columns ---
     function setupSorting() {
         const buttons = [
             { el: sortNameButton, col: 'name' },
@@ -119,36 +131,26 @@ document.addEventListener('DOMContentLoaded', () => {
         buttons.forEach(btnInfo => {
             if (btnInfo.el) {
                 btnInfo.el.addEventListener('click', () => {
-                    // Reset icons on all buttons
                     buttons.forEach(b => {
                         if (b.el) b.el.querySelector('.material-symbols-outlined').textContent = 'unfold_more';
                     });
 
                     if (currentSort.column === btnInfo.col) {
-                        // Flip direction
                         currentSort.direction = (currentSort.direction === 'asc') ? 'desc' : 'asc';
                     } else {
-                        // Change column
                         currentSort.column = btnInfo.col;
-                        // Default to descending for numbers, ascending for names
                         currentSort.direction = (btnInfo.col === 'name') ? 'asc' : 'desc';
                     }
                     
-                    // Set icon for current button
                     btnInfo.el.querySelector('.material-symbols-outlined').textContent = (currentSort.direction === 'desc') ? 'arrow_downward' : 'arrow_upward';
-                    
                     applyFiltersAndSort();
                 });
             }
         });
     }
 
-    /**
-     * The Master Filter/Sort Function
-     */
     function applyFiltersAndSort() {
         
-        // --- 1. Get Start Date (for "Period" column) ---
         const now = new Date();
         let startDate = new Date();
         switch (currentFilter.period) {
@@ -162,34 +164,39 @@ document.addEventListener('DOMContentLoaded', () => {
                 startDate.setMonth(now.getMonth() - 1);
                 break;
             case 'all':
-                startDate = new Date(0); // The beginning of time
+                startDate = new Date(0);
                 break;
         }
 
-        // --- 2. Filter by Search Term ---
         const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
         let processedForms = allForms.filter(form => {
-            // Search filter
             const nameMatch = form.formName && form.formName.toLowerCase().includes(searchTerm);
             return !searchTerm || nameMatch;
         });
 
-        // --- 3. Add Analytics Data to each form ---
+        // --- 3. Add Analytics Data ---
         processedForms = processedForms.map(form => {
             const otpsForThisForm = allOtps.filter(otp => otp.formId === form.id);
             const subsForThisForm = allSubmissions.filter(sub => sub.formId === form.id);
             
-            // Calculate submissions in the selected period
+            // Calculate Latest Serial
+            let maxSerial = 0;
+            subsForThisForm.forEach(sub => {
+                const serial = parseInt(sub.serialNumber || "0", 10);
+                if (serial > maxSerial) maxSerial = serial;
+            });
+
             const periodSubs = subsForThisForm.filter(s => {
                 return s.submissionDate && s.submissionDate >= startDate;
             });
 
             return {
-                ...form, // Spread all existing form data
-                totalOtps: otpsForThisForm.length,
+                ...form, 
                 usedOtps: otpsForThisForm.filter(otp => otp.isUsed === true).length,
                 unusedOtps: otpsForThisForm.filter(otp => otp.isUsed === false).length,
                 periodSubmissions: periodSubs.length,
+                latestSerial: maxSerial,
+                lastDownloaded: form.lastDownloadedSerial || 0 // From DB
             };
         });
 
@@ -211,21 +218,16 @@ document.addEventListener('DOMContentLoaded', () => {
                         : valB.localeCompare(valA);
             }
             
-            // Numeric Sort
             return (currentSort.direction === 'asc') ? (valA - valB) : (valB - valA);
         });
         
-        // --- 5. Render the final table ---
         renderTable(processedForms);
     }
     
     // =================================================================
-    // START: TABLE RENDERING & DOWNLOAD BUTTONS
+    // START: TABLE RENDERING
     // =================================================================
 
-    /**
-     * Renders the table rows
-     */
     function renderTable(formsToRender) {
         if (!dataTableBody) return;
         dataTableBody.innerHTML = ''; 
@@ -244,16 +246,23 @@ document.addEventListener('DOMContentLoaded', () => {
                     <td class="px-6 py-4 text-sm font-semibold text-white">
                         <span>${form.formName || 'Untitled Form'}</span>
                     </td>
-                    <!-- Col 2: Used OTPs -->
-                    <td class="px-6 py-4 text-sm text-gray-300">${form.usedOtps}</td>
-                    <!-- Col 3: Unused OTPs -->
-                    <td class="px-6 py-4 text-sm text-gray-300">${form.unusedOtps}</td>
-                    <!-- Col 4: Submissions (Period) -->
-                    <td class="px-6 py-4 text-sm font-bold text-white">${form.periodSubmissions}</td>
                     
-                    <!-- Col 5: Actions (One Single Button) -->
+                    <!-- Col 2: Latest Serial -->
+                    <td class="px-6 py-4 text-sm font-bold text-white">${form.latestSerial || 'N/A'}</td>
+
+                    <!-- Col 3: Last Downloaded -->
+                    <td class="px-6 py-4 text-sm text-gray-300">${form.lastDownloaded || 'None'}</td>
+                    
+                    <!-- Col 4: Submissions (Period) -->
+                    <td class="px-6 py-4 text-sm font-medium text-gray-300">${form.periodSubmissions}</td>
+                    
+                    <!-- Col 5: Actions -->
                     <td class="px-6 py-4 text-sm">
-                        <button data-id="${formId}" class="download-report-button flex items-center gap-2 h-9 px-4 text-sm font-bold bg-primary text-background-dark rounded-lg hover:bg-amber-400 transition-colors" title="Download CSV + Images (.zip)">
+                        <button data-id="${formId}" 
+                                data-latest="${form.latestSerial}"
+                                data-last="${form.lastDownloaded}"
+                                class="download-report-button flex items-center gap-2 h-9 px-4 text-sm font-bold bg-primary text-background-dark rounded-lg hover:bg-amber-400 transition-colors" 
+                                title="Download CSV + Images (.zip)">
                             <span class="material-symbols-outlined text-lg">download</span>
                             <span>Download Report</span>
                         </button>
@@ -264,47 +273,108 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
-    /**
-     * "Widest Net" listener for table clicks
-     */
+    // =================================================================
+    // START: MODAL & DOWNLOAD LOGIC (The New Brain)
+    // =================================================================
+
+    // 1. Open Modal Logic
     if (dataTableBody) {
         dataTableBody.addEventListener('click', (e) => {
-            
-            // --- Handle "Download Report" Click ---
             const downloadBtn = e.target.closest('.download-report-button');
             if (downloadBtn) {
-                const formId = downloadBtn.dataset.id;
-                handleDownloadReport(formId);
+                currentDownloadFormId = downloadBtn.dataset.id;
+                currentLatestSerial = parseInt(downloadBtn.dataset.latest || "0", 10);
+                currentLastDownloadedSerial = parseInt(downloadBtn.dataset.last || "0", 10);
+                
+                // Calculate Smart Defaults
+                const suggestedStart = currentLastDownloadedSerial > 0 ? currentLastDownloadedSerial + 1 : 1;
+                
+                // Populate Inputs
+                rangeStartInput.value = suggestedStart;
+                rangeEndInput.value = currentLatestSerial;
+                
+                // Reset UI
+                radioButtons.forEach(r => {
+                    if (r.value === 'all') r.checked = true;
+                });
+                rangeInputsContainer.classList.add('opacity-50', 'pointer-events-none');
+                
+                // Show Modal
+                optionsModal.classList.remove('hidden');
             }
         });
     }
 
-    // =================================================================
-    // START: M23 v2 - CLOUD DOWNLOAD LOGIC
-    // =================================================================
+    // 2. Radio Button Logic
+    if (radioButtons) {
+        radioButtons.forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                if (e.target.value === 'range') {
+                    rangeInputsContainer.classList.remove('opacity-50', 'pointer-events-none');
+                } else {
+                    rangeInputsContainer.classList.add('opacity-50', 'pointer-events-none');
+                }
+            });
+        });
+    }
+
+    // 3. Confirm Download Logic
+    if (confirmDownloadBtn) {
+        confirmDownloadBtn.addEventListener('click', () => {
+            const downloadType = document.querySelector('input[name="download-type"]:checked').value;
+            
+            let start = null;
+            let end = null;
+
+            if (downloadType === 'range') {
+                start = rangeStartInput.value.trim();
+                end = rangeEndInput.value.trim();
+                
+                // Basic Validation
+                if (!start || !end) {
+                    alert("Please enter both start and end serial numbers.");
+                    return;
+                }
+            } else {
+                // If "All", we set the "end" to the latest so we can save progress
+                end = currentLatestSerial.toString();
+            }
+
+            // Close Options Modal -> Open Status Modal
+            optionsModal.classList.add('hidden');
+            executeDownload(start, end);
+        });
+    }
+
+    // 4. Close/Cancel Logic
+    const closeFunc = () => optionsModal.classList.add('hidden');
+    if (closeOptionsBtn) closeOptionsBtn.addEventListener('click', closeFunc);
+    if (cancelDownloadBtn) cancelDownloadBtn.addEventListener('click', closeFunc);
+
 
     /**
-     * The New "One-Click" Download Handler
-     * Calls the 'createFullReportZip' Cloud Function.
+     * The Actual Download Trigger
      */
-    function handleDownloadReport(formId) {
-        // 1. Show the modal
+    function executeDownload(startSerial, endSerial) {
+        // 1. Show Status
         if (downloadStatusModal) downloadStatusModal.classList.remove('hidden');
         if (downloadStatusText) downloadStatusText.textContent = 'Preparing your download...';
 
-        // 2. Call the Cloud Function (IN INDIA)
-        // Note: We used the 'functions' variable defined at the top which points to asia-south1
+        // 2. Call Cloud Function
         const createFullReportZip = functions.httpsCallable('createFullReportZip');
         
-        createFullReportZip({ formId: formId })
+        createFullReportZip({ 
+            formId: currentDownloadFormId,
+            startSerial: startSerial,
+            endSerial: endSerial
+        })
             .then((result) => {
-                // --- SUCCESS ---
                 const data = result.data;
                 
                 if (data.success) {
                     if (downloadStatusText) downloadStatusText.textContent = 'Download ready! Starting...';
                     
-                    // Trigger the download via a temporary link
+                    // Trigger Download
                     const link = document.createElement('a');
                     link.href = data.downloadUrl;
                     link.download = data.fileName || 'report.zip';
@@ -312,19 +382,28 @@ document.addEventListener('DOMContentLoaded', () => {
                     link.click();
                     document.body.removeChild(link);
                     
-                    // Close modal after a short delay
+                    // --- SAVE PROGRESS LOGIC ---
+                    // If we successfully downloaded up to a certain point, save that.
+                    if (endSerial) {
+                        const endInt = parseInt(endSerial, 10);
+                        // Only update if this download is "newer" than what we had
+                        if (endInt > currentLastDownloadedSerial) {
+                            db.collection('forms').doc(currentDownloadFormId).update({
+                                lastDownloadedSerial: endInt
+                            });
+                        }
+                    }
+                    
                     setTimeout(() => {
                          if (downloadStatusModal) downloadStatusModal.classList.add('hidden');
                     }, 2000);
 
                 } else {
-                    // Logic error from server (e.g., no submissions)
                     alert(data.message || 'Download failed.');
                     if (downloadStatusModal) downloadStatusModal.classList.add('hidden');
                 }
             })
             .catch((error) => {
-                // --- ERROR ---
                 console.error("Cloud Function Error:", error);
                 alert('An error occurred. Please try again. Check console for details.');
                 if (downloadStatusModal) downloadStatusModal.classList.add('hidden');

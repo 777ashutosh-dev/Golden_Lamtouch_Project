@@ -1,12 +1,11 @@
 /*
-  M15 - COMPLETE (Baby Step 70b)
+  M23 v25 - (OTP STATUS LOGIC FIX) Dashboard Brain
   -----------------------------------------------------
-  This is the new "super-smart" brain for our redesigned dashboard.
-  It controls all the new M15 features:
-  1. "Today's Submissions" card (date + count)
-  2. Tab Switching logic (Analytics vs. Lookup)
-  3. "Form Analytics" tab (Date filters, Top 5, Sorting)
-  4. "OTP Lookup" tab (Search by OTP)
+  Updates:
+  1. Logic: Improved OTP Search.
+     - Step 1: Check Submissions (Existing logic).
+     - Step 2: If no submission, check 'allOtps' memory.
+     - Step 3: Display specific messages for "Unused" vs "Invalid".
 */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -14,50 +13,55 @@ document.addEventListener('DOMContentLoaded', () => {
     const db = firebase.firestore();
 
     // =================================================================
-    // 1. GLOBAL STATE (Our "Memory")
+    // 1. GLOBAL STATE
     // =================================================================
     let allForms = [];
     let allGroups = [];
     let allSubmissions = [];
+    let allOtps = []; // Added this memory bank
     let currentSort = {
         column: 'total',
         direction: 'desc'
-    }; // Default sort
-    let currentFilter = 'today'; // Default filter
+    }; 
+    let currentFilter = 'today'; 
 
     // =================================================================
-    // 2. DOM ELEMENTS (Targets)
+    // 2. DOM ELEMENTS
     // =================================================================
 
-    // --- Part A: "Today's Submissions" Card ---
+    // Dashboard Card
     const todayDateDisplay = document.getElementById('today-date-display');
     const todayCountDisplay = document.getElementById('today-count-display');
 
-    // --- Part B: Tab Buttons & Panes ---
+    // Tabs
     const analyticsTabButton = document.getElementById('analytics-tab-button');
     const lookupTabButton = document.getElementById('lookup-tab-button');
     const analyticsPane = document.getElementById('analytics-pane');
     const lookupPane = document.getElementById('lookup-pane');
 
-    // --- Part C: "Form Analytics" Pane ---
+    // Analytics
     const analyticsFilterBar = document.querySelector('#analytics-pane .flex-wrap');
     const analyticsTableBody = document.getElementById('analytics-table-body');
     const sortTotalBtn = document.getElementById('sort-total-btn');
 
-    // --- Part D: "OTP Lookup" Pane ---
+    // OTP Lookup
     const otpSearchInput = document.getElementById('otp-search-input');
     const otpResultsContainer = document.getElementById('otp-results-container');
     const otpResultsTableBody = document.getElementById('otp-results-table-body');
     const otpNoResultsMessage = document.getElementById('otp-no-results-message');
+    
+    // Detail Modal
+    const detailModal = document.getElementById('otp-detail-modal');
+    const detailContent = document.getElementById('otp-detail-content');
+    const closeDetailBtn = document.getElementById('close-detail-modal');
+    const closeDetailBtnMain = document.getElementById('close-detail-btn-main');
+    const modalSerialDisplay = document.getElementById('modal-serial-display');
 
     // =================================================================
-    // 3. DATA LOADING (The "Brain")
+    // 3. DATA LOADING
     // =================================================================
 
-    // --- Load ALL data from Firebase (one time) ---
-    // We listen to all 3 collections to build our "memory"
     async function loadAllData() {
-        // Use Promise.all to load forms and groups first
         await Promise.all([
             db.collection('forms').get().then(snapshot => {
                 allForms = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -67,30 +71,27 @@ document.addEventListener('DOMContentLoaded', () => {
             })
         ]);
 
-        // Now, listen to SUBMISSIONS in real-time
+        // Listen for Submissions
         db.collection('submissions').onSnapshot(snapshot => {
             allSubmissions = snapshot.docs.map(doc => {
                 const data = doc.data();
                 return {
                     id: doc.id,
                     ...data,
-                    // IMPORTANT: Convert Firebase Timestamp to JS Date object
                     submissionDate: data.submissionDate ? data.submissionDate.toDate() : null
                 };
             });
-            
-            // This is the "trigger"
-            // Every time submissions change, re-calculate everything!
             runDashboardUpdates();
+        });
+
+        // NEW: Listen for OTPs (to check "Unused" status)
+        db.collection('otps').onSnapshot(snapshot => {
+            allOtps = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         });
     }
 
-    // --- This is our new "master" function ---
     function runDashboardUpdates() {
-        // 1. Update the "Today's Submissions" card
         updateTodaysCard();
-        
-        // 2. Re-build the "Form Analytics" table
         renderAnalyticsTable();
     }
 
@@ -99,21 +100,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // =================================================================
 
     function updateTodaysCard() {
-        // 1. Set the Date
         const now = new Date();
         const options = { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' };
-        todayDateDisplay.textContent = now.toLocaleDateString('en-IN', options); // e.g., "Wed, 12 Nov 2025"
+        todayDateDisplay.textContent = now.toLocaleDateString('en-IN', options); 
 
-        // 2. Get "start of today" (midnight)
         const todayStart = new Date();
         todayStart.setHours(0, 0, 0, 0);
 
-        // 3. Filter submissions
         const todaySubmissions = allSubmissions.filter(sub => {
             return sub.submissionDate && sub.submissionDate >= todayStart;
         });
 
-        // 4. Set the count
         todayCountDisplay.textContent = todaySubmissions.length;
     }
 
@@ -123,29 +120,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (analyticsTabButton && lookupTabButton) {
         analyticsTabButton.addEventListener('click', () => {
-            // Show Analytics
             analyticsPane.classList.remove('hidden');
             analyticsTabButton.classList.add('border-primary', 'text-primary');
             analyticsTabButton.classList.remove('border-transparent', 'text-gray-400', 'hover:text-white');
             
-            // Hide Lookup
             lookupPane.classList.add('hidden');
             lookupTabButton.classList.add('border-transparent', 'text-gray-400', 'hover:text-white');
             lookupTabButton.classList.remove('border-primary', 'text-primary');
         });
 
         lookupTabButton.addEventListener('click', () => {
-            // Hide Analytics
             analyticsPane.classList.add('hidden');
             analyticsTabButton.classList.remove('border-primary', 'text-primary');
             analyticsTabButton.classList.add('border-transparent', 'text-gray-400', 'hover:text-white');
             
-            // Show Lookup
             lookupPane.classList.remove('hidden');
             lookupTabButton.classList.remove('border-transparent', 'text-gray-400', 'hover:text-white');
             lookupTabButton.classList.add('border-primary', 'text-primary');
 
-            // Reset the lookup tool
             otpSearchInput.value = '';
             otpResultsContainer.classList.add('hidden');
             otpNoResultsMessage.classList.add('hidden');
@@ -156,65 +148,40 @@ document.addEventListener('DOMContentLoaded', () => {
     // 6. LOGIC - PART C: "Form Analytics" Tab
     // =================================================================
 
-    // --- Date Filter Button Clicks ---
     if (analyticsFilterBar) {
         analyticsFilterBar.addEventListener('click', (e) => {
             if (e.target.classList.contains('analytics-filter-btn')) {
-                // Get the new filter (e.g., "7day")
                 currentFilter = e.target.dataset.filter;
                 
-                // 1. Remove "active" style from all buttons
                 analyticsFilterBar.querySelectorAll('.analytics-filter-btn').forEach(btn => {
                     btn.classList.remove('bg-primary/20', 'text-primary');
                     btn.classList.add('text-gray-300', 'hover:bg-white/10');
                 });
                 
-                // 2. Add "active" style to the clicked button
                 e.target.classList.add('bg-primary/20', 'text-primary');
                 e.target.classList.remove('text-gray-300', 'hover:bg-white/10');
                 
-                // 3. Re-build the table with the new filter
                 renderAnalyticsTable();
             }
         });
     }
 
-    // --- Main Analytics Table Renderer ---
     function renderAnalyticsTable() {
-        // 1. Get the "start date" based on the current filter
         const now = new Date();
         let startDate = new Date();
         
         switch (currentFilter) {
-            case 'today':
-                startDate.setHours(0, 0, 0, 0); // Midnight this morning
-                break;
-            case '7day':
-                startDate.setDate(now.getDate() - 7);
-                break;
-            case '15day':
-                startDate.setDate(now.getDate() - 15);
-                break;
-            case '30day':
-                startDate.setMonth(now.getMonth() - 1);
-                break;
-            case '6month':
-                startDate.setMonth(now.getMonth() - 6);
-                break;
-            case 'all':
-                startDate = new Date(0); // The beginning of time
-                break;
+            case 'today': startDate.setHours(0, 0, 0, 0); break;
+            case '7day': startDate.setDate(now.getDate() - 7); break;
+            case '15day': startDate.setDate(now.getDate() - 15); break;
+            case '30day': startDate.setMonth(now.getMonth() - 1); break;
+            case '6month': startDate.setMonth(now.getMonth() - 6); break;
+            case 'all': startDate = new Date(0); break;
         }
 
-        // 2. Calculate stats for EACH form
         let formStats = allForms.map(form => {
-            // Get all submissions for this form
             const subsForThisForm = allSubmissions.filter(s => s.formId === form.id);
-            
-            // Get submissions *within the period*
-            const periodSubs = subsForThisForm.filter(s => {
-                return s.submissionDate && s.submissionDate >= startDate;
-            });
+            const periodSubs = subsForThisForm.filter(s => s.submissionDate && s.submissionDate >= startDate);
             
             return {
                 id: form.id,
@@ -225,23 +192,16 @@ document.addEventListener('DOMContentLoaded', () => {
             };
         });
 
-        // 3. Find the "Top 5" based on Period Count
         const sortedByPeriod = [...formStats].sort((a, b) => b.periodCount - a.periodCount);
         const top5Ids = sortedByPeriod.slice(0, 5).map(f => f.id);
 
-        // 4. Apply our "Total Submissions" sort (as per our plan)
         formStats.sort((a, b) => {
             const valA = a[currentSort.column === 'total' ? 'totalCount' : 'periodCount'];
             const valB = b[currentSort.column === 'total' ? 'totalCount' : 'periodCount'];
-            
-            if (currentSort.direction === 'asc') {
-                return valA - valB; // Numerical sort (ascending)
-            } else {
-                return valB - valA; // Numerical sort (descending)
-            }
+            if (currentSort.direction === 'asc') return valA - valB;
+            else return valB - valA;
         });
 
-        // 5. Render the HTML
         analyticsTableBody.innerHTML = '';
         if (formStats.length === 0) {
             analyticsTableBody.innerHTML = '<tr><td colspan="5" class="p-6 text-center text-gray-500">No forms created yet.</td></tr>';
@@ -249,11 +209,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         formStats.forEach((stat, index) => {
-            // Check if this form is in the "Top 5"
             const isTop5 = top5Ids.includes(stat.id) && stat.periodCount > 0;
-            
             const row = document.createElement('tr');
-            row.className = `border-b border-border-dark ${isTop5 ? 'bg-primary/5' : 'hover:bg-white/5'}`; // Highlight row!
+            row.className = `border-b border-border-dark ${isTop5 ? 'bg-primary/5' : 'hover:bg-white/5'}`;
             
             row.innerHTML = `
                 <td class="px-6 py-4 text-sm font-medium ${isTop5 ? 'text-primary' : 'text-gray-300'}">${index + 1}</td>
@@ -269,10 +227,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- Sort Button Click ---
     if (sortTotalBtn) {
         sortTotalBtn.addEventListener('click', () => {
-            // 1. Toggle direction
             if (currentSort.direction === 'desc') {
                 currentSort.direction = 'asc';
                 sortTotalBtn.querySelector('.material-symbols-outlined').textContent = 'arrow_upward';
@@ -280,82 +236,180 @@ document.addEventListener('DOMContentLoaded', () => {
                 currentSort.direction = 'desc';
                 sortTotalBtn.querySelector('.material-symbols-outlined').textContent = 'arrow_downward';
             }
-            // 2. Re-render the table
             renderAnalyticsTable();
         });
     }
 
     // =================================================================
-    // 7. LOGIC - PART D: "OTP Lookup" Tab
+    // 7. LOGIC - PART D: "OTP Lookup" (SMARTER LOGIC)
     // =================================================================
 
     if (otpSearchInput) {
         otpSearchInput.addEventListener('keyup', (e) => {
-            // We listen for "Enter" key
             if (e.key === 'Enter') {
-                const otp = e.target.value.trim().toLowerCase();
-                if (otp === '') {
+                const otpInputVal = e.target.value.trim().toLowerCase();
+                if (otpInputVal === '') {
                     otpResultsContainer.classList.add('hidden');
                     otpNoResultsMessage.classList.add('hidden');
                     return;
                 }
-                
-                // Find the submission with this OTP
-                // We search *all* submissions, not just today's
-                const foundSub = allSubmissions.find(sub => sub.otp && sub.otp.toLowerCase() === otp);
+
+                // --- Step 1: Check for Submission (Used) ---
+                const foundSub = allSubmissions.find(sub => sub.otp && sub.otp.toLowerCase() === otpInputVal);
                 
                 if (foundSub) {
-                    // --- We found a match! ---
-                    otpResultsTableBody.innerHTML = ''; // Clear old results
-                    
-                    // Format the date (copying from old dashboard.js logic)
-                    let dateString = 'N/A';
-                    if (foundSub.submissionDate) {
-                        const d = foundSub.submissionDate;
-                        dateString = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
-                    }
-
-                    // Get status badge
-                    let statusBadge = '';
-                    if (foundSub.status === 'Submitted') {
-                        statusBadge = '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-500/20 text-green-400">Submitted</span>';
-                    } else if (foundSub.status === 'Rejected') {
-                        statusBadge = '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-500/20 text-red-400">Rejected</span>';
-                    } else {
-                        statusBadge = '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-500/20 text-yellow-400">Pending</span>';
-                    }
-
-                    // Get Form Name
-                    const formName = allForms.find(f => f.id === foundSub.formId)?.formName || 'Unknown Form';
-
-                    // Build the single row
-                    otpResultsTableBody.innerHTML = `
-                        <tr class="border-b border-border-dark">
-                            <td class="px-6 py-4 text-sm font-medium text-gray-300">${foundSub.serial || 'N/A'}</td>
-                            <td class="px-6 py-4 text-sm text-white">${foundSub.name || 'N/A'}</td>
-                            <td class="px-6 py-4 text-sm text-gray-300">${formName}</td>
-                            <td class="px-6 py-4 text-sm text-gray-300">${foundSub.otp}</td>
-                            <td class="px-6 py-4 text-sm text-gray-300">${dateString}</td>
-                            <td class="px-6 py-4 text-sm">${statusBadge}</td>
-                        </tr>
-                    `;
-                    
-                    // Show the table, hide the "no results" message
-                    otpResultsContainer.classList.remove('hidden');
-                    otpNoResultsMessage.classList.add('hidden');
-
+                    renderSubmissionResult(foundSub);
                 } else {
-                    // --- No match found ---
-                    otpResultsContainer.classList.add('hidden');
-                    otpNoResultsMessage.classList.remove('hidden');
+                    // --- Step 2: Check for OTP Existence (Unused) ---
+                    const foundOtpDoc = allOtps.find(otp => otp.code && otp.code.toLowerCase() === otpInputVal);
+                    
+                    if (foundOtpDoc) {
+                        // Found, but no submission -> "Valid but Unused"
+                        showOtpMessage(`OTP "${foundOtpDoc.code}" is valid but has NOT been used yet.`, "text-yellow-400");
+                    } else {
+                        // Not found anywhere -> "Invalid"
+                        showOtpMessage(`OTP "${otpInputVal}" does not exist.`, "text-red-400");
+                    }
                 }
             }
         });
     }
 
-    // =================================================================
-    // 8. INITIALIZATION
-    // =================================================================
-    loadAllData(); // Start the engine!
+    function showOtpMessage(msg, colorClass) {
+        otpResultsContainer.classList.add('hidden');
+        otpNoResultsMessage.innerHTML = `<span class="${colorClass}">${msg}</span>`;
+        otpNoResultsMessage.classList.remove('hidden');
+    }
+
+    function renderSubmissionResult(foundSub) {
+        otpResultsTableBody.innerHTML = ''; 
+        
+        let dateString = 'N/A';
+        if (foundSub.submissionDate) {
+            dateString = foundSub.submissionDate.toLocaleString('en-IN', {
+                year: 'numeric', month: 'short', day: 'numeric',
+                hour: '2-digit', minute: '2-digit'
+            });
+        }
+
+        let statusBadge = '';
+        if (foundSub.status === 'Submitted') {
+            statusBadge = '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-500/20 text-green-400">Submitted</span>';
+        } else if (foundSub.status === 'Rejected') {
+            statusBadge = '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-500/20 text-red-400">Rejected</span>';
+        } else {
+            statusBadge = `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-500/20 text-yellow-400">${foundSub.status || 'Pending'}</span>`;
+        }
+
+        const formDef = allForms.find(f => f.id === foundSub.formId);
+        const formName = formDef?.formName || 'Unknown Form';
+        const serialDisplay = foundSub.serialNumber || 'N/A';
+
+        const listRow = document.createElement('tr');
+        listRow.className = "border-b border-border-dark hover:bg-white/5 cursor-pointer transition-colors";
+        listRow.dataset.id = foundSub.id; 
+        
+        listRow.innerHTML = `
+            <td class="px-6 py-4 text-sm font-medium text-gray-300">${serialDisplay}</td>
+            <td class="px-6 py-4 text-sm text-gray-300">${formName}</td>
+            <td class="px-6 py-4 text-sm text-gray-300">${foundSub.otp}</td>
+            <td class="px-6 py-4 text-sm text-gray-300">${dateString}</td>
+            <td class="px-6 py-4 text-sm">${statusBadge}</td>
+        `;
+        otpResultsTableBody.appendChild(listRow);
+        
+        otpResultsContainer.classList.remove('hidden');
+        otpNoResultsMessage.classList.add('hidden');
+    }
+
+    // --- CLICK HANDLER ---
+    if (otpResultsTableBody) {
+        otpResultsTableBody.addEventListener('click', (e) => {
+            const row = e.target.closest('tr');
+            if (row && row.dataset.id) {
+                const subId = row.dataset.id;
+                const submission = allSubmissions.find(s => s.id === subId);
+                if (submission) {
+                    openDetailModal(submission);
+                }
+            }
+        });
+    }
+
+    // --- MODAL LOGIC ---
+    function openDetailModal(sub) {
+        if (!detailModal) return;
+
+        // 1. Find Form Info for Header
+        const formDef = allForms.find(f => f.id === sub.formId);
+        const publicFormName = formDef?.formName || 'Unknown Form';
+
+        // 2. Update Header Title
+        const modalTitle = detailModal.querySelector('h3');
+        if (modalTitle) {
+            modalTitle.textContent = publicFormName;
+        }
+
+        // 3. Update Header Subtitle
+        if (modalSerialDisplay) {
+            const serial = sub.serialNumber || 'No Serial';
+            const otp = sub.otp || 'No OTP';
+            const status = sub.status || 'Pending';
+            let dateStr = 'N/A';
+            if (sub.submissionDate instanceof Date) {
+                 dateStr = sub.submissionDate.toLocaleString('en-IN', {
+                    day: 'numeric', month: 'short', year: 'numeric',
+                    hour: '2-digit', minute: '2-digit'
+                 });
+            }
+            
+            modalSerialDisplay.innerHTML = `
+                <span class="text-white">${serial}</span> <span class="text-gray-600 mx-2">|</span> 
+                <span class="text-primary font-mono">${otp}</span> <span class="text-gray-600 mx-2">|</span> 
+                <span class="text-gray-400">${dateStr}</span> <span class="text-gray-600 mx-2">|</span> 
+                <span class="${status === 'Submitted' ? 'text-green-400' : 'text-yellow-400'}">${status}</span>
+            `;
+        }
+
+        // 4. Build Content Grid
+        detailContent.innerHTML = ''; 
+        const grid = document.createElement('div');
+        grid.className = 'grid grid-cols-1 sm:grid-cols-2 gap-6';
+
+        const formatLabel = (key) => key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+        const skipFields = ['id', 'formId', 'otpId', 'otp', 'serialNumber', 'status', 'submissionDate'];
+
+        for (const [key, value] of Object.entries(sub)) {
+            if (skipFields.includes(key)) continue; 
+            
+            let displayValue = value;
+            if (value instanceof Date) {
+                displayValue = value.toLocaleString('en-IN');
+            } else if (typeof value === 'string' && value.startsWith('http')) {
+                displayValue = `<a href="${value}" target="_blank"><img src="${value}" class="h-24 w-auto rounded border border-border-dark hover:opacity-80 transition-opacity" alt="${key}"></a>`;
+            } else if (typeof value === 'boolean') {
+                displayValue = value ? 'Yes' : 'No';
+            }
+
+            const item = document.createElement('div');
+            item.className = 'flex flex-col gap-1';
+            item.innerHTML = `
+                <span class="text-xs text-gray-500 uppercase font-bold tracking-wider">${formatLabel(key)}</span>
+                <div class="text-sm text-white font-medium break-words">${displayValue}</div>
+            `;
+            grid.appendChild(item);
+        }
+        
+        detailContent.appendChild(grid);
+        detailModal.classList.remove('hidden');
+    }
+
+    // Close Handlers
+    const closeDetailFunc = () => detailModal.classList.add('hidden');
+    if (closeDetailBtn) closeDetailBtn.addEventListener('click', closeDetailFunc);
+    if (closeDetailBtnMain) closeDetailBtnMain.addEventListener('click', closeDetailFunc);
+
+    // Init
+    loadAllData(); 
 
 });

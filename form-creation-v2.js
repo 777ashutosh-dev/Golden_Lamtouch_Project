@@ -1,11 +1,13 @@
 /*
-This is the *NEW, FINAL, SMART* JavaScript file for your form-creation.html page.
-It includes:
-1.  All old, working toggle logic.
-2.  Our "future-proof" "+ Add Field" logic.
-3.  NEW: Validation logic to check for blank fields.
-4.  NEW: "Hybrid/Locked/Unlocked" logic to protect "live" forms.
+  M23 v23 - (ANTI-DUPLICATION: FORMS) Form Creation Brain
+  -----------------------------------------------------
+  Updates:
+  1. SECURITY: Added "Smart Duplicate Check" before saving.
+     - Checks if 'formName' already exists in the database.
+     - Smartly handles "Edit Mode" (ignores self-matches).
+  2. LOGIC: Preserves all previous validation and "Hybrid" features.
 */
+
 document.addEventListener('DOMContentLoaded', () => {
 
     // --- We need access to our database! ---
@@ -275,7 +277,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Delete Button Logic
         fieldsContainer.addEventListener('click', (e) => {
-            const deleteButton = e.g.target.closest('.delete-field-button');
+            const deleteButton = e.target.closest('.delete-field-button');
             if (deleteButton) {
                 deleteButton.closest('.field-row').remove();
                 updateFieldNumbers();
@@ -333,7 +335,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // =================================================================
-    // START: "SAVE / UPDATE" LOGIC (Now with VALIDATION!)
+    // START: "SAVE / UPDATE" LOGIC (Now with VALIDATION + DUPLICATE CHECK!)
     // =================================================================
 
     if (saveFormButton) {
@@ -342,7 +344,8 @@ document.addEventListener('DOMContentLoaded', () => {
             // --- NEW VALIDATION LOGIC (Your Idea!) ---
             
             // 1. Check Step 1: Form Name
-            if (formNameInput.value.trim() === '') {
+            const formName = formNameInput.value.trim();
+            if (formName === '') {
                 alert('Form Name is required. Please fill it out before saving.');
                 formNameInput.focus(); // Puts the user's cursor in the box
                 return; // Stop the function
@@ -369,14 +372,38 @@ document.addEventListener('DOMContentLoaded', () => {
                 return; // Stop the function
             }
             
-            // --- If we get here, all validation passed! ---
-
+            // --- START: ANTI-DUPLICATION CHECK ---
             saveFormButton.disabled = true;
-            saveFormButton.querySelector('.truncate').textContent += '...';
+            saveFormButton.querySelector('.truncate').textContent = 'Checking...';
 
             try {
+                // 3. Check if Form Name Exists
+                const nameCheckSnapshot = await db.collection('forms')
+                    .where('formName', '==', formName)
+                    .get();
+
+                let isDuplicate = false;
+                if (!nameCheckSnapshot.empty) {
+                    nameCheckSnapshot.forEach(doc => {
+                        // If we found a doc with the same name...
+                        // AND it is NOT the doc we are currently editing...
+                        if (doc.id !== currentEditingFormId) {
+                            isDuplicate = true;
+                        }
+                    });
+                }
+
+                if (isDuplicate) {
+                    alert('Error: A form with this name already exists. Please choose a unique name.');
+                    saveFormButton.disabled = false;
+                    saveFormButton.querySelector('.truncate').textContent = currentEditingFormId ? 'Update Form' : 'Save Form';
+                    return; // STOP EVERYTHING
+                }
+                
+                // --- If we get here, all validation passed! ---
+                saveFormButton.querySelector('.truncate').textContent = 'Saving...';
+
                 // --- Part A: Read all the data from the form ---
-                const formName = formNameInput.value;
                 const orgName = orgNameInput.value;
                 const coordinatorName = coordinatorNameInput.value;
                 const coordinatorEmail = coordinatorEmailInput.value;
