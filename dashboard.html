@@ -13,7 +13,7 @@
 
 <body class="bg-background-dark font-display text-white">
     <div class="relative flex min-h-screen w-full">
-        <!-- SideNavBar -->
+        <!-- SideNavBar (Updated for M21 v3) -->
         <aside
             class="flex h-screen w-64 flex-col bg-surface-dark p-4 border-r border-border-dark sticky top-0 overflow-y-auto">
             <div class="flex flex-col gap-8">
@@ -46,8 +46,8 @@
                         <p class="text-sm font-medium leading-normal">Form Creation</p>
                     </a>
                     
-                    <!-- Link 4: Data Download -->
-                    <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 text-gray-300" href="#">
+                    <!-- Link 4: Data Download (CONSISTENT LINK) -->
+                    <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 text-gray-300" href="data-download.html">
                         <span class="material-symbols-outlined">download_for_offline</span>
                         <p class="text-sm font-medium leading-normal">Data Download</p>
                     </a>
@@ -58,7 +58,7 @@
                         <p class="text-sm font-medium leading-normal">System Logs & Activity</p>
                     </a>
                     
-                    <!-- Link 6: Settings (NOW LINKED) -->
+                    <!-- Link 6: Settings -->
                     <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 text-gray-300" href="settings.html">
                         <span class="material-symbols-outlined">manage_accounts</span>
                         <p class="text-sm font-medium leading-normal">Settings & User Roles</p>
@@ -75,7 +75,7 @@
             </div>
         </aside>
 
-        <!-- Main Content (All new M15 HTML) -->
+        <!-- Main Content (No changes here) -->
         <main class="flex-1 flex-col p-8 overflow-y-auto h-screen">
             <div class="flex flex-col gap-8">
                 <!-- PageHeading -->
@@ -87,31 +87,16 @@
                     </div>
                 </div>
 
-                <!-- 
-                  ======================================================
-                  START: M15 - Part A: New "Today's Submissions" Card
-                  ======================================================
-                -->
+                <!-- "Today's Submissions" Card -->
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <!-- We only have one card now, but we keep the grid for future expansion -->
                     <div class="flex flex-col gap-2 rounded-xl p-6 bg-surface-dark border border-border-dark">
-                        <!-- This card will show date AND count -->
                         <p class="text-gray-300 text-base font-medium leading-normal" id="today-date-display">Loading date...</p>
                         <p class="text-white text-3xl font-bold leading-tight" id="today-count-display">0</p>
                         <p class="text-gray-400 text-sm">Total Submissions Today</p>
                     </div>
-                    <!-- The other two cards ("OTPs" and "Total Submissions") are now DELETED -->
                 </div>
-                <!-- ======================================================
-                     END: M15 - Part A
-                     ====================================================== -->
 
-                
-                <!-- 
-                  ======================================================
-                  START: M15 - Part B: New "Tabbed UI"
-                  ======================================================
-                -->
+                <!-- "Tabbed UI" -->
                 <div class="flex flex-col gap-4">
                     <!-- Tab Buttons -->
                     <nav class="flex border-b border-border-dark">
@@ -131,11 +116,7 @@
 
                     <!-- Tab Content Panes -->
                     <div class="pt-4">
-                        <!-- 
-                          ======================================================
-                          START: M15 - Part C: "Form Analytics" Pane (Visible by default)
-                          ======================================================
-                        -->
+                        <!-- "Form Analytics" Pane -->
                         <div id="analytics-pane" class="flex flex-col gap-4">
                             <!-- Filter Bar -->
                             <div class="flex flex-wrap items-center gap-2">
@@ -147,7 +128,7 @@
                                 <button data-filter="all" class="analytics-filter-btn px-3 py-1.5 text-sm font-medium rounded-lg text-gray-300 hover:bg-white/10">All Time</button>
                             </div>
                             
-                            <!-- New "Constant Table" for Analytics -->
+                            <!-- Analytics Table -->
                             <div class="rounded-xl bg-surface-dark border border-border-dark overflow-hidden">
                                 <div class="overflow-x-auto">
                                     <table class="w-full text-left">
@@ -157,10 +138,8 @@
                                                 <th class="px-6 py-3 text-sm font-semibold text-gray-400">Form Name</th>
                                                 <th class="px-6 py-3 text-sm font-semibold text-gray-400">Group</th>
                                                 <th class="px-6 py-3 text-sm font-semibold text-gray-400">Submissions (Period)</th>
-                                                <!-- Sortable Column -->
                                                 <th id="sort-total-btn" class="px-6 py-3 text-sm font-semibold text-gray-400 cursor-pointer hover:text-white flex items-center gap-1">
                                                     <span>Total Submissions</span>
-                                                    <!-- (FIXED) Icon was wrong, now correct -->
                                                     <span class="material-symbols-outlined text-base">arrow_downward</span>
                                                 </th>
                                             </tr>
@@ -169,29 +148,21 @@
                                             <tr>
                                                 <td colspan="5" class="p-6 text-center text-gray-500">Loading analytics...</td>
                                             </tr>
-                                            <!-- JS will fill this with ALL forms -->
                                         </tbody>
                                     </table>
                                 </div>
                             </div>
                         </div>
-                        <!-- ======================================================
-                             END: M15 - Part C
-                             ====================================================== -->
 
-                        <!-- 
-                          ======================================================
-                          START: M15 - Part D: "OTP Lookup" Pane (Hidden by default)
-                          ======================================================
-                        -->
+                        <!-- "OTP Lookup" Pane -->
                         <div id="lookup-pane" class="hidden flex-col gap-4">
                             <!-- OTP Search Bar -->
                             <div class="relative w-full max-w-sm">
-                                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1.5 text-gray-400">pin</span>
+                                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/5 text-gray-400">pin</span>
                                 <input id="otp-search-input" class="w-full h-10 pl-10 pr-4 rounded-lg bg-surface-dark border border-border-dark text-white placeholder-gray-500 focus:ring-primary focus:border-primary text-sm" placeholder="Search by OTP..." type="text" />
                             </div>
 
-                            <!-- OTP Results Table (Hidden by default) -->
+                            <!-- OTP Results Table -->
                             <div id="otp-results-container" class="hidden rounded-xl bg-surface-dark border border-border-dark overflow-hidden">
                                 <div class="overflow-x-auto">
                                     <table class="w-full text-left">
@@ -214,28 +185,21 @@
                             <!-- Message for no results -->
                             <p id="otp-no-results-message" class="hidden text-gray-500 text-center p-6">No submission found with that OTP.</p>
                         </div>
-                        <!-- ======================================================
-                             END: M15 - Part D
-                             ====================================================== -->
 
                     </div>
                 </div>
-                <!-- ======================================================
-                     END: M1s5 - Part B
-                     ====================================================== -->
 
             </div>
         </main>
     </div>
     
     <!-- ====================================================== -->
-    <!-- START: FIREBASE SCRIPT BLOCK (No changes) -->
+    <!-- START: FIREBASE SCRIPT BLOCK -->
     <!-- ====================================================== -->
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-storage-compat.js"></script>
-    <!-- (NEW) Functions SDK is needed for M17 Delete -->
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-functions-compat.js"></script>
     <script>
         const firebaseConfig = {
@@ -250,11 +214,10 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
         const storage = firebase.storage();
-        // (NEW) Init functions
         const functions = firebase.functions(); 
     </script>
     <script src="auth-guard.js"></script>
-    <script src="dashboard.js"></DART_CODE>
+    <script src="dashboard.js"></script>
     <!-- ====================================================== -->
     <!-- END: FIREBASE SCRIPT BLOCK -->
     <!-- ====================================================== -->

@@ -9,8 +9,31 @@ document.addEventListener('DOMContentLoaded', (event) => {
     const emailInput = document.getElementById('email');
     const passwordInput = document.getElementById('password');
     const errorMessage = document.getElementById('error-message');
+    
+    // Documentation Modal Targets
+    const openDocsButton = document.getElementById('open-docs-button');
+    const closeDocsButton = document.getElementById('close-docs-button');
+    const docsModal = document.getElementById('docs-modal');
 
-    // Make sure the form exists before we try to use it
+    // --- 1. Modal Logic ---
+    if (openDocsButton && docsModal && closeDocsButton) {
+        openDocsButton.addEventListener('click', () => {
+            docsModal.classList.remove('hidden');
+        });
+        
+        closeDocsButton.addEventListener('click', () => {
+            docsModal.classList.add('hidden');
+        });
+        
+        // Close if clicking outside the modal
+        docsModal.addEventListener('click', (e) => {
+            if (e.target === docsModal) {
+                docsModal.classList.add('hidden');
+            }
+        });
+    }
+
+    // --- 2. Login Logic ---
     if (loginForm) {
         
         // This is the main "listener". We are telling the form:

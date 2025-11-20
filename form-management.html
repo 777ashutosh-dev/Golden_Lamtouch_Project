@@ -6,7 +6,7 @@
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>Golden Lamtouch - Form Management</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
         rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
 </head>
@@ -25,47 +25,40 @@
                     <h1 class="text-white text-lg font-bold leading-normal">Golden Lamtouch</h1>
                 </div>
                 <nav class="flex flex-col gap-2">
-                    <!-- Link 1: Dashboard -->
                     <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 text-gray-300"
                         href="dashboard.html">
                         <span class="material-symbols-outlined">dashboard</span>
                         <p class="text-sm font-semibold leading-normal">Dashboard</p>
                     </a>
                     
-                    <!-- Link 2: Form Management (This is now our ACTIVE page) -->
                     <a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/20 text-primary" 
                         href="form-management.html">
                         <span class="material-symbols-outlined fill">description</span>
                         <p class="text-sm font-medium leading-normal">Form Management</p>
                     </a>
                     
-                    <!-- Link 3: Form Creation -->
                     <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 text-gray-300"
                         href="form-creation.html">
                         <span class="material-symbols-outlined">create_new_folder</span>
                         <p class="text-sm font-medium leading-normal">Form Creation</p>
                     </a>
                     
-                    <!-- Link 4: Data Download -->
-                    <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 text-gray-300" href="#">
+                    <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 text-gray-300" href="data-download.html">
                         <span class="material-symbols-outlined">download_for_offline</span>
                         <p class="text-sm font-medium leading-normal">Data Download</p>
                     </a>
                     
-                    <!-- Link 5: System Logs -->
                     <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 text-gray-300" href="#">
                         <span class="material-symbols-outlined">manage_history</span>
                         <p class="text-sm font-medium leading-normal">System Logs & Activity</p>
                     </a>
                     
-                    <!-- Link 6: Settings (NOW LINKED) -->
                     <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 text-gray-300" href="settings.html">
                         <span class="material-symbols-outlined">manage_accounts</span>
                         <p class="text-sm font-medium leading-normal">Settings & User Roles</p>
                     </a>
                 </nav>
             </div>
-            <!-- Sign Out Button (at the bottom) -->
             <div class="mt-auto pt-8">
                 <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 text-gray-300"
                     href="#" id="sign-out-button">
@@ -78,28 +71,32 @@
         <!-- Main Content -->
         <main class="flex-1 flex-col p-8 overflow-y-auto h-screen">
             <div class="flex flex-col gap-8">
-                <!-- PageHeading and Toolbar -->
+                
+                <!-- Header & Search -->
                 <div class="flex flex-wrap justify-between items-center gap-4">
                     <div class="flex flex-col gap-2">
                         <p class="text-white text-3xl font-bold leading-tight">Form Management</p>
                         <p class="text-gray-400 text-base font-normal leading-normal">Search, view, and manage all of your created forms.</p>
                     </div>
-                    <!-- This is your new Search Bar -->
                     <div class="relative w-full max-w-sm">
                         <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">search</span>
                         <input id="form-search-input" class="w-full h-10 pl-10 pr-4 rounded-lg bg-surface-dark border border-border-dark text-white placeholder-gray-500 focus:ring-primary focus:border-primary text-sm" placeholder="Search by Form Name or Org..." type="text" />
                     </div>
                 </div>
 
-                <!-- NEW Toolbar for Groups and Sorting -->
+                <!-- Toolbar Row (RESTORED) -->
                 <div class="flex flex-wrap items-center justify-between gap-4">
-                    <!-- Left Side: Group Filters -->
-                    <div class="flex flex-wrap items-center gap-2">
-                        <label for="group-filter-select" class="text-sm font-medium text-gray-300">View by Group:</label>
-                        <select id="group-filter-select" class="w-48 h-10 px-4 rounded-lg bg-surface-dark border border-border-dark text-white focus:ring-primary focus:border-primary text-sm">
-                            <option value="all">All Groups</option>
-                            <!-- JavaScript will fill this list -->
-                        </select>
+                    <!-- Left: Group Controls -->
+                    <div class="flex items-center gap-4 flex-wrap">
+                        <!-- View By Group Dropdown -->
+                        <div class="flex items-center gap-2">
+                            <span class="text-sm text-gray-400">View by Group:</span>
+                            <select id="view-group-select" class="h-10 px-3 pr-8 rounded-lg bg-surface-dark border border-border-dark text-white text-sm focus:ring-primary focus:border-primary cursor-pointer">
+                                <option value="all">All Groups</option>
+                                <!-- Populated by JS -->
+                            </select>
+                        </div>
+                        
                         <button id="create-group-button" class="flex items-center justify-center h-10 px-4 rounded-lg bg-surface-dark border border-border-dark text-sm text-gray-300 hover:bg-white/5 gap-2">
                             <span class="material-symbols-outlined text-lg">add</span>
                             <span>Create Group</span>
@@ -109,34 +106,47 @@
                             <span>Manage Groups</span>
                         </button>
                     </div>
-                    <!-- Right Side: Sort Button -->
-                    <div class="flex">
-                        <button id="sort-az-button" class="flex items-center justify-center h-10 px-4 rounded-lg bg-surface-dark border border-border-dark text-sm text-gray-300 hover:bg-white/5 gap-2">
-                            <span class="material-symbols-outlined text-lg">sort_by_alpha</span>
-                            <span>Sort A-Z</span>
-                        </button>
-                    </div>
-                </div>
 
-                <!-- Form List Table -->
+                    <!-- Right: Sort Button -->
+                    <button id="sort-az-button" class="flex items-center justify-center h-10 px-4 rounded-lg bg-surface-dark border border-border-dark text-sm text-gray-300 hover:bg-white/5 gap-2">
+                        <span class="material-symbols-outlined text-lg">sort_by_alpha</span>
+                        <span>Sort A-Z</span>
+                    </button>
+                </div>
+                
+                <!-- Table Container -->
                 <div class="flex flex-col gap-4 rounded-xl bg-surface-dark border border-border-dark">
                     <div class="overflow-x-auto">
                         <table class="w-full text-left">
                             <thead>
                                 <tr class="border-b border-border-dark">
-                                    <th class="px-6 py-3 text-sm font-semibold text-gray-400 min-w-[200px]">Form Name</th>
-                                    <th class="px-6 py-3 text-sm font-semibold text-gray-400 min-w-[150px]">Organisation</th>
-                                    <th class="px-6 py-3 text-sm font-semibold text-gray-400 min-w-[100px]">Payment Status</th>
-                                    <th class="px-6 py-3 text-sm font-semibold text-gray-400">Total OTPs</th>
+                                    <!-- Col 1: Form Name -->
+                                    <th class="px-6 py-3 text-sm font-semibold text-gray-400 min-w-[200px]">
+                                        <span>Form Name</span>
+                                    </th>
+                                    
+                                    <!-- Col 2: Organisation (RESTORED) -->
+                                    <th class="px-6 py-3 text-sm font-semibold text-gray-400 min-w-[150px]">
+                                        <span>Organisation</span>
+                                    </th>
+
+                                    <!-- Col 3: Payment Status (RESTORED) -->
+                                    <th class="px-6 py-3 text-sm font-semibold text-gray-400 min-w-[120px]">
+                                        <span>Payment Status</span>
+                                    </th>
+
+                                    <!-- Col 4: Total OTPs -->
+                                    <th class="px-6 py-3 text-sm font-semibold text-gray-400 min-w-[100px]">Total OTPs</th>
+                                    
+                                    <!-- Col 5: Used OTPs -->
                                     <th class="px-6 py-3 text-sm font-semibold text-gray-400">Used OTPs</th>
-                                    <!-- (CHANGED) The Actions column is now wider to fit the new button -->
-                                    <th class="px-6 py-3 text-sm font-semibold text-gray-400 min-w-[200px]">Actions</th>
+                                    
+                                    <!-- Col 6: Actions -->
+                                    <th class="px-6 py-3 text-sm font-semibold text-gray-400 min-w-[300px]">Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="form-table-body">
-                                <!-- JavaScript will fill this list -->
                                 <tr>
-                                    <!-- (CHANGED) Colspan is now 6 -->
                                     <td colspan="6" class="p-6 text-center text-gray-500">Loading forms...</td>
                                 </tr>
                             </tbody>
@@ -147,19 +157,15 @@
         </main>
     </div>
 
-    <!-- Modals (No Changes) -->
-    <!-- Modal 1: "Create Group" -->
+    <!-- Create Group Modal -->
     <div id="create-group-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-        <!-- Modal Content -->
         <div class="bg-surface-dark rounded-xl shadow-2xl border border-border-dark w-full max-w-md">
-            <!-- Modal Header -->
             <div class="flex justify-between items-center p-6 border-b border-border-dark">
                 <h3 class="text-xl font-semibold text-white">Create a New Group</h3>
                 <button id="close-create-modal-button" class="p-1 rounded-full text-gray-400 hover:bg-white/10 hover:text-white">
                     <span class="material-symbols-outlined">close</span>
                 </button>
             </div>
-            <!-- Modal Body -->
             <div class="p-6">
                 <div class="flex flex-col gap-2">
                     <label for="group-name-input" class="text-sm font-medium text-gray-300">Group Name</label>
@@ -168,7 +174,6 @@
                     <span id="create-group-error-message" class="text-sm text-red-400 h-4 mt-1"></span>
                 </div>
             </div>
-            <!-- Modal Footer -->
             <div class="flex justify-end items-center gap-4 p-6 border-t border-border-dark">
                 <button id="cancel-create-modal-button"
                     class="h-10 px-4 rounded-lg bg-surface-dark border border-border-dark text-sm text-gray-300 hover:bg-white/10">
@@ -182,52 +187,42 @@
         </div>
     </div>
 
-    <!-- Modal 2: "Manage Groups" -->
+    <!-- Manage Groups Modal -->
     <div id="manage-groups-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-        <!-- Modal Content -->
         <div class="bg-surface-dark rounded-xl shadow-2xl border border-border-dark w-full max-w-md">
-            <!-- Modal Header -->
             <div class="flex justify-between items-center p-6 border-b border-border-dark">
                 <h3 class="text-xl font-semibold text-white">Manage Groups</h3>
                 <button id="close-manage-modal-button" class="p-1 rounded-full text-gray-400 hover:bg-white/10 hover:text-white">
                     <span class="material-symbols-outlined">close</span>
                 </button>
             </div>
-            <!-- Modal Body -->
             <div class="p-6">
-                <p class="text-sm text-gray-400 mb-4">Click the trash icon to delete a group. This will not delete any forms, it will only un-assign them from this group.</p>
-                <!-- This is where our JS will add the list of groups -->
+                <p class="text-sm text-gray-400 mb-4">Click the trash icon to delete a group. This will not delete forms, it will only un-assign them from this group.</p>
                 <div id="group-list-container" class="flex flex-col gap-3 max-h-60 overflow-y-auto">
-                    <!-- Example of a row (JS will build this) -->
                     <p id="no-groups-message" class="text-gray-500 text-center">No groups created yet.</p>
                 </div>
             </div>
         </div>
     </div>
-    
-    <!-- Modal 3: "Assign Group" -->
+
+    <!-- Assign Group Modal -->
     <div id="assign-group-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-        <!-- Modal Content -->
         <div class="bg-surface-dark rounded-xl shadow-2xl border border-border-dark w-full max-w-md">
-            <!-- Modal Header -->
             <div class="flex justify-between items-center p-6 border-b border-border-dark">
                 <h3 class="text-xl font-semibold text-white">Assign Group for <span id="assign-form-name" class="text-primary"></span></h3>
                 <button id="close-assign-modal-button" class="p-1 rounded-full text-gray-400 hover:bg-white/10 hover:text-white">
                     <span class="material-symbols-outlined">close</span>
                 </button>
             </div>
-            <!-- Modal Body -->
             <div class="p-6">
                 <div class="flex flex-col gap-2">
                     <label for="assign-group-select" class="text-sm font-medium text-gray-300">Select a Group</label>
                     <select id="assign-group-select" class="w-full h-10 px-4 rounded-lg bg-background-dark border border-border-dark text-white focus:ring-primary focus:border-primary text-sm">
                         <option value="none">No Group (Un-assign)</option>
-                        <!-- JavaScript will fill this list with our groups -->
                     </select>
                     <span id="assign-group-error-message" class="text-sm text-red-400 h-4 mt-1"></span>
                 </div>
             </div>
-            <!-- Modal Footer -->
             <div class="flex justify-end items-center gap-4 p-6 border-t border-border-dark">
                 <button id="cancel-assign-modal-button"
                     class="h-10 px-4 rounded-lg bg-surface-dark border border-border-dark text-sm text-gray-300 hover:bg-white/10">
@@ -240,19 +235,16 @@
             </div>
         </div>
     </div>
-    
-    <!-- Modal 4: "Add OTP" (FIXED VERSION) -->
+
+    <!-- Add OTP Modal -->
     <div id="add-otp-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-        <!-- Modal Content -->
         <div class="bg-surface-dark rounded-xl shadow-2xl border border-border-dark w-full max-w-md">
-            <!-- Modal Header -->
             <div class="flex justify-between items-center p-6 border-b border-border-dark">
                 <h3 class="text-xl font-semibold text-white">Add OTPs for <span id="otp-form-name" class="text-primary"></span></h3>
                 <button id="close-otp-modal-button" class="p-1 rounded-full text-gray-400 hover:bg-white/10 hover:text-white">
                     <span class="material-symbols-outlined">close</span>
                 </button>
             </div>
-            <!-- Modal Body -->
             <div class="p-6">
                 <div class="flex flex-col gap-2">
                     <label for="otp-quantity-input" class="text-sm font-medium text-gray-300">Quantity to Generate</label>
@@ -261,7 +253,6 @@
                     <span id="otp-error-message" class="text-sm text-red-400 h-4 mt-1"></span>
                 </div>
             </div>
-            <!-- Modal Footer -->
             <div class="flex justify-end items-center gap-4 p-6 border-t border-border-dark">
                 <button id="cancel-otp-modal-button"
                     class="h-10 px-4 rounded-lg bg-surface-dark border border-border-dark text-sm text-gray-300 hover:bg-white/10">
@@ -275,8 +266,7 @@
             </div>
         </div>
     </div>
-
-    <!-- Firebase Scripts (No Changes) -->
+    
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>

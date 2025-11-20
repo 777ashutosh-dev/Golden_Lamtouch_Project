@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Golden Lamtouch - Data Download</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+</head>
+
+<body class="bg-background-dark font-display text-white">
+    <div class="relative flex min-h-screen w-full">
+        <!-- SideNavBar -->
+        <aside
+            class="flex h-screen w-64 flex-col bg-surface-dark p-4 border-r border-border-dark sticky top-0 overflow-y-auto">
+            <div class="flex flex-col gap-8">
+                <div class="flex items-center gap-3 px-3">
+                    <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10"
+                        data-alt="Golden Lamtouch company logo"
+                        style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBHcVL9mAEPMxg1o1fNfX5aOf3R2rbREe9mMkMhH021Aba47JlqBG1W5hZhrGuZimaztIOdGWwKkyzexyTsXHegXGN9XStpFCFR6OMl6FNNV7HvlgSrQre33s7GhNniALsxxds7fpmCYhLiEI6xBVoCvr7fg9kcKPmtYw56-BnRjdM9Kbccjvad_8a7SEqH1jcTu4yL--OMfZw4RXWT7WzgOnLDWYanF7YfkqfPDWD_OEf9iQRrqRHc5W_stZ052kUq8p-nwrDkaF0");'>
+                    </div>
+                    <h1 class="text-white text-lg font-bold leading-normal">Golden Lamtouch</h1>
+                </div>
+                <nav class="flex flex-col gap-2">
+                    <!-- Link 1: Dashboard -->
+                    <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 text-gray-300"
+                        href="dashboard.html">
+                        <span class="material-symbols-outlined">dashboard</span>
+                        <p class="text-sm font-semibold leading-normal">Dashboard</p>
+                    </a>
+                    
+                    <!-- Link 2: Form Management -->
+                    <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 text-gray-300" 
+                        href="form-management.html">
+                        <span class="material-symbols-outlined">description</span>
+                        <p class="text-sm font-medium leading-normal">Form Management</p>
+                    </a>
+                    
+                    <!-- Link 3: Form Creation -->
+                    <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 text-gray-300"
+                        href="form-creation.html">
+                        <span class="material-symbols-outlined">create_new_folder</span>
+                        <p class="text-sm font-medium leading-normal">Form Creation</p>
+                    </a>
+                    
+                    <!-- Link 4: Data Download (NOW ACTIVE) -->
+                    <a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/20 text-primary" href="data-download.html">
+                        <span class="material-symbols-outlined fill">download_for_offline</span>
+                        <p class="text-sm font-medium leading-normal">Data Download</p>
+                    </a>
+                    
+                    <!-- Link 5: System Logs (Placeholder) -->
+                    <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 text-gray-300" href="#">
+                        <span class="material-symbols-outlined">manage_history</span>
+                        <p class="text-sm font-medium leading-normal">System Logs & Activity</p>
+                    </a>
+                    
+                    <!-- Link 6: Settings -->
+                    <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 text-gray-300" href="settings.html">
+                        <span class="material-symbols-outlined">manage_accounts</span>
+                        <p class="text-sm font-medium leading-normal">Settings & User Roles</p>
+                    </a>
+                </nav>
+            </div>
+            <!-- Sign Out Button (at the bottom) -->
+            <div class="mt-auto pt-8">
+                <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 text-gray-300"
+                    href="#" id="sign-out-button">
+                    <span class="material-symbols-outlined">logout</span>
+                    <p class="text-sm font-medium leading-normal">Sign Out</p>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content (M22 "Smart Dashboard" UI) -->
+        <main class="flex-1 flex-col p-8 overflow-y-auto h-screen">
+            <div class="flex flex-col gap-8">
+                <!-- PageHeading -->
+                <div class="flex flex-wrap justify-between gap-3">
+                    <div class="flex flex-col gap-2">
+                        <p class="text-white text-3xl font-bold leading-tight">Master Data Download</p>
+                        <p class="text-gray-400 text-base font-normal leading-normal">Download complete submission data and images as a ZIP file.</p>
+                    </div>
+                </div>
+
+                <!-- NEW: Toolbar -->
+                <div class="flex flex-wrap items-center justify-between gap-4">
+                    <!-- Left Side: Time Frame Filter -->
+                    <div class="flex items-center gap-2">
+                         <label for="date-filter-select" class="text-sm font-medium text-gray-300">Period:</label>
+                        <select id="date-filter-select" class="w-48 h-10 px-4 rounded-lg bg-surface-dark border border-border-dark text-white focus:ring-primary focus:border-primary text-sm">
+                            <option value="today">Today</option>
+                            <option value="7day">Last 7 Days</option>
+                            <option value="30day">Last 30 Days</option>
+                            <option value="all" selected>All Time</option>
+                        </select>
+                    </div>
+                    <!-- Right Side: Search Bar -->
+                    <div class="relative w-full max-w-sm">
+                        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">search</span>
+                        <input id="form-search-input" class="w-full h-10 pl-10 pr-4 rounded-lg bg-surface-dark border border-border-dark text-white placeholder-gray-500 focus:ring-primary focus:border-primary text-sm" placeholder="Search by Form Name..." type="text" />
+                    </div>
+                </div>
+                <!-- End NEW Toolbar -->
+
+                <!-- NEW: "Smart Table" -->
+                <div class="flex flex-col gap-4 rounded-xl bg-surface-dark border border-border-dark">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead>
+                                <tr class="border-b border-border-dark">
+                                    <!-- Col 1: Form Name (Sortable) -->
+                                    <th id="sort-name-button" class="px-6 py-3 text-sm font-semibold text-gray-400 cursor-pointer hover:text-white flex items-center gap-1 min-w-[200px]">
+                                        <span>Form Name</span>
+                                        <span class="material-symbols-outlined text-base">arrow_upward</span>
+                                    </th>
+                                    <!-- Col 2: Used OTPs -->
+                                    <th class="px-6 py-3 text-sm font-semibold text-gray-400">Used OTPs</th>
+                                    <!-- Col 3: Unused OTPs -->
+                                    <th class="px-6 py-3 text-sm font-semibold text-gray-400">Unused OTPs</th>
+                                    
+                                    <!-- Col 4: Submissions (Period) (Sortable) -->
+                                    <th id="sort-period-button" class="px-6 py-3 text-sm font-semibold text-gray-400 cursor-pointer hover:text-white flex items-center gap-1">
+                                        <span>Submissions (Period)</span>
+                                        <span class="material-symbols-outlined text-base">unfold_more</span>
+                                    </th>
+                                    
+                                    <!-- Col 5: Actions (One Simple Button) -->
+                                    <th class="px-6 py-3 text-sm font-semibold text-gray-400 min-w-[200px]">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="data-table-body">
+                                <tr>
+                                    <!-- Colspan is now 5 -->
+                                    <td colspan="5" class="p-6 text-center text-gray-500">Loading forms...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal: Master Download Status -->
+    <div id="download-status-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+        <!-- Modal Content -->
+        <div class="bg-surface-dark rounded-xl shadow-2xl border border-border-dark w-full max-w-md p-6">
+            <div class="flex flex-col items-center gap-4">
+                <svg class="animate-spin h-10 w-10 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <p id="download-status-text" class="text-lg font-medium text-white">Generating your report...</p>
+                <p class="text-sm text-gray-400">This includes zipping images, which may take a moment.</p>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Firebase Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-storage-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-functions-compat.js"></script>
+    
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAJ-xyOPmJXmhe9PUCa1BU75fWJ_MWsHA0",
+            authDomain: "golden-lamtouch-project.firebaseapp.com",
+            projectId: "golden-lamtouch-project",
+            storageBucket: "golden-lamtouch-project.firebasestorage.app",
+            messagingSenderId: "528955254323",
+            appId: "1:528955254323:web:e71517dab7fcb78b842546"
+        };
+        const app = firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        const storage = firebase.storage();
+        const functions = firebase.functions();
+    </script>
+    <script src="auth-guard.js"></script>
+    <!-- We will update this file in the next step -->
+    <script src="data-download.js"></script>
+</body>
+
+</html>

@@ -13,7 +13,7 @@
 
 <body class="bg-background-dark font-display text-white">
     <div class="relative flex min-h-screen w-full">
-        <!-- SideNavBar -->
+        <!-- SideNavBar (Updated for M21 v3) -->
         <aside
             class="flex h-screen w-64 flex-col bg-surface-dark p-4 border-r border-border-dark sticky top-0 overflow-y-auto">
             <div class="flex flex-col gap-8">
@@ -25,34 +25,34 @@
                     <h1 class="text-white text-lg font-bold leading-normal">Golden Lamtouch</h1>
                 </div>
                 <nav class="flex flex-col gap-2">
-                    <!-- Link 1: Dashboard (Not active) -->
+                    <!-- Link 1: Dashboard -->
                     <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 text-gray-300"
                         href="dashboard.html">
                         <span class="material-symbols-outlined">dashboard</span>
                         <p class="text-sm font-semibold leading-normal">Dashboard</p>
                     </a>
                     
-                    <!-- Link 2: Form Management (Not active) -->
+                    <!-- Link 2: Form Management -->
                     <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 text-gray-300" 
                        href="form-management.html">
                         <span class="material-symbols-outlined">description</span>
                         <p class="text-sm font-medium leading-normal">Form Management</p>
                     </a>
                     
-                    <!-- Link 3: Form Creation (THIS IS NOW OUR ACTIVE PAGE) -->
+                    <!-- Link 3: Form Creation (NOW ACTIVE) -->
                     <a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/20 text-primary"
                         href="form-creation.html">
                         <span class="material-symbols-outlined fill">create_new_folder</span>
                         <p class="text-sm font-medium leading-normal">Form Creation</p>
                     </a>
                     
-                    <!-- Link 4: Data Download -->
-                    <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 text-gray-300" href="#">
+                    <!-- Link 4: Data Download (CONSISTENT LINK) -->
+                    <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 text-gray-300" href="data-download.html">
                         <span class="material-symbols-outlined">download_for_offline</span>
                         <p class="text-sm font-medium leading-normal">Data Download</p>
                     </a>
                     
-                    <!-- Link 5: System Logs -->
+                    <!-- Link 5: System Logs (Placeholder) -->
                     <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 text-gray-300" href="#">
                         <span class="material-symbols-outlined">manage_history</span>
                         <p class="text-sm font-medium leading-normal">System Logs & Activity</p>
@@ -75,7 +75,7 @@
             </div>
         </aside>
 
-        <!-- Main Content -->
+        <!-- Main Content (No changes) -->
         <main class="flex-1 flex-col p-8 overflow-y-auto h-screen">
             <div class="flex flex-col gap-8">
                 <!-- PageHeading -->
@@ -163,7 +163,6 @@
                 <div class="flex flex-col gap-4 rounded-xl p-6 bg-surface-dark border border-border-dark">
                     <div class="flex justify-between items-center">
                         <p class="text-lg font-semibold text-white">Step 3: Form Fields</p>
-                        <!-- THIS IS OUR FIRST BUTTON (NOW RENAMED) -->
                         <button id="add-field-button-top"
                             class="flex cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-lg h-10 bg-primary/20 text-primary px-4 text-sm font-bold leading-normal tracking-[0.015em] hover:bg-primary/30">
                             <span class="material-symbols-outlined fill text-lg">add</span>
@@ -172,10 +171,6 @@
                     </div>
                     <!-- This container is where our JS will add the new field rows -->
                     <div id="fields-container" class="flex flex-col gap-4 pt-4">
-                        <!-- 
-                            THIS IS OUR NEW, SECOND BUTTON! (Your idea)
-                            We place it at the *bottom* of the container.
-                        -->
                         <button id="add-field-button-bottom"
                             class="flex cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-lg h-10 bg-surface-dark border-2 border-dashed border-border-dark text-gray-400 px-4 text-sm font-bold leading-normal tracking-[0.015em] hover:border-primary hover:text-primary">
                             <span class="material-symbols-outlined fill text-lg">add</span>
@@ -210,10 +205,7 @@
         const storage = firebase.storage();
     </script>
     <script src="auth-guard.js"></script>
-    
-    <!-- This is the correct, fixed JS file link! -->
     <script src="form-creation-v2.js"></script>
-    
     <!-- ====================================================== -->
     <!-- END: FIREBASE SCRIPT BLOCK -->
     <!-- ====================================================== -->
