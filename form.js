@@ -1,11 +1,10 @@
 /*
-  M17 - (Step 96) Email Validation FIX
-  -----------------------------
+  M25 v2 - (QUALITY TWEAK) Public Form Brain
+  -----------------------------------------------------
   Updates:
-  1. (BUG FIX) The `validateForm()` function now
-     includes a regex check to ensure that any field
-     with the `dataType: 'email'` is a valid email
-     format before allowing submission.
+  1. COMPRESSION: Increased image quality to 0.7 (70%).
+  2. FEEDBACK: Retained "Chatty" loading overlay logic.
+  3. LOGIC: Full feature set (OTP -> Form -> Camera -> Submit -> PDF).
 */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -533,6 +532,7 @@ document.addEventListener('DOMContentLoaded', () => {
         saveCropButton.addEventListener('click', () => {
             if (!cropper || !currentImageField) return;
 
+            // --- CHANGE 1: ADJUSTED COMPRESSION TO 0.7 ---
             cropper.getCroppedCanvas().toBlob((blob) => {
                 
                 currentImageBlobs[currentImageField.name] = blob;
@@ -553,7 +553,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     cropper = null;
                 }
                 
-            }, 'image/jpeg', 0.9);
+            }, 'image/jpeg', 0.7); // Changed to 0.7 (70%)
         });
     }
 
@@ -611,7 +611,6 @@ document.addEventListener('DOMContentLoaded', () => {
         let missingFields = [];
         submitErrorMessage.textContent = ''; 
         
-        // (NEW) Simple regex for email validation
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         
         formFields.forEach(field => {
@@ -638,13 +637,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 case 'dropdown':
                     const input = document.getElementById(fieldId);
                     if (!input || input.value.trim() === '') {
-                        // --- This is the EMPTY check ---
                         isValid = false;
                         missingFields.push(field.fieldName);
                         if (container) container.classList.add('border-red-500', 'border-2');
                     
                     } else if (field.dataType === 'email' && !emailRegex.test(input.value.trim())) {
-                        // --- (NEW) This is the EMAIL FORMAT check ---
                         isValid = false;
                         missingFields.push(field.fieldName + " (invalid format)");
                         if (container) container.classList.add('border-red-500', 'border-2');
@@ -755,7 +752,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // (CHANGED - 77) Final Date Fix
     if (confirmSubmitButton) {
         confirmSubmitButton.addEventListener('click', async () => {
             
@@ -766,16 +762,22 @@ document.addEventListener('DOMContentLoaded', () => {
             confirmSubmitButton.disabled = true;
             cancelPreviewButton.disabled = true;
             
+            // --- CHANGE 2: VISUAL FEEDBACK LOGIC ---
+            const statusText = submissionOverlay.querySelector('p.text-lg');
+            if (statusText) statusText.textContent = "Compressing & Preparing...";
+            
             // --- Capture timestamp ---
             const submissionTimestamp = new Date();
 
             try {
-                console.log("DEBUG: Inside 'try' block. Starting image upload...");
-                
                 const imageURLs = {};
                 const uploadPromises = []; 
 
                 for (const fieldName in currentImageBlobs) {
+                    
+                    // Update feedback
+                    if (statusText) statusText.textContent = `Uploading ${fieldName}...`;
+                    
                     console.log(`DEBUG: Uploading image for: ${fieldName}`);
                     const blob = currentImageBlobs[fieldName];
                     
@@ -795,6 +797,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 await Promise.all(uploadPromises);
+                
+                if (statusText) statusText.textContent = "Saving Data...";
                 console.log("DEBUG: All image uploads complete.");
 
                 const finalSubmission = {
@@ -807,11 +811,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     status: 'Submitted' 
                 };
                 
-                console.log("DEBUG: Saving data to 'submissions' collection...");
                 await db.collection('submissions').add(finalSubmission);
                 console.log("DEBUG: Data saved successfully.");
                 
-                console.log("DEBUG: Updating OTP as 'isUsed: true'...");
+                if (statusText) statusText.textContent = "Finalizing...";
+                
                 await db.collection('otps').doc(validOtpDocId).update({
                     isUsed: true
                 });
@@ -826,12 +830,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 const formNameStr = formTitle.textContent;
 
-                // --- (NEW) Step 76: Hide the main page header text ---
+                // --- Step 76: Hide the main page header text ---
                 if (formTitle) formTitle.textContent = 'Submission Complete';
                 if (formOrgName) formOrgName.classList.add('hidden');
-                // --- End of Step 76 fix ---
 
-                // --- (NEW) Step 77: Format date string for the on-screen receipt ---
+                // --- Step 77: Format date string for the on-screen receipt ---
                 const dateString = submissionTimestamp.toLocaleString('en-IN', {
                     day: '2-digit',
                     month: 'short',
@@ -841,7 +844,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     hour12: true
                 });
 
-                // --- (CHANGED) Updated receiptHTML ---
                 const receiptHTML = `
                     <div class="flex flex-col items-center justify-center gap-4 p-4">
                         <div id="receipt-content-for-pdf" 
@@ -863,7 +865,6 @@ document.addEventListener('DOMContentLoaded', () => {
                                     <span class="text-sm text-gray-400">Status</span>
                                     <span class="text-sm text-green-400 font-medium">Submitted</span>
                                 </div>
-                                <!-- (NEW) Step 77: Added Date/Time row -->
                                 <div class="flex justify-between">
                                     <span class="text-sm text-gray-400">Submission Date</span>
                                     <span class="text-sm text-white font-medium">${dateString}</span>
@@ -893,7 +894,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 formContentContainer.innerHTML = receiptHTML;
                 console.log("DEBUG: Success! Showing receipt screen.");
 
-                // Add the listener for the new button, passing the timestamp
                 document.getElementById('download-pdf-button').addEventListener('click', () => {
                     const fileName = `${formNameStr.replace(/ /g, '_')}_Receipt_${validOtpCode}.pdf`;
                     generatePDF(fileName, submissionTimestamp); // Pass timestamp
@@ -907,7 +907,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 previewModal.classList.add('hidden');
                 submitErrorMessage.textContent = 'An error occurred during submission. Please check the console and try again.';
 
-                // --- Hide overlay on error ---
                 if (submissionOverlay) submissionOverlay.classList.add('hidden');
                 confirmSubmitButton.disabled = false;
                 cancelPreviewButton.disabled = false;
@@ -930,7 +929,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // START: M16 - PART 5 - PDF Generation
     // =================================================================
 
-    // (CHANGED) Function now accepts submissionTimestamp
     async function generatePDF(fileName = 'receipt.pdf', submissionTimestamp = null) {
         const button = document.getElementById('download-pdf-button');
         if (button) {
@@ -938,51 +936,37 @@ document.addEventListener('DOMContentLoaded', () => {
             button.querySelector('.truncate').textContent = 'Generating PDF...';
         }
 
-        // Get the PDF "tools" from the window
         const { jsPDF } = window.jspdf;
         
-        // This is the *real* content we want to print
         const contentToPrint = document.getElementById('receipt-content-for-pdf');
         
-        // (CHANGED) We no longer need to format the date here,
-        // because it's already in the 'contentToPrint' we are cloning.
-        
-        // We MUST clone it to avoid issues.
         const pdfWrapper = contentToPrint.cloneNode(true);
         
-        // --- We still need to apply the layout fix to the cloned PDF wrapper ---
         const headerContainer = pdfWrapper.querySelector('.py-4');
         if (headerContainer) {
-            
-            // 1. Fix OTP Layout
-            const otpRow = headerContainer.children[0]; // The "Your Code" row
+            const otpRow = headerContainer.children[0]; 
             if(otpRow) {
                 otpRow.children[1].classList.add('break-all', 'max-w-[50%]', 'text-right');
             }
-            
-            // 2. (BUG FIX) We no longer add the timestamp row here.
-            // It is already part of the 'contentToPrint' clone.
         }
 
-        // We must add this wrapper to the *body* to be rendered, but make it invisible
-        pdfWrapper.style.width = "800px"; // Set a fixed width for good PDF layout
+        pdfWrapper.style.width = "800px"; 
         pdfWrapper.style.position = "absolute";
         pdfWrapper.style.left = "-9999px";
-        pdfWrapper.style.padding = "20px"; // Add padding for canvas spacing
-        pdfWrapper.classList.add("bg-surface-dark"); // Ensure it has our dark BG
+        pdfWrapper.style.padding = "20px"; 
+        pdfWrapper.classList.add("bg-surface-dark"); 
         document.body.appendChild(pdfWrapper);
 
         try {
             const canvas = await html2canvas(pdfWrapper, {
-                scale: 2, // Improve quality
-                useCORS: true, // (CRITICAL) for loading the blob: images
-                backgroundColor: '#2C2C2C' // Match our 'bg-surface-dark'
+                scale: 2, 
+                useCORS: true, 
+                backgroundColor: '#2C2C2C' 
             });
             
             const imgData = canvas.toDataURL('image/png');
             
-            // Set PDF dimensions based on the canvas
-            const pdfWidth = 800; // Our fixed width
+            const pdfWidth = 800; 
             const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
             
             const doc = new jsPDF({
@@ -998,7 +982,6 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('Error generating PDF:', err);
             alert('An error occurred while generating the PDF. Please try again.');
         } finally {
-            // Clean up
             document.body.removeChild(pdfWrapper);
             
             if (button) {
@@ -1008,7 +991,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
-    // --- This starts the entire page ---
     initializeForm();
 
 });

@@ -1,10 +1,10 @@
 /**
- * M23 v20 - (SMART PARTIAL DOWNLOADS)
+ * M23 v22 - (CSV EXTENSION REMOVAL) Cloud Brain
  *
  * Updates:
- * 1. Range Filtering: createFullReportZip now accepts 'startSerial' and 'endSerial'.
- * 2. Query Logic: Applies >= and <= filters to the 'serialNumber' field if ranges are provided.
- * 3. Preserved: Folder structure for images (Photo/250001.jpg).
+ * 1. CSV Logic: Image columns in CSV now show ONLY the Serial Number (e.g., "250001").
+ * - Removed the ".jpg" extension from the spreadsheet data.
+ * 2. Preserved: Strict column ordering and Folder structure inside the zip.
  */
 
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
@@ -127,7 +127,7 @@ function escapeCsvCell(cell) {
 }
 
 /**
- * 3. Create Full Report .zip (UPDATED FOR PARTIAL DOWNLOAD)
+ * 3. Create Full Report .zip (UPDATED: EXTENSION REMOVED)
  */
 exports.createFullReportZip = onCall(
   { 
@@ -144,10 +144,8 @@ exports.createFullReportZip = onCall(
     const { v4: uuidv4 } = require("uuid");
 
     const formId = request.data.formId;
-    
-    // --- NEW: Get Ranges from Request ---
-    const startSerial = request.data.startSerial; // e.g., "250001"
-    const endSerial = request.data.endSerial;     // e.g., "250050"
+    const startSerial = request.data.startSerial;
+    const endSerial = request.data.endSerial;
 
     const formDoc = await db.collection("forms").doc(formId).get();
     if (!formDoc.exists) throw new HttpsError("not-found", "Form not found.");
@@ -160,14 +158,8 @@ exports.createFullReportZip = onCall(
       .where("formId", "==", formId)
       .orderBy("serialNumber", "asc");
 
-    // Apply Start Range
-    if (startSerial) {
-        query = query.where("serialNumber", ">=", startSerial);
-    }
-    // Apply End Range
-    if (endSerial) {
-        query = query.where("serialNumber", "<=", endSerial);
-    }
+    if (startSerial) query = query.where("serialNumber", ">=", startSerial);
+    if (endSerial) query = query.where("serialNumber", "<=", endSerial);
 
     const submissionsSnap = await query.get();
 
@@ -175,14 +167,20 @@ exports.createFullReportZip = onCall(
 
     const allSubmissions = submissionsSnap.docs.map((d) => d.data());
     
-    // CSV Logic
+    // --- CSV COLUMN ORDERING LOGIC ---
+    
+    // 1. Identify Field Types
     const formFields = form.fields.filter(f => f.dataType !== "hidden" && f.dataType !== "header");
     const imageFields = formFields.filter(f => f.dataType === "image" || f.dataType === "signature").map(f => f.fieldName);
     
-    let headers = ["serialNumber", "submissionDate", "otp"];
-    if (form.isPrepaid) headers.push("paymentStatus");
+    // 2. Build Header Row (Strict Order)
+    let headers = ["serialNumber"];
     headers = headers.concat(formFields.map(f => f.fieldName));
+    headers.push("submissionDate");
+    headers.push("otp");
+    if (form.isPrepaid) headers.push("paymentStatus");
     
+    // 3. Generate CSV Rows
     const csvRows = [headers.map(escapeCsvCell).join(",")];
     let imageCount = 0;
 
@@ -190,12 +188,22 @@ exports.createFullReportZip = onCall(
       const row = [];
       for (const h of headers) {
         let val = sub[h];
+        
+        // Special Handling for Image Columns in CSV
         if (imageFields.includes(h)) {
-          val = sub["serialNumber"] || ""; 
-          if (sub[h]) imageCount++;
+            // --- UPDATED: Just the number, NO extension ---
+            val = sub["serialNumber"] || ""; 
+            if (sub[h]) imageCount++;
         }
-        if (h === "submissionDate" && val && val.toDate) val = val.toDate().toLocaleString("en-IN");
+        
+        // Date Formatting
+        if (h === "submissionDate" && val && val.toDate) {
+            val = val.toDate().toLocaleString("en-IN");
+        }
+        
+        // Payment Logic
         if (h === "paymentStatus") val = "Paid";
+        
         row.push(escapeCsvCell(val));
       }
       csvRows.push(row.join(","));
@@ -230,11 +238,9 @@ exports.createFullReportZip = onCall(
                  const path = decodeURIComponent(parts[1]);
                  const file = storage.file(path);
                  
-                 // --- FOLDER LOGIC ---
-                 // 1. Create a safe folder name
+                 // Folder Logic
                  const folderName = field.replace(/[^a-zA-Z0-9]/g, "_");
-                 
-                 // 2. Path: Folder/SerialNumber.jpg
+                 // File inside zip still keeps .jpg for validity
                  const zipPath = `${folderName}/${serial}.jpg`;
 
                  archive.append(file.createReadStream(), { name: zipPath });
