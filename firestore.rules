@@ -35,9 +35,15 @@ service cloud.firestore {
     }
 
     // --- COORDINATORS COLLECTION ---
-    // This is the rule that was missing or not updated
     match /coordinators/{coordId} {
       allow read, write: if request.auth != null;
+    }
+
+    // --- SYSTEM LOGS (The Black Box) ---
+    // Allow Admins to READ logs, but NEVER write/edit them manually.
+    match /system_logs/{logId} {
+      allow read: if request.auth != null;
+      allow write: if false; 
     }
   }
 }
