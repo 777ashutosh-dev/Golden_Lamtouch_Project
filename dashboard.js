@@ -1,11 +1,14 @@
 /*
-  M23 v25 - (OTP STATUS LOGIC FIX) Dashboard Brain
+  M27 v2 - (COORDINATOR FILTER) Dashboard Brain
   -----------------------------------------------------
   Updates:
-  1. Logic: Improved OTP Search.
-     - Step 1: Check Submissions (Existing logic).
-     - Step 2: If no submission, check 'allOtps' memory.
-     - Step 3: Display specific messages for "Unused" vs "Invalid".
+  1. ROLE CHECK: Detects if user is a Coordinator.
+  2. ACCESS LIST: Fetches assigned forms for Coordinators.
+  3. FILTERS:
+     - Analytics: Hides unassigned forms.
+     - OTP Lookup: Restricts search to assigned forms only.
+     - Today's Count: Counts only relevant submissions.
+  4. UI: Updates "Total Submissions" card based on role.
 */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -18,12 +21,13 @@ document.addEventListener('DOMContentLoaded', () => {
     let allForms = [];
     let allGroups = [];
     let allSubmissions = [];
-    let allOtps = []; // Added this memory bank
-    let currentSort = {
-        column: 'total',
-        direction: 'desc'
-    }; 
+    let allOtps = []; 
+    let currentSort = { column: 'total', direction: 'desc' }; 
     let currentFilter = 'today'; 
+    
+    // --- NEW: User Role State ---
+    let userRole = sessionStorage.getItem('userRole') || 'admin'; // Default to admin if missing (safe fallback, auth guard handles real security)
+    let coordinatorAccessList = null; // Array of Form IDs (null for admin)
 
     // =================================================================
     // 2. DOM ELEMENTS
@@ -58,10 +62,35 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalSerialDisplay = document.getElementById('modal-serial-display');
 
     // =================================================================
-    // 3. DATA LOADING
+    // 3. DATA LOADING (The "Brain")
     // =================================================================
 
-    async function loadAllData() {
+    async function initializeDashboard() {
+        
+        // A. If Coordinator, fetch their access list first
+        if (userRole === 'coordinator') {
+            const coordDocId = sessionStorage.getItem('coordDocId');
+            if (coordDocId) {
+                try {
+                    const doc = await db.collection('coordinators').doc(coordDocId).get();
+                    if (doc.exists) {
+                        coordinatorAccessList = doc.data().accessList || [];
+                        console.log("Coordinator Access List:", coordinatorAccessList);
+                    } else {
+                        console.warn("Coordinator profile not found!");
+                        coordinatorAccessList = []; // Block everything if profile missing
+                    }
+                } catch (error) {
+                    console.error("Error fetching coordinator profile:", error);
+                    coordinatorAccessList = [];
+                }
+            } else {
+                // Fallback if session key missing (shouldn't happen due to login logic)
+                coordinatorAccessList = [];
+            }
+        }
+
+        // B. Load Main Data
         await Promise.all([
             db.collection('forms').get().then(snapshot => {
                 allForms = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -71,7 +100,7 @@ document.addEventListener('DOMContentLoaded', () => {
             })
         ]);
 
-        // Listen for Submissions
+        // C. Listen for Submissions
         db.collection('submissions').onSnapshot(snapshot => {
             allSubmissions = snapshot.docs.map(doc => {
                 const data = doc.data();
@@ -84,7 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
             runDashboardUpdates();
         });
 
-        // NEW: Listen for OTPs (to check "Unused" status)
+        // D. Listen for OTPs
         db.collection('otps').onSnapshot(snapshot => {
             allOtps = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         });
@@ -107,15 +136,21 @@ document.addEventListener('DOMContentLoaded', () => {
         const todayStart = new Date();
         todayStart.setHours(0, 0, 0, 0);
 
+        // Filter Logic: Date + (Coordinator Access)
         const todaySubmissions = allSubmissions.filter(sub => {
-            return sub.submissionDate && sub.submissionDate >= todayStart;
+            const isToday = sub.submissionDate && sub.submissionDate >= todayStart;
+            
+            // If Admin, only check date. If Coordinator, check Access List too.
+            if (userRole === 'admin') return isToday;
+            
+            return isToday && coordinatorAccessList.includes(sub.formId);
         });
 
         todayCountDisplay.textContent = todaySubmissions.length;
     }
 
     // =================================================================
-    // 5. LOGIC - PART B: Tab Switching
+    // 5. LOGIC - PART B: Tab Switching (UI Only)
     // =================================================================
 
     if (analyticsTabButton && lookupTabButton) {
@@ -179,7 +214,13 @@ document.addEventListener('DOMContentLoaded', () => {
             case 'all': startDate = new Date(0); break;
         }
 
-        let formStats = allForms.map(form => {
+        // 1. Filter Forms based on Access List
+        let visibleForms = allForms;
+        if (userRole === 'coordinator') {
+            visibleForms = allForms.filter(f => coordinatorAccessList.includes(f.id));
+        }
+
+        let formStats = visibleForms.map(form => {
             const subsForThisForm = allSubmissions.filter(s => s.formId === form.id);
             const periodSubs = subsForThisForm.filter(s => s.submissionDate && s.submissionDate >= startDate);
             
@@ -204,7 +245,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         analyticsTableBody.innerHTML = '';
         if (formStats.length === 0) {
-            analyticsTableBody.innerHTML = '<tr><td colspan="5" class="p-6 text-center text-gray-500">No forms created yet.</td></tr>';
+            const msg = userRole === 'coordinator' ? "No forms assigned to you." : "No forms created yet.";
+            analyticsTableBody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-gray-500">${msg}</td></tr>`;
             return;
         }
 
@@ -241,7 +283,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // =================================================================
-    // 7. LOGIC - PART D: "OTP Lookup" (SMARTER LOGIC)
+    // 7. LOGIC - PART D: "OTP Lookup" (ACCESS CONTROLLED)
     // =================================================================
 
     if (otpSearchInput) {
@@ -258,16 +300,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 const foundSub = allSubmissions.find(sub => sub.otp && sub.otp.toLowerCase() === otpInputVal);
                 
                 if (foundSub) {
+                    // --- ACCESS CHECK ---
+                    if (userRole === 'coordinator' && !coordinatorAccessList.includes(foundSub.formId)) {
+                        // Found, but belongs to unassigned form -> HIDE IT
+                        showOtpMessage(`OTP "${otpInputVal}" belongs to a form you cannot access.`, "text-red-400");
+                        return;
+                    }
                     renderSubmissionResult(foundSub);
                 } else {
                     // --- Step 2: Check for OTP Existence (Unused) ---
                     const foundOtpDoc = allOtps.find(otp => otp.code && otp.code.toLowerCase() === otpInputVal);
                     
                     if (foundOtpDoc) {
-                        // Found, but no submission -> "Valid but Unused"
+                        // --- ACCESS CHECK ---
+                        if (userRole === 'coordinator' && !coordinatorAccessList.includes(foundOtpDoc.formId)) {
+                             // Found unused, but unassigned form -> HIDE IT
+                             showOtpMessage(`OTP "${otpInputVal}" belongs to a form you cannot access.`, "text-red-400");
+                             return;
+                        }
+                        
+                        // Valid & Access Allowed
                         showOtpMessage(`OTP "${foundOtpDoc.code}" is valid but has NOT been used yet.`, "text-yellow-400");
                     } else {
-                        // Not found anywhere -> "Invalid"
+                        // Not found anywhere
                         showOtpMessage(`OTP "${otpInputVal}" does not exist.`, "text-red-400");
                     }
                 }
@@ -410,6 +465,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (closeDetailBtnMain) closeDetailBtnMain.addEventListener('click', closeDetailFunc);
 
     // Init
-    loadAllData(); 
+    initializeDashboard(); 
 
 });

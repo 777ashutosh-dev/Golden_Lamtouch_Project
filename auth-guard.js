@@ -1,61 +1,103 @@
-// This is our "Auth Guard".
-// This code runs *immediately* when dashboard.html is loaded,
-// *before* the user sees anything.
+/*
+  M27 v2 - (AGGRESSIVE BLINDFOLD) Auth & Role Guard
+  -----------------------------------------------------
+  Updates:
+  1. INSTANT CHECK: Checks sessionStorage immediately (before Firebase loads).
+  2. REDIRECT: Bounces Coordinators off restricted pages instantly.
+  3. UI HIDING: Aggressively hides sidebar links using multiple selectors.
+*/
 
-// We are telling Firebase:
-// "Hey, as soon as your authentication state changes (someone logs in or logs out),
-// please tell me who the user is."
-auth.onAuthStateChanged((user) => {
-    
-    // Part 1: The "Guard"
-    if (user) {
-        // --- A user IS logged in! ---
-        // This is good. We can let them stay.
-        // We'll print a message to the console for debugging.
-        console.log('Auth Guard: User is logged in.', user.email);
-        
-        // (In the future, we will load the dashboard data here)
-        
-    } else {
-        // --- NO user is logged in! ---
-        // This is bad. We must "kick them out" back to the login page.
-        
-        console.log('Auth Guard: No user logged in. Redirecting to login.');
-        
-        // This is the command to redirect the user.
-        window.location.href = 'index.html';
+// --- 1. INSTANT ROLE CHECK (Run immediately) ---
+(function() {
+    const role = sessionStorage.getItem('userRole');
+    const path = window.location.pathname;
+    const pageName = path.split('/').pop();
+
+    // Restricted Pages for Coordinators
+    const forbiddenPages = [
+        'settings.html',
+        'form-creation.html',
+        'form-management.html',
+        'system-logs.html'
+    ];
+
+    if (role === 'coordinator' && forbiddenPages.includes(pageName)) {
+        console.warn("AuthGuard: Access Denied. Redirecting...");
+        window.location.replace('dashboard.html'); // Use replace to prevent 'Back' button loop
     }
-});
+})();
 
-
-// Part 2: The "Sign Out" Button
-// This part waits for the *whole page* to be loaded before it tries to find the button.
-// This is safer than the login.js code, just a different way to do it.
 document.addEventListener('DOMContentLoaded', () => {
+    
+    // Initialize Firebase Auth Listener
+    const auth = firebase.auth();
 
-    // Find our "Sign Out" button by the ID we gave it in the HTML
-    const signOutButton = document.getElementById('sign-out-button');
+    auth.onAuthStateChanged(user => {
+        const currentPath = window.location.pathname;
+        const isLoginPage = currentPath.endsWith('login.html') || currentPath.endsWith('/');
 
-    // If the button exists...
-    if (signOutButton) {
+        if (user) {
+            // --- User is Logged In ---
+            if (isLoginPage) {
+                window.location.href = 'dashboard.html';
+                return;
+            }
+
+            // Check Role again (Double Security)
+            const userRole = sessionStorage.getItem('userRole'); 
+            if (userRole === 'coordinator') {
+                applyCoordinatorRestrictions();
+            }
+
+        } else {
+            // --- User is NOT Logged In ---
+            const isPublicPage = currentPath.endsWith('form.html');
+            if (!isLoginPage && !isPublicPage) {
+                window.location.href = 'login.html';
+            }
+        }
+    });
+
+    // --- UI HIDING LOGIC ---
+    function applyCoordinatorRestrictions() {
+        console.log("AuthGuard: Hiding Admin Links...");
+
+        // 1. Hide by Text Content (Broadest Net)
+        const sidebarLinks = document.querySelectorAll('aside nav a');
+        const forbiddenKeywords = ['Settings', 'Form Creation', 'Form Management', 'System Logs'];
+
+        sidebarLinks.forEach(link => {
+            const text = link.textContent.trim();
+            if (forbiddenKeywords.some(keyword => text.includes(keyword))) {
+                link.style.display = 'none'; // Force hide
+                link.classList.add('hidden'); // Tailwind hide
+            }
+        });
+
+        // 2. Hide by HREF (Specific Net)
+        const forbiddenHrefs = ['settings.html', 'form-creation.html', 'form-management.html'];
+        forbiddenHrefs.forEach(href => {
+            const link = document.querySelector(`a[href*="${href}"]`);
+            if (link) {
+                link.style.display = 'none';
+                link.classList.add('hidden');
+            }
+        });
         
-        // ...listen for a "click" event on it.
-        signOutButton.addEventListener('click', () => {
-            
-            // When clicked, tell Firebase to sign the user out.
+        // 3. Special Case: "Form Management" button on Dashboard
+        const manageBtn = document.querySelector('a[href="form-management.html"]');
+        if (manageBtn) manageBtn.parentElement.style.display = 'none';
+    }
+
+    // --- Sign Out Logic ---
+    const signOutButton = document.getElementById('sign-out-button');
+    if (signOutButton) {
+        signOutButton.addEventListener('click', (e) => {
+            e.preventDefault();
             auth.signOut().then(() => {
-                // SUCCESS!
-                // The user is signed out. Firebase will tell our "Auth Guard" above,
-                // which will then automatically redirect to index.html.
-                // But we can also redirect *here* just to be fast.
-                console.log('User signed out successfully.');
-                window.location.href = 'index.html';
-                
-            }).catch((error) => {
-                // An error happened.
-                console.error('Sign out error:', error);
+                sessionStorage.clear();
+                window.location.href = 'login.html';
             });
-            
         });
     }
 });

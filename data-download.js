@@ -1,11 +1,11 @@
 /*
-  M23 v21 - (SMART DOWNLOAD LOGIC) Browser Brain
+  M27 v3 - (SECURE DOWNLOADS) Browser Brain
   -----------------------------------------------------
   Updates:
-  1. Region: Explicitly connects to 'asia-south1' (India).
-  2. Smart Columns: Calculates "Latest Serial" and reads "Last Downloaded".
-  3. Modal Logic: Handles the new "Download Options" popup.
-  4. Range Logic: Passes start/end serials to the Cloud Function.
+  1. SECURITY: Added Coordinator Role check.
+  2. LOGIC: Fetches 'accessList' for Coordinators.
+  3. FILTER: Hides forms in the table if the user is not assigned to them.
+  4. PRESERVED: All smart download/range logic.
 */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -29,6 +29,10 @@ document.addEventListener('DOMContentLoaded', () => {
         direction: 'asc'
     };
     
+    // --- NEW: Role State ---
+    let userRole = sessionStorage.getItem('userRole') || 'admin';
+    let coordinatorAccessList = [];
+
     // --- State for the Active Download ---
     let currentDownloadFormId = null;
     let currentLatestSerial = 0;
@@ -60,6 +64,28 @@ document.addEventListener('DOMContentLoaded', () => {
     // =================================================================
     // START: DATA LOADING
     // =================================================================
+
+    async function initializePage() {
+        
+        // 1. If Coordinator, fetch access list first
+        if (userRole === 'coordinator') {
+            const coordDocId = sessionStorage.getItem('coordDocId');
+            if (coordDocId) {
+                try {
+                    const doc = await db.collection('coordinators').doc(coordDocId).get();
+                    if (doc.exists) {
+                        coordinatorAccessList = doc.data().accessList || [];
+                    }
+                } catch (e) { console.error("Auth Error", e); }
+            }
+        }
+
+        // 2. Load Data
+        loadAllForms();
+        loadAllSubmissions();
+        loadAllOtps();
+        setupSorting();
+    }
 
     // --- 1. Load All Forms (Live) ---
     function loadAllForms() {
@@ -154,25 +180,24 @@ document.addEventListener('DOMContentLoaded', () => {
         const now = new Date();
         let startDate = new Date();
         switch (currentFilter.period) {
-            case 'today':
-                startDate.setHours(0, 0, 0, 0);
-                break;
-            case '7day':
-                startDate.setDate(now.getDate() - 7);
-                break;
-            case '30day':
-                startDate.setMonth(now.getMonth() - 1);
-                break;
-            case 'all':
-                startDate = new Date(0);
-                break;
+            case 'today': startDate.setHours(0, 0, 0, 0); break;
+            case '7day': startDate.setDate(now.getDate() - 7); break;
+            case '30day': startDate.setMonth(now.getMonth() - 1); break;
+            case 'all': startDate = new Date(0); break;
         }
 
         const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+        
+        // --- FILTER 1: Search Term ---
         let processedForms = allForms.filter(form => {
             const nameMatch = form.formName && form.formName.toLowerCase().includes(searchTerm);
             return !searchTerm || nameMatch;
         });
+
+        // --- FILTER 2: Coordinator Access (THE SECURITY FIX) ---
+        if (userRole === 'coordinator') {
+            processedForms = processedForms.filter(form => coordinatorAccessList.includes(form.id));
+        }
 
         // --- 3. Add Analytics Data ---
         processedForms = processedForms.map(form => {
@@ -233,7 +258,8 @@ document.addEventListener('DOMContentLoaded', () => {
         dataTableBody.innerHTML = ''; 
 
         if (formsToRender.length === 0) {
-            dataTableBody.innerHTML = '<tr><td colspan="5" class="p-6 text-center text-gray-500">No forms match your search.</td></tr>';
+            const msg = userRole === 'coordinator' ? "No forms assigned to you match your search." : "No forms match your search.";
+            dataTableBody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-gray-500">${msg}</td></tr>`;
             return;
         }
 
@@ -414,13 +440,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // START: INITIALIZE
     // =================================================================
     
-    function initializePage() {
-        loadAllForms();
-        loadAllSubmissions();
-        loadAllOtps();
-        setupSorting();
-    }
-
     initializePage();
 
 });
