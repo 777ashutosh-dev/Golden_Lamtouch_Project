@@ -1,19 +1,18 @@
 /*
-  M27 v2 - (COORDINATOR FILTER) Dashboard Brain
+  M28 v1 - (REAL-TIME DASHBOARD)
   -----------------------------------------------------
   Updates:
-  1. ROLE CHECK: Detects if user is a Coordinator.
-  2. ACCESS LIST: Fetches assigned forms for Coordinators.
-  3. FILTERS:
-     - Analytics: Hides unassigned forms.
-     - OTP Lookup: Restricts search to assigned forms only.
-     - Today's Count: Counts only relevant submissions.
-  4. UI: Updates "Total Submissions" card based on role.
+  1. REAL-TIME FORMS: Switched from .get() to .onSnapshot() for Forms & Groups.
+     - Now instantly reflects creation/deletion of forms without refreshing.
+  2. REGION CONFIG: Added 'asia-south1' config for future-proofing.
+  3. PRESERVED: Coordinator Role filtering & Analytics logic.
 */
 
 document.addEventListener('DOMContentLoaded', () => {
 
     const db = firebase.firestore();
+    // Even though Dashboard is read-only, we set the region for consistency
+    const functions = firebase.app().functions('asia-south1');
 
     // =================================================================
     // 1. GLOBAL STATE
@@ -25,9 +24,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentSort = { column: 'total', direction: 'desc' }; 
     let currentFilter = 'today'; 
     
-    // --- NEW: User Role State ---
-    let userRole = sessionStorage.getItem('userRole') || 'admin'; // Default to admin if missing (safe fallback, auth guard handles real security)
-    let coordinatorAccessList = null; // Array of Form IDs (null for admin)
+    // --- Role State ---
+    let userRole = sessionStorage.getItem('userRole') || 'admin';
+    let coordinatorAccessList = null; 
 
     // =================================================================
     // 2. DOM ELEMENTS
@@ -62,7 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalSerialDisplay = document.getElementById('modal-serial-display');
 
     // =================================================================
-    // 3. DATA LOADING (The "Brain")
+    // 3. DATA LOADING (Now 100% Real-Time)
     // =================================================================
 
     async function initializeDashboard() {
@@ -75,32 +74,31 @@ document.addEventListener('DOMContentLoaded', () => {
                     const doc = await db.collection('coordinators').doc(coordDocId).get();
                     if (doc.exists) {
                         coordinatorAccessList = doc.data().accessList || [];
-                        console.log("Coordinator Access List:", coordinatorAccessList);
                     } else {
-                        console.warn("Coordinator profile not found!");
-                        coordinatorAccessList = []; // Block everything if profile missing
+                        coordinatorAccessList = [];
                     }
                 } catch (error) {
                     console.error("Error fetching coordinator profile:", error);
                     coordinatorAccessList = [];
                 }
             } else {
-                // Fallback if session key missing (shouldn't happen due to login logic)
                 coordinatorAccessList = [];
             }
         }
 
-        // B. Load Main Data
-        await Promise.all([
-            db.collection('forms').get().then(snapshot => {
-                allForms = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            }),
-            db.collection('groups').get().then(snapshot => {
-                allGroups = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            })
-        ]);
+        // B. Listen for Forms (UPDATED: Real-time)
+        db.collection('forms').onSnapshot(snapshot => {
+            allForms = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            runDashboardUpdates();
+        });
 
-        // C. Listen for Submissions
+        // C. Listen for Groups (UPDATED: Real-time)
+        db.collection('groups').onSnapshot(snapshot => {
+            allGroups = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            runDashboardUpdates();
+        });
+
+        // D. Listen for Submissions
         db.collection('submissions').onSnapshot(snapshot => {
             allSubmissions = snapshot.docs.map(doc => {
                 const data = doc.data();
@@ -113,7 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
             runDashboardUpdates();
         });
 
-        // D. Listen for OTPs
+        // E. Listen for OTPs
         db.collection('otps').onSnapshot(snapshot => {
             allOtps = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         });
@@ -131,7 +129,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateTodaysCard() {
         const now = new Date();
         const options = { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' };
-        todayDateDisplay.textContent = now.toLocaleDateString('en-IN', options); 
+        if(todayDateDisplay) todayDateDisplay.textContent = now.toLocaleDateString('en-IN', options); 
 
         const todayStart = new Date();
         todayStart.setHours(0, 0, 0, 0);
@@ -140,17 +138,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const todaySubmissions = allSubmissions.filter(sub => {
             const isToday = sub.submissionDate && sub.submissionDate >= todayStart;
             
-            // If Admin, only check date. If Coordinator, check Access List too.
             if (userRole === 'admin') return isToday;
             
-            return isToday && coordinatorAccessList.includes(sub.formId);
+            // Safety check for access list
+            return isToday && (coordinatorAccessList && coordinatorAccessList.includes(sub.formId));
         });
 
-        todayCountDisplay.textContent = todaySubmissions.length;
+        if(todayCountDisplay) todayCountDisplay.textContent = todaySubmissions.length;
     }
 
     // =================================================================
-    // 5. LOGIC - PART B: Tab Switching (UI Only)
+    // 5. LOGIC - PART B: Tab Switching
     // =================================================================
 
     if (analyticsTabButton && lookupTabButton) {
@@ -173,9 +171,9 @@ document.addEventListener('DOMContentLoaded', () => {
             lookupTabButton.classList.remove('border-transparent', 'text-gray-400', 'hover:text-white');
             lookupTabButton.classList.add('border-primary', 'text-primary');
 
-            otpSearchInput.value = '';
-            otpResultsContainer.classList.add('hidden');
-            otpNoResultsMessage.classList.add('hidden');
+            if(otpSearchInput) otpSearchInput.value = '';
+            if(otpResultsContainer) otpResultsContainer.classList.add('hidden');
+            if(otpNoResultsMessage) otpNoResultsMessage.classList.add('hidden');
         });
     }
 
@@ -202,6 +200,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderAnalyticsTable() {
+        if (!analyticsTableBody) return;
+
         const now = new Date();
         let startDate = new Date();
         
@@ -217,7 +217,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // 1. Filter Forms based on Access List
         let visibleForms = allForms;
         if (userRole === 'coordinator') {
-            visibleForms = allForms.filter(f => coordinatorAccessList.includes(f.id));
+            visibleForms = allForms.filter(f => coordinatorAccessList && coordinatorAccessList.includes(f.id));
         }
 
         let formStats = visibleForms.map(form => {
@@ -301,8 +301,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 if (foundSub) {
                     // --- ACCESS CHECK ---
-                    if (userRole === 'coordinator' && !coordinatorAccessList.includes(foundSub.formId)) {
-                        // Found, but belongs to unassigned form -> HIDE IT
+                    if (userRole === 'coordinator' && (!coordinatorAccessList || !coordinatorAccessList.includes(foundSub.formId))) {
                         showOtpMessage(`OTP "${otpInputVal}" belongs to a form you cannot access.`, "text-red-400");
                         return;
                     }
@@ -313,8 +312,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     if (foundOtpDoc) {
                         // --- ACCESS CHECK ---
-                        if (userRole === 'coordinator' && !coordinatorAccessList.includes(foundOtpDoc.formId)) {
-                             // Found unused, but unassigned form -> HIDE IT
+                        if (userRole === 'coordinator' && (!coordinatorAccessList || !coordinatorAccessList.includes(foundOtpDoc.formId))) {
                              showOtpMessage(`OTP "${otpInputVal}" belongs to a form you cannot access.`, "text-red-400");
                              return;
                         }
@@ -395,17 +393,14 @@ document.addEventListener('DOMContentLoaded', () => {
     function openDetailModal(sub) {
         if (!detailModal) return;
 
-        // 1. Find Form Info for Header
         const formDef = allForms.find(f => f.id === sub.formId);
         const publicFormName = formDef?.formName || 'Unknown Form';
 
-        // 2. Update Header Title
         const modalTitle = detailModal.querySelector('h3');
         if (modalTitle) {
             modalTitle.textContent = publicFormName;
         }
 
-        // 3. Update Header Subtitle
         if (modalSerialDisplay) {
             const serial = sub.serialNumber || 'No Serial';
             const otp = sub.otp || 'No OTP';
@@ -426,7 +421,6 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
         }
 
-        // 4. Build Content Grid
         detailContent.innerHTML = ''; 
         const grid = document.createElement('div');
         grid.className = 'grid grid-cols-1 sm:grid-cols-2 gap-6';
@@ -459,7 +453,6 @@ document.addEventListener('DOMContentLoaded', () => {
         detailModal.classList.remove('hidden');
     }
 
-    // Close Handlers
     const closeDetailFunc = () => detailModal.classList.add('hidden');
     if (closeDetailBtn) closeDetailBtn.addEventListener('click', closeDetailFunc);
     if (closeDetailBtnMain) closeDetailBtnMain.addEventListener('click', closeDetailFunc);

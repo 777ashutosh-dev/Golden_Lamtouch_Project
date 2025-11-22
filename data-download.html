@@ -52,7 +52,7 @@
                         <p class="text-sm font-medium leading-normal">Data Download</p>
                     </a>
                     
-                    <!-- Link 5: System Logs --> 
+                    <!-- Link 5: System Logs -->
                     <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 text-gray-300" href="system-logs.html">
                         <span class="material-symbols-outlined">manage_history</span>
                         <p class="text-sm font-medium leading-normal">System Logs & Activity</p>
@@ -108,7 +108,7 @@
                         <table class="w-full text-left">
                             <thead>
                                 <tr class="border-b border-border-dark">
-                                    <!-- Col 1: Form Name -->
+                                    <!-- Col 1: Form Name (Sortable) -->
                                     <th id="sort-name-button" class="px-6 py-3 text-sm font-semibold text-gray-400 cursor-pointer hover:text-white flex items-center gap-1 min-w-[200px]">
                                         <span>Form Name</span>
                                         <span class="material-symbols-outlined text-base">arrow_upward</span>
@@ -120,9 +120,9 @@
                                     <!-- Col 3: Last Downloaded -->
                                     <th class="px-6 py-3 text-sm font-semibold text-gray-400 min-w-[140px]">Last Downloaded</th>
                                     
-                                    <!-- Col 4: Submissions (Period) -->
-                                    <th id="sort-period-button" class="px-6 py-3 text-sm font-semibold text-gray-400 cursor-pointer hover:text-white flex items-center gap-1">
-                                        <span>Submissions (Period)</span>
+                                    <!-- Col 4: Pending (Sortable) -->
+                                    <th id="sort-pending-button" class="px-6 py-3 text-sm font-semibold text-gray-400 cursor-pointer hover:text-white flex items-center gap-1 min-w-[100px]">
+                                        <span>Pending</span>
                                         <span class="material-symbols-outlined text-base">unfold_more</span>
                                     </th>
                                     
@@ -231,7 +231,7 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
         const storage = firebase.storage();
-        const functions = firebase.functions();
+        const functions = firebase.functions(); 
     </script>
     <script src="auth-guard.js"></script>
     <script src="data-download.js"></script>

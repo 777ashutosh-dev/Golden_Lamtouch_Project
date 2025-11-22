@@ -6,7 +6,7 @@
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>Golden Lamtouch - Form Creation</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
         rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
 </head>
@@ -52,7 +52,7 @@
                         <p class="text-sm font-medium leading-normal">Data Download</p>
                     </a>
                     
-                    <!-- Link 5: System Logs (NOW LINKED) -->
+                    <!-- Link 5: System Logs -->
                     <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 text-gray-300" href="system-logs.html">
                         <span class="material-symbols-outlined">manage_history</span>
                         <p class="text-sm font-medium leading-normal">System Logs & Activity</p>
@@ -183,9 +183,62 @@
         </main>
     </div>
 
-    <!-- ====================================================== -->
-    <!-- START: FIREBASE SCRIPT BLOCK -->
-    <!-- ====================================================== -->
+    <!-- Hidden Template for New Fields (Only "Blood Group" added to select) -->
+    <template id="field-template">
+        <div class="field-card group bg-surface-dark border border-border-dark rounded-xl p-4 transition-all hover:border-gray-500 relative">
+            <!-- Drag Handle & Remove -->
+            <div class="flex justify-between items-start mb-4">
+                <div class="flex items-center gap-2 cursor-move text-gray-500 hover:text-white">
+                    <span class="material-symbols-outlined">drag_indicator</span>
+                    <span class="text-xs font-mono uppercase tracking-wider field-number">Field #1</span>
+                </div>
+                <button class="delete-field-btn text-gray-500 hover:text-red-500 transition-colors p-1">
+                    <span class="material-symbols-outlined">delete</span>
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                <!-- Field Label -->
+                <div class="md:col-span-5 flex flex-col gap-2">
+                    <label class="text-xs font-bold text-gray-500 uppercase">Label / Question</label>
+                    <input type="text" class="field-label-input w-full h-10 px-3 rounded bg-background-dark border border-border-dark text-white text-sm focus:border-primary focus:ring-1 focus:ring-primary" placeholder="e.g., Enter Full Name">
+                </div>
+
+                <!-- Data Type -->
+                <div class="md:col-span-4 flex flex-col gap-2">
+                    <label class="text-xs font-bold text-gray-500 uppercase">Data Type</label>
+                    <select class="field-type-select w-full h-10 px-3 rounded bg-background-dark border border-border-dark text-white text-sm focus:border-primary focus:ring-1 focus:ring-primary">
+                        <option value="string">Text Answer</option>
+                        <option value="number">Number</option>
+                        <option value="email">Email Address</option>
+                        <option value="phone">Phone Number</option>
+                        <option value="date">Date Picker</option>
+                        <option value="dropdown">Dropdown Selection</option>
+                        <option value="blood_group">Blood Group (Auto-Fill)</option> <!-- NEW OPTION ADDED HERE -->
+                        <option value="image">Image Upload</option>
+                        <option value="signature">Signature</option>
+                        <option value="header">Section Header</option>
+                    </select>
+                </div>
+
+                <!-- Required Toggle -->
+                <div class="md:col-span-3 flex items-center justify-start md:justify-center h-full pt-6">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" class="field-required-check w-4 h-4 rounded bg-background-dark border-border-dark text-primary focus:ring-primary">
+                        <span class="text-sm text-gray-300">Mandatory?</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Dropdown Options (Hidden by default) -->
+            <div class="options-container hidden mt-4 pt-4 border-t border-border-dark/50">
+                <label class="text-xs font-bold text-gray-500 uppercase">Dropdown Options (Comma Separated)</label>
+                <input type="text" class="field-options-input w-full h-10 px-3 mt-1 rounded bg-background-dark border border-border-dark text-white text-sm placeholder-gray-600" placeholder="Option 1, Option 2, Option 3...">
+            </div>
+        </div>
+    </template>
+
+    <!-- Firebase Scripts -->
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
@@ -206,9 +259,6 @@
     </script>
     <script src="auth-guard.js"></script>
     <script src="form-creation-v2.js"></script>
-    <!-- ====================================================== -->
-    <!-- END: FIREBASE SCRIPT BLOCK -->
-    <!-- ====================================================== -->
 </body>
 
 </html>
