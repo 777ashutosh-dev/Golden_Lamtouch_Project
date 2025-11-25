@@ -1,10 +1,10 @@
 /*
-  M25 v2 - (QUALITY TWEAK) Public Form Brain
+  M28 v8 - (CAMERA SWITCHING & STRICT VALIDATION) Public Form Brain
   -----------------------------------------------------
   Updates:
-  1. COMPRESSION: Increased image quality to 0.7 (70%).
-  2. FEEDBACK: Retained "Chatty" loading overlay logic.
-  3. LOGIC: Full feature set (OTP -> Form -> Camera -> Submit -> PDF).
+  1. CAMERA: Added 'Switch Camera' functionality (Front/Back toggle).
+  2. CAMERA: Defaulted to 'environment' (Back Camera) for better document scanning.
+  3. PRESERVED: Strict validation, Phone type 'tel', and Maxlength enforcement.
 */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -25,6 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let cropper = null; 
     let cameraStream = null;
+    let currentFacingMode = 'environment'; // Default to Back Camera
 
     // --- Find all our "targets" in the HTML ---
 
@@ -57,6 +58,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const cameraVideo = document.getElementById('camera-video');
     const capturePhotoButton = document.getElementById('capture-photo-button');
     const closeCameraButton = document.getElementById('close-camera-button');
+    
+    // NEW: Create Switch Camera Button dynamically if not present in HTML
+    let switchCameraButton = document.getElementById('switch-camera-button');
+    if (!switchCameraButton && cameraModal) {
+        switchCameraButton = document.createElement('button');
+        switchCameraButton.id = 'switch-camera-button';
+        switchCameraButton.className = 'absolute top-4 left-4 p-2 rounded-full bg-white/10 text-white';
+        switchCameraButton.innerHTML = '<span class="material-symbols-outlined">cameraswitch</span>';
+        cameraModal.appendChild(switchCameraButton);
+    }
 
     // Part 4: "Preview Modal" Targets
     const previewModal = document.getElementById('preview-modal');
@@ -182,11 +193,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 case 'string':
                 case 'email':
                 case 'numeric':
+                case 'phone': // Added handling for Phone
                 case 'textarea': 
                     
                     const isTextarea = field.dataType === 'textarea';
                     hasLimit = field.maxLength && parseInt(field.maxLength, 10) > 0;
                     
+                    // Determine Input Type
+                    let inputType = 'text';
+                    if (field.dataType === 'numeric') inputType = 'number';
+                    if (field.dataType === 'phone') inputType = 'tel';
+                    if (field.dataType === 'email') inputType = 'email';
+
                     const counterHTML = hasLimit ? `
                         <span class="text-xs text-gray-400" id="${fieldId}-counter">
                             0 / ${field.maxLength}
@@ -205,13 +223,14 @@ document.addEventListener('DOMContentLoaded', () => {
                         ></textarea>
                     ` : `
                         <input
-                            type="${field.dataType === 'string' ? 'text' : (field.dataType === 'numeric' ? 'number' : field.dataType)}"
+                            type="${inputType}"
                             id="${fieldId}"
                             placeholder="Enter ${field.fieldName.toLowerCase()}"
                             class="field-input w-full h-10 px-4 rounded-lg bg-background-dark border border-border-dark text-white placeholder-gray-500 focus:ring-primary focus:border-primary text-sm"
                             data-field-name="${field.fieldName}"
                             data-case-type="${field.caseType || 'as-typed'}"
                             ${hasLimit ? `maxlength="${field.maxLength}"` : ''}
+                            ${field.dataType === 'phone' ? 'pattern="[0-9]*" inputmode="numeric"' : ''} 
                         >
                     `;
                     
@@ -224,6 +243,20 @@ document.addEventListener('DOMContentLoaded', () => {
                     `;
                     fieldWrapper.className = 'flex flex-col gap-2 p-3 rounded-lg border border-transparent';
                     fieldWrapper.id = fieldContainerId; 
+                    break;
+
+                case 'date':
+                    fieldHTML = `
+                        <label for="${fieldId}" class="text-sm font-medium text-gray-300">${field.fieldName}</label>
+                        <input
+                            type="date"
+                            id="${fieldId}"
+                            class="field-input w-full h-10 px-4 rounded-lg bg-background-dark border border-border-dark text-white placeholder-gray-500 focus:ring-primary focus:border-primary text-sm"
+                            data-field-name="${field.fieldName}"
+                        >
+                    `;
+                    fieldWrapper.className = 'flex flex-col gap-2 p-3 rounded-lg border border-transparent';
+                    fieldWrapper.id = fieldContainerId;
                     break;
 
                 case 'dropdown':
@@ -247,7 +280,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 case 'radio':
                     const radioOptions = (field.dropdownOptions || '').split('\n').map(opt => opt.trim()).filter(opt => opt);
                     const radioOptionsHTML = radioOptions.map((opt, index) => `
-                        <label class="flex items-center gap-3">
+                        <label class="flex items-center gap-3 cursor-pointer">
                             <input
                                 type="radio"
                                 id="${fieldId}-${index}"
@@ -271,7 +304,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 case 'checkbox':
                     fieldHTML = `
-                        <label class="flex items-center gap-3">
+                        <label class="flex items-center gap-3 cursor-pointer">
                             <input
                                 type="checkbox"
                                 id="${fieldId}"
@@ -387,31 +420,43 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
 
-        // --- 2. Brains for Text Inputs (Counter & Case) ---
+        // --- 2. Brains for Text Inputs (Counter & Case & MAX LENGTH Enforcement) ---
         if (dynamicFormFields) {
             dynamicFormFields.addEventListener('input', (e) => {
                 if (e.target.classList.contains('field-input')) {
                     const input = e.target;
                     const hasLimit = input.hasAttribute('maxlength');
                     const caseType = input.dataset.caseType;
+                    
+                    let value = input.value;
 
-                    if (hasLimit || caseType === 'all-caps' || caseType === 'sentence-case') {
+                    // --- ENFORCE MAX LENGTH FOR NUMBERS/PHONES ---
+                    // HTML 'number' inputs ignore maxlength by default, so we enforce via JS
+                    if (hasLimit && (input.type === 'number' || input.type === 'tel')) {
+                        const max = parseInt(input.getAttribute('maxlength'), 10);
+                        if (input.value.length > max) {
+                            input.value = input.value.slice(0, max);
+                            value = input.value; // Update for counter below
+                        }
+                    }
+
+                    // Enforce Case Type
+                    if (caseType === 'all-caps') {
+                        value = value.toUpperCase();
+                    } else if (caseType === 'sentence-case' && value.length > 0) {
+                        value = value.charAt(0).toUpperCase() + value.slice(1);
+                    }
+                    
+                    if (input.value !== value) {
+                        input.value = value;
+                    }
+                        
+                    // Update Counter
+                    if (hasLimit) {
                         const fieldId = input.id;
                         const counter = document.getElementById(`${fieldId}-counter`);
-                        
-                        let value = input.value;
-                        
-                        // Enforce Case Type
-                        if (caseType === 'all-caps') {
-                            value = value.toUpperCase();
-                        } else if (caseType === 'sentence-case' && value.length > 0) {
-                            value = value.charAt(0).toUpperCase() + value.slice(1);
-                        }
-                        input.value = value;
-                        
-                        // Update Counter
-                        if (hasLimit && counter) {
-                            counter.textContent = `${value.length} / ${input.maxLength}`;
+                        if (counter) {
+                            counter.textContent = `${value.length} / ${input.getAttribute('maxlength')}`;
                         }
                     }
                 }
@@ -446,6 +491,25 @@ document.addEventListener('DOMContentLoaded', () => {
                         delete currentImageBlobs[fieldName];
                     }
                     return;
+                }
+            });
+        }
+        
+        // --- 4. SWITCH CAMERA Button ---
+        if (switchCameraButton) {
+            switchCameraButton.addEventListener('click', () => {
+                // Toggle mode
+                currentFacingMode = (currentFacingMode === 'user') ? 'environment' : 'user';
+                
+                // Stop existing stream
+                if (cameraStream) {
+                    cameraStream.getTracks().forEach(track => track.stop());
+                }
+                
+                // Restart with new mode
+                // NOTE: field data is preserved in 'currentImageField'
+                if (currentImageField) {
+                    startCamera(currentImageField.id, currentImageField.name, currentImageField.type);
                 }
             });
         }
@@ -565,7 +629,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            cameraStream = await navigator.mediaDevices.getUserMedia({ video: true });
+            // Use the global 'currentFacingMode' state
+            const constraints = { 
+                video: { 
+                    facingMode: currentFacingMode 
+                } 
+            };
+            
+            cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
             cameraVideo.srcObject = cameraStream;
             cameraModal.classList.remove('hidden');
             currentImageField = { id: fieldId, name: fieldName, type: dataType }; 
@@ -628,13 +699,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 if(widget) widget.classList.remove('border-red-500', 'border-2');
             }
 
-            // 2. Check for empty values
+            // 2. CHECK ALL FIELDS (Mandatory by default)
             switch (field.dataType) {
                 case 'string':
                 case 'email':
                 case 'numeric':
+                case 'phone':
                 case 'textarea':
                 case 'dropdown':
+                case 'date': // Added Date check
                     const input = document.getElementById(fieldId);
                     if (!input || input.value.trim() === '') {
                         isValid = false;
@@ -658,7 +731,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     break;
                 
                 case 'checkbox':
-                    // We will add 'isMandatory' logic later.
+                    // For checkboxes, "mandatory" usually means "must be checked"
+                    // But if it's just a preference, we might not enforce. 
+                    // Assuming for this form "mandatory" means "must be checked" (e.g. Terms & Conditions)
+                    const checkbox = document.getElementById(fieldId);
+                    if (!checkbox.checked) {
+                        isValid = false;
+                        missingFields.push(field.fieldName);
+                        if (container) container.classList.add('border-red-500', 'border-2');
+                    }
                     break;
                 
                 case 'image':
@@ -674,7 +755,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         if (!isValid) {
-            submitErrorMessage.textContent = `Please fill out all required fields. Missing: ${missingFields.join(', ')}`;
+            submitErrorMessage.textContent = `Please fill out all fields. Missing: ${missingFields.join(', ')}`;
             submitErrorMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
 

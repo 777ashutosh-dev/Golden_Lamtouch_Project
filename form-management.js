@@ -1,10 +1,10 @@
 /*
-  M23 v22 - (ANTI-DUPLICATION: GROUPS) Form Management Brain
+  M23 v23 - (SECURE OTP GENERATION) Form Management Brain
   -----------------------------------------------------
   Updates:
-  1. SECURITY: Added Duplicate Check to "Create Group".
-     - Checks 'allGroups' memory before saving.
-     - Prevents duplicate names (case-insensitive).
+  1. SECURITY: "Generate OTPs" now calls the Cloud Function 'generateBatchOTPs'.
+     - Direct database writes removed to comply with strict security rules.
+  2. FIX: Resolved "Permission Denied" error when creating OTPs.
 */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- FIX: TELL FIREBASE TO USE INDIA ---
     const functions = firebase.app().functions('asia-south1');
     const onFormDelete = functions.httpsCallable('onFormDelete');
+    const generateBatchOTPs = functions.httpsCallable('generateBatchOTPs'); // NEW FUNCTION
 
     // --- Page "Memory" ---
     let allForms = [];
@@ -538,7 +539,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 .catch(err => document.getElementById('assign-group-error-message').textContent = 'An error occurred.');
         }
 
-        // --- Add OTP Modal ---
+        // --- Add OTP Modal (SECURE CLOUD FUNCTION) ---
         if (e.target.closest('#close-otp-modal-button') || e.target.closest('#cancel-otp-modal-button')) {
             document.getElementById('add-otp-modal').classList.add('hidden');
         }
@@ -561,30 +562,19 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.querySelector('.truncate').textContent = 'Generating...';
             
             try {
-                const batchLimit = 500;
-                let batch = db.batch();
-                let count = 0;
-                for (let i = 0; i < quantity; i++) {
-                    const newCode = generateRandomCode();
-                    const newOtpRef = db.collection('otps').doc(); 
-                    batch.set(newOtpRef, {
-                        formId: currentOtpFormId,
-                        code: newCode.toLowerCase(), 
-                        isUsed: false,
-                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-                    count++;
-                    if (count === batchLimit) {
-                        await batch.commit();
-                        batch = db.batch();
-                        count = 0;
-                    }
+                // --- NEW: CALL CLOUD FUNCTION (Secure) ---
+                const result = await generateBatchOTPs({
+                    formId: currentOtpFormId,
+                    quantity: quantity
+                });
+
+                if (result.data.success) {
+                    alert(`Success! ${result.data.count} new OTPs have been generated.`);
+                    document.getElementById('add-otp-modal').classList.add('hidden');
+                } else {
+                    throw new Error("Unknown server error");
                 }
-                if (count > 0) {
-                    await batch.commit();
-                }
-                alert(`Success! ${quantity} new OTPs have been generated.`);
-                document.getElementById('add-otp-modal').classList.add('hidden');
+
             } catch (error) {
                 console.error("Error generating OTPs: ", error);
                 errorMsg.textContent = 'An error occurred. Please try again.';
@@ -597,7 +587,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- Helper function to generate random code ---
+    // --- Helper function to generate random code (Unused now, but kept for ref) ---
     function generateRandomCode() {
         const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
         let result = '';

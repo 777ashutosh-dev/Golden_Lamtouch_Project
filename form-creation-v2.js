@@ -1,12 +1,10 @@
 /*
-  M28 v5 - (SOLID BLOOD GROUP) Form Creation Brain
+  M28 v6 - (MANDATORY & PHONE UPDATE) Form Creation Brain
   -----------------------------------------------------
   Updates:
-  1. UX: "Blood Group" options are now READ-ONLY (Solid).
-     - Users cannot delete/edit the standard blood types.
-  2. MEMORY: Added 'uiType' saving so Edit Mode remembers 
-     if a field was a "Blood Group" field.
-  3. PRESERVED: All M23 Logic + M28 Data Type Fixes.
+  1. TYPES: Removed 'datetime' (Date & Time).
+  2. TYPES: Added 'phone' (Phone Number) to support specific validation.
+  3. LOGIC: Enforced 'isMandatory: true' for all fields implicitly.
 */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -198,10 +196,10 @@ document.addEventListener('DOMContentLoaded', () => {
                             ${isLocked ? 'disabled' : ''}>
                         <option value="string" ${dataType === 'string' ? 'selected' : ''}>String (Text)</option>
                         <option value="email" ${dataType === 'email' ? 'selected' : ''}>Email</option>
+                        <option value="phone" ${dataType === 'phone' ? 'selected' : ''}>Phone Number</option>
                         <option value="textarea" ${dataType === 'textarea' ? 'selected' : ''}>Textarea (Multi-line)</option>
                         <option value="numeric" ${dataType === 'numeric' ? 'selected' : ''}>Numeric</option>
                         <option value="date" ${dataType === 'date' ? 'selected' : ''}>Date</option>
-                        <option value="datetime" ${dataType === 'datetime' ? 'selected' : ''}>Date & Time</option>
                         <option value="checkbox" ${dataType === 'checkbox' ? 'selected' : ''}>Checkbox (Yes/No)</option>
                         <option value="radio" ${dataType === 'radio' ? 'selected' : ''}>Radio Button Group</option>
                         <option value="dropdown" ${dataType === 'dropdown' ? 'selected' : ''}>Dropdown (Select Menu)</option>
@@ -285,7 +283,8 @@ document.addEventListener('DOMContentLoaded', () => {
             optionsContainer.classList.add('hidden');
         }
 
-        if (['string', 'textarea', 'numeric', 'email'].includes(selectedType)) {
+        // Updated to include 'phone' for max length
+        if (['string', 'textarea', 'numeric', 'email', 'phone'].includes(selectedType)) {
             maxLengthContainer.classList.remove('hidden');
         } else {
             maxLengthContainer.classList.add('hidden');
@@ -406,7 +405,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         caseType: row.querySelector('.case-type-select').value || null,
                         maxLength: row.querySelector('.max-length-input').value || null,
                         dropdownOptions: finalOptionsString,
-                        isMandatory: true
+                        isMandatory: true // FORCE ALL FIELDS TO BE MANDATORY
                     };
                     fields.push(fieldObject);
                 });
