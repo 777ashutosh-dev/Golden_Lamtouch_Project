@@ -1,11 +1,11 @@
 /*
-  M28 v1 - (REAL-TIME DASHBOARD)
+  M31 v1 - (EXECUTIVE DASHBOARD BRAIN)
   -----------------------------------------------------
   Updates:
-  1. REAL-TIME FORMS: Switched from .get() to .onSnapshot() for Forms & Groups.
-     - Now instantly reflects creation/deletion of forms without refreshing.
-  2. REGION CONFIG: Added 'asia-south1' config for future-proofing.
-  3. PRESERVED: Coordinator Role filtering & Analytics logic.
+  1. NEW CARDS: Logic for "Total Submissions" & "Pending Downloads".
+  2. FILTERS: Added date range filtering ('7day', '30day', etc.) for the new cards.
+  3. LOGIC: "Pending" now calculates (Serial > Last Downloaded) AND matches date filter.
+  4. PRESERVED: All existing Analytics, OTP Lookup, and Real-time listeners.
 */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -32,9 +32,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // 2. DOM ELEMENTS
     // =================================================================
 
-    // Dashboard Card
+    // Dashboard Cards
     const todayDateDisplay = document.getElementById('today-date-display');
     const todayCountDisplay = document.getElementById('today-count-display');
+    
+    // NEW: Card 2 & 3 Elements
+    const totalCountDisplay = document.getElementById('total-count-display');
+    const totalFilterSelect = document.getElementById('total-filter-select');
+    const pendingCountDisplay = document.getElementById('pending-count-display');
+    const pendingFilterSelect = document.getElementById('pending-filter-select');
 
     // Tabs
     const analyticsTabButton = document.getElementById('analytics-tab-button');
@@ -119,6 +125,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function runDashboardUpdates() {
         updateTodaysCard();
+        updateTotalCard(); // NEW
+        updatePendingCard(); // NEW
         renderAnalyticsTable();
     }
 
@@ -145,6 +153,91 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         if(todayCountDisplay) todayCountDisplay.textContent = todaySubmissions.length;
+    }
+
+    // =================================================================
+    // NEW: LOGIC - PART A.2: "Total Submissions" Card
+    // =================================================================
+
+    if (totalFilterSelect) {
+        totalFilterSelect.addEventListener('change', updateTotalCard);
+    }
+
+    function updateTotalCard() {
+        if (!totalCountDisplay || !totalFilterSelect) return;
+
+        const timeRange = totalFilterSelect.value;
+        const startDate = getStartDateForRange(timeRange);
+
+        // Filter: Date + (Coordinator Access)
+        const filteredSubs = allSubmissions.filter(sub => {
+            const isDateMatch = sub.submissionDate && sub.submissionDate >= startDate;
+            
+            if (userRole === 'admin') return isDateMatch;
+            
+            return isDateMatch && (coordinatorAccessList && coordinatorAccessList.includes(sub.formId));
+        });
+
+        totalCountDisplay.textContent = filteredSubs.length;
+    }
+
+    // =================================================================
+    // NEW: LOGIC - PART A.3: "Pending Downloads" Card
+    // =================================================================
+
+    if (pendingFilterSelect) {
+        pendingFilterSelect.addEventListener('change', updatePendingCard);
+    }
+
+    function updatePendingCard() {
+        if (!pendingCountDisplay || !pendingFilterSelect) return;
+
+        const timeRange = pendingFilterSelect.value;
+        const startDate = getStartDateForRange(timeRange);
+        
+        let totalPending = 0;
+
+        // 1. Determine visible forms (Role check)
+        let visibleForms = allForms;
+        if (userRole === 'coordinator') {
+            visibleForms = allForms.filter(f => coordinatorAccessList && coordinatorAccessList.includes(f.id));
+        }
+
+        // 2. Loop through visible forms
+        visibleForms.forEach(form => {
+            const lastDownloaded = form.lastDownloadedSerial || 0;
+            
+            // 3. Find submissions for this form
+            const formSubs = allSubmissions.filter(s => s.formId === form.id);
+
+            // 4. Count submissions that are NEWER than last downloaded
+            //    AND match the selected time range
+            const pendingSubs = formSubs.filter(s => {
+                const serial = parseInt(s.serialNumber || "0", 10);
+                const isNew = serial > lastDownloaded;
+                const isDateMatch = s.submissionDate && s.submissionDate >= startDate;
+                return isNew && isDateMatch;
+            });
+
+            totalPending += pendingSubs.length;
+        });
+
+        pendingCountDisplay.textContent = totalPending;
+    }
+
+    // --- HELPER: Date Range Calculator ---
+    function getStartDateForRange(range) {
+        const now = new Date();
+        let startDate = new Date(0); // Default All Time (Epoch)
+
+        if (range === '7day') startDate.setDate(now.getDate() - 7);
+        if (range === '30day') startDate.setDate(now.getDate() - 30);
+        if (range === '90day') startDate.setDate(now.getDate() - 90);
+        if (range === '6month') startDate.setMonth(now.getMonth() - 6);
+        if (range === '1year') startDate.setFullYear(now.getFullYear() - 1);
+        // 'all' remains Epoch
+
+        return startDate;
     }
 
     // =================================================================

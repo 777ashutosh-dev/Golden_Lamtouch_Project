@@ -81,18 +81,61 @@
                 <div class="flex flex-wrap justify-between gap-3">
                     <div class="flex flex-col gap-2">
                         <p class="text-white text-3xl font-bold leading-tight">Dashboard</p>
-                        <p class="text-gray-400 text-base font-normal leading-normal">Welcome to your Golden Lamtouch
-                            control panel.</p>
+                        <p class="text-gray-400 text-base font-normal leading-normal">Welcome to your Golden Lamtouch control panel.</p>
                     </div>
                 </div>
 
-                <!-- "Today's Submissions" Card -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <div class="flex flex-col gap-2 rounded-xl p-6 bg-surface-dark border border-border-dark">
-                        <p class="text-gray-300 text-base font-medium leading-normal" id="today-date-display">Loading date...</p>
-                        <p class="text-white text-3xl font-bold leading-tight" id="today-count-display">0</p>
+                <!-- Executive Overview Cards (Forced Horizontal Row with Inline Styles) -->
+                <!-- We use inline style to FORCE the 3-column grid regardless of Tailwind rules -->
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem;">
+                    
+                    <!-- Card 1: Today's Submissions -->
+                    <div class="flex flex-col gap-2 rounded-xl p-6 bg-surface-dark border border-border-dark relative">
+                        <div class="flex justify-between items-start">
+                            <p class="text-gray-300 text-base font-medium leading-normal" id="today-date-display">Loading date...</p>
+                            <span class="material-symbols-outlined text-primary/50">calendar_today</span>
+                        </div>
+                        <p class="text-white text-3xl font-bold leading-tight mt-2" id="today-count-display">0</p>
                         <p class="text-gray-400 text-sm">Total Submissions Today</p>
                     </div>
+
+                    <!-- Card 2: Total Submissions (Filtered) -->
+                    <div class="flex flex-col gap-2 rounded-xl p-6 bg-surface-dark border border-border-dark relative">
+                        <div class="flex justify-between items-center">
+                            <p class="text-gray-300 text-base font-medium leading-normal">Total Submissions</p>
+                            <!-- Filter Dropdown -->
+                            <select id="total-filter-select" class="bg-background-dark border border-border-dark text-xs text-gray-300 rounded px-2 py-1 focus:outline-none focus:border-primary cursor-pointer">
+                                <option value="7day">7 Days</option>
+                                <option value="30day">30 Days</option>
+                                <option value="90day">90 Days</option>
+                                <option value="6month">6 Months</option>
+                                <option value="1year">1 Year</option>
+                                <option value="all" selected>All Time</option>
+                            </select>
+                        </div>
+                        <p class="text-white text-3xl font-bold leading-tight mt-2" id="total-count-display">0</p>
+                        <p class="text-gray-400 text-sm">Volume for selected period</p>
+                    </div>
+
+                    <!-- Card 3: Pending Downloads (Backlog) -->
+                    <div class="flex flex-col gap-2 rounded-xl p-6 bg-surface-dark border border-border-dark relative">
+                        <div class="flex justify-between items-center">
+                            <p class="text-gray-300 text-base font-medium leading-normal">Pending Downloads</p>
+                            <!-- Filter Dropdown -->
+                            <select id="pending-filter-select" class="bg-background-dark border border-border-dark text-xs text-gray-300 rounded px-2 py-1 focus:outline-none focus:border-primary cursor-pointer">
+                                <option value="7day">7 Days</option>
+                                <option value="30day">30 Days</option>
+                                <option value="90day">90 Days</option>
+                                <option value="6month">6 Months</option>
+                                <option value="1year">1 Year</option>
+                                <option value="all" selected>All Time</option>
+                            </select>
+                        </div>
+                        <!-- RED ALERT TEXT APPLIED HERE -->
+                        <p class="text-red-500 text-3xl font-bold leading-tight mt-2" id="pending-count-display">0</p>
+                        <p class="text-gray-400 text-sm">Records waiting to be downloaded</p>
+                    </div>
+
                 </div>
 
                 <!-- "Tabbed UI" -->
