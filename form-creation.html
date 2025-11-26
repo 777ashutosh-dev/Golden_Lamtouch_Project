@@ -101,11 +101,15 @@
                             <input id="form-name" type="text" placeholder="e.g., 'Student ID Form 2025'"
                                 class="w-full h-10 px-4 mt-2 rounded-lg bg-background-dark border border-border-dark text-white placeholder-gray-500 focus:ring-primary focus:border-primary text-sm" />
                         </div>
-                        <!-- Name of Organisation -->
+                        <!-- Name of Organisation (UPDATED with LIST attribute) -->
                         <div>
                             <label for="org-name" class="text-sm font-medium text-gray-300">Name of Organisation</label>
-                            <input id="org-name" type="text" placeholder="e.g., 'XYZ University'"
+                            <input id="org-name" type="text" list="org-suggestions-list" placeholder="e.g., 'XYZ University'"
                                 class="w-full h-10 px-4 mt-2 rounded-lg bg-background-dark border border-border-dark text-white placeholder-gray-500 focus:ring-primary focus:border-primary text-sm" />
+                            <!-- Datalist for Autocomplete -->
+                            <datalist id="org-suggestions-list">
+                                <!-- Options will be populated by JS -->
+                            </datalist>
                         </div>
                         <!-- Name of Co-ordinator -->
                         <div>

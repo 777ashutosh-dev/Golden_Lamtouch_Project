@@ -1,10 +1,10 @@
 /*
-  M29 v1 - (DATA INTEGRITY ARCHITECT) Form Creation Brain
+  M30 v1 - (SMART ORG SUGGESTIONS) Form Creation Brain
   -----------------------------------------------------
   Updates:
-  1. CASE TYPE: Added 'title-case' (Title Case) option.
-  2. VALIDATION: Added 'Exact Length' checkbox for Phone/Numeric fields.
-  3. LOGIC: Saves 'isExactLength' property to Firestore.
+  1. AUTOCOMPLETE: Fetches unique 'orgName' from existing forms.
+  2. DATALIST: Dynamic dropdown suggestions for Organisation Name.
+  3. PRESERVED: All previous validation (Title Case, Exact Length, etc.).
 */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -41,6 +41,41 @@ document.addEventListener('DOMContentLoaded', () => {
     let isPaymentEnabled = false;
     let fieldCounter = 0;
     let currentEditingFormId = null;
+
+    // =================================================================
+    // START: INITIALIZATION (Org Suggestions)
+    // =================================================================
+
+    // Setup Datalist for Org Name
+    if (orgNameInput) {
+        const datalistId = 'org-suggestions-list';
+        let datalist = document.getElementById(datalistId);
+        
+        if (!datalist) {
+            datalist = document.createElement('datalist');
+            datalist.id = datalistId;
+            document.body.appendChild(datalist); // Append to body to be safe
+            orgNameInput.setAttribute('list', datalistId);
+        }
+
+        // Fetch unique org names from existing forms
+        db.collection('forms').get().then(snapshot => {
+            const uniqueOrgs = new Set();
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                if (data.orgName) {
+                    uniqueOrgs.add(data.orgName.trim());
+                }
+            });
+
+            // Sort and populate datalist
+            Array.from(uniqueOrgs).sort().forEach(org => {
+                const option = document.createElement('option');
+                option.value = org;
+                datalist.appendChild(option);
+            });
+        }).catch(err => console.error("Error loading org suggestions:", err));
+    }
 
     // =================================================================
     // START: "EDIT MODE" LOGIC
@@ -168,7 +203,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const dataType = fieldData ? (fieldData.uiType || fieldData.dataType) : 'string'; 
         const caseType = fieldData ? fieldData.caseType : 'as-typed';
         const maxLength = fieldData ? fieldData.maxLength : '';
-        const isExactLength = fieldData ? fieldData.isExactLength : false; // NEW: Load saved state
+        const isExactLength = fieldData ? fieldData.isExactLength : false; 
         const dropdownOptions = fieldData ? fieldData.dropdownOptions : '';
         
         // Format options for UI
@@ -180,8 +215,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         // --- HTML TEMPLATE ---
-        // Added 'title-case' to Select
-        // Added Checkbox next to Max Length
         const fieldHTML = `
             <div class="flex flex-wrap gap-4 items-center">
                 <div class="field-number flex items-center justify-center h-10 w-10 bg-surface-dark border border-border-dark rounded-lg text-primary font-bold text-lg">
@@ -235,7 +268,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     <input type="number" placeholder="e.g. 10" class="max-length-input w-full h-10 px-4 mt-1 rounded-lg bg-surface-dark border border-border-dark text-white placeholder-gray-500 focus:ring-primary focus:border-primary text-sm" value="${maxLength || ''}">
                 </div>
                 
-                <!-- NEW: Exact Length Checkbox -->
                 <div class="exact-length-container hidden flex items-center h-10 mt-6">
                     <label class="flex items-center gap-2 cursor-pointer">
                         <input type="checkbox" class="exact-length-check w-4 h-4 rounded bg-background-dark border-border-dark text-primary focus:ring-primary" ${isExactLength ? 'checked' : ''}>
@@ -316,7 +348,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // --- EXACT LENGTH CHECKBOX LOGIC ---
-        // Only show "Enforce Exact" for Phone (User Request) and Numeric
         if (['phone', 'numeric'].includes(selectedType)) {
             exactLengthContainer.classList.remove('hidden');
         } else {
@@ -435,7 +466,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         uiType: selectedUiType,
                         caseType: row.querySelector('.case-type-select').value || null,
                         maxLength: row.querySelector('.max-length-input').value || null,
-                        // NEW: Capture the exact length state
                         isExactLength: row.querySelector('.exact-length-check').checked || false,
                         dropdownOptions: finalOptionsString,
                         isMandatory: true
