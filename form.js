@@ -1,10 +1,10 @@
 /*
-  M28 v8 - (CAMERA SWITCHING & STRICT VALIDATION) Public Form Brain
+  M29 v2 - (THE ENFORCER) Public Form Brain
   -----------------------------------------------------
   Updates:
-  1. CAMERA: Added 'Switch Camera' functionality (Front/Back toggle).
-  2. CAMERA: Defaulted to 'environment' (Back Camera) for better document scanning.
-  3. PRESERVED: Strict validation, Phone type 'tel', and Maxlength enforcement.
+  1. VALIDATION: Enforces 'Exact Length' rule if 'isExactLength' is true.
+  2. TRANSFORMATION: Auto-converts text to 'Title Case' if 'caseType' is 'title-case'.
+  3. PRESERVED: All camera, cropping, and submission logic.
 */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -205,9 +205,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (field.dataType === 'phone') inputType = 'tel';
                     if (field.dataType === 'email') inputType = 'email';
 
+                    // Hint text logic for exact length
+                    let limitText = `0 / ${field.maxLength}`;
+                    if (hasLimit && field.isExactLength) {
+                        limitText = `0 / ${field.maxLength} (Exact)`;
+                    }
+
                     const counterHTML = hasLimit ? `
                         <span class="text-xs text-gray-400" id="${fieldId}-counter">
-                            0 / ${field.maxLength}
+                            ${limitText}
                         </span>
                     ` : '';
                     
@@ -240,6 +246,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             ${counterHTML}
                         </div>
                         ${inputElement}
+                        <span id="${fieldId}-error-msg" class="text-xs text-red-400 hidden mt-1"></span>
                     `;
                     fieldWrapper.className = 'flex flex-col gap-2 p-3 rounded-lg border border-transparent';
                     fieldWrapper.id = fieldContainerId; 
@@ -445,6 +452,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         value = value.toUpperCase();
                     } else if (caseType === 'sentence-case' && value.length > 0) {
                         value = value.charAt(0).toUpperCase() + value.slice(1);
+                    } else if (caseType === 'title-case') {
+                        // NEW: Title Case Logic (First letter of each word capitalized)
+                        value = value.replace(/\w\S*/g, function(txt){
+                            return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+                        });
                     }
                     
                     if (input.value !== value) {
@@ -456,7 +468,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         const fieldId = input.id;
                         const counter = document.getElementById(`${fieldId}-counter`);
                         if (counter) {
-                            counter.textContent = `${value.length} / ${input.getAttribute('maxlength')}`;
+                            const rawText = counter.textContent;
+                            // Preserve the "(Exact)" text if present
+                            const isExact = rawText.includes("(Exact)");
+                            const max = input.getAttribute('maxlength');
+                            counter.textContent = `${value.length} / ${max}${isExact ? ' (Exact)' : ''}`;
                         }
                     }
                 }
@@ -691,9 +707,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const fieldId = `field-${safeFieldName.replace(/[^a-zA-Z0-9-]/g, '-')}`;
             const containerId = `${fieldId}-container`;
             const container = document.getElementById(containerId);
+            const errorMsg = document.getElementById(`${fieldId}-error-msg`);
 
             // 1. Reset all error borders
             if (container) container.classList.remove('border-red-500', 'border-2');
+            if (errorMsg) {
+                errorMsg.textContent = '';
+                errorMsg.classList.add('hidden');
+            }
             if (field.dataType === 'image' || field.dataType === 'signature') {
                 const widget = document.getElementById(`${fieldId}-widget`);
                 if(widget) widget.classList.remove('border-red-500', 'border-2');
@@ -707,7 +728,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 case 'phone':
                 case 'textarea':
                 case 'dropdown':
-                case 'date': // Added Date check
+                case 'date': 
                     const input = document.getElementById(fieldId);
                     if (!input || input.value.trim() === '') {
                         isValid = false;
@@ -718,6 +739,18 @@ document.addEventListener('DOMContentLoaded', () => {
                         isValid = false;
                         missingFields.push(field.fieldName + " (invalid format)");
                         if (container) container.classList.add('border-red-500', 'border-2');
+                    
+                    // --- NEW: EXACT LENGTH CHECK ---
+                    } else if ((field.dataType === 'numeric' || field.dataType === 'phone') && field.isExactLength && field.maxLength) {
+                        const requiredLen = parseInt(field.maxLength, 10);
+                        if (input.value.length !== requiredLen) {
+                            isValid = false;
+                            if (errorMsg) {
+                                errorMsg.textContent = `Must be exactly ${requiredLen} digits.`;
+                                errorMsg.classList.remove('hidden');
+                            }
+                            if (container) container.classList.add('border-red-500', 'border-2');
+                        }
                     }
                     break;
                 
@@ -731,9 +764,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     break;
                 
                 case 'checkbox':
-                    // For checkboxes, "mandatory" usually means "must be checked"
-                    // But if it's just a preference, we might not enforce. 
-                    // Assuming for this form "mandatory" means "must be checked" (e.g. Terms & Conditions)
                     const checkbox = document.getElementById(fieldId);
                     if (!checkbox.checked) {
                         isValid = false;
@@ -755,7 +785,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         if (!isValid) {
-            submitErrorMessage.textContent = `Please fill out all fields. Missing: ${missingFields.join(', ')}`;
+            if (missingFields.length > 0) {
+                submitErrorMessage.textContent = `Please check fields marked in red.`;
+            } else {
+                submitErrorMessage.textContent = `Please correct the errors above.`;
+            }
             submitErrorMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
 

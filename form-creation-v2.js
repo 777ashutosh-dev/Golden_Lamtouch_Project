@@ -1,10 +1,10 @@
 /*
-  M28 v6 - (MANDATORY & PHONE UPDATE) Form Creation Brain
+  M29 v1 - (DATA INTEGRITY ARCHITECT) Form Creation Brain
   -----------------------------------------------------
   Updates:
-  1. TYPES: Removed 'datetime' (Date & Time).
-  2. TYPES: Added 'phone' (Phone Number) to support specific validation.
-  3. LOGIC: Enforced 'isMandatory: true' for all fields implicitly.
+  1. CASE TYPE: Added 'title-case' (Title Case) option.
+  2. VALIDATION: Added 'Exact Length' checkbox for Phone/Numeric fields.
+  3. LOGIC: Saves 'isExactLength' property to Firestore.
 */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -165,10 +165,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Data defaults
         const fieldName = fieldData ? fieldData.fieldName : '';
-        // IMPROVED: Prefer 'uiType' (if saved) so we remember it was a Blood Group
         const dataType = fieldData ? (fieldData.uiType || fieldData.dataType) : 'string'; 
         const caseType = fieldData ? fieldData.caseType : 'as-typed';
         const maxLength = fieldData ? fieldData.maxLength : '';
+        const isExactLength = fieldData ? fieldData.isExactLength : false; // NEW: Load saved state
         const dropdownOptions = fieldData ? fieldData.dropdownOptions : '';
         
         // Format options for UI
@@ -180,6 +180,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         // --- HTML TEMPLATE ---
+        // Added 'title-case' to Select
+        // Added Checkbox next to Max Length
         const fieldHTML = `
             <div class="flex flex-wrap gap-4 items-center">
                 <div class="field-number flex items-center justify-center h-10 w-10 bg-surface-dark border border-border-dark rounded-lg text-primary font-bold text-lg">
@@ -217,6 +219,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <option value="as-typed" ${caseType === 'as-typed' ? 'selected' : ''}>As Typed</option>
                         <option value="all-caps" ${caseType === 'all-caps' ? 'selected' : ''}>All Capitals</option>
                         <option value="sentence-case" ${caseType === 'sentence-case' ? 'selected' : ''}>Sentence Case</option>
+                        <option value="title-case" ${caseType === 'title-case' ? 'selected' : ''}>Title Case (Name)</option>
                     </select>
                 </div>
                 <div class="flex items-end">
@@ -225,11 +228,21 @@ document.addEventListener('DOMContentLoaded', () => {
                     </button>
                 </div>
             </div>
-            <div class="flex flex-wrap gap-4 items-center">
-                <div class="max-length-container flex-none min-w-[100px] w-28">
-                    <label class="text-xs font-medium text-gray-400">Max Length</label>
-                    <input type="number" placeholder="e.g., 50" class="max-length-input w-full h-10 px-4 mt-1 rounded-lg bg-surface-dark border border-border-dark text-white placeholder-gray-500 focus:ring-primary focus:border-primary text-sm" value="${maxLength || ''}">
+            
+            <div class="flex flex-wrap gap-4 items-end">
+                <div class="max-length-container hidden flex-none w-32">
+                    <label class="text-xs font-medium text-gray-400 max-length-label">Max Length</label>
+                    <input type="number" placeholder="e.g. 10" class="max-length-input w-full h-10 px-4 mt-1 rounded-lg bg-surface-dark border border-border-dark text-white placeholder-gray-500 focus:ring-primary focus:border-primary text-sm" value="${maxLength || ''}">
                 </div>
+                
+                <!-- NEW: Exact Length Checkbox -->
+                <div class="exact-length-container hidden flex items-center h-10 mt-6">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" class="exact-length-check w-4 h-4 rounded bg-background-dark border-border-dark text-primary focus:ring-primary" ${isExactLength ? 'checked' : ''}>
+                        <span class="text-sm text-gray-300">Enforce Exact?</span>
+                    </label>
+                </div>
+
                 <div class="dropdown-options-container flex-1 min-w-[200px] hidden">
                     <label class="text-xs font-medium text-gray-400">Options (comma separated)</label>
                     <textarea class="dropdown-options-input w-full p-4 mt-1 rounded-lg bg-surface-dark border border-border-dark text-white placeholder-gray-500 focus:ring-primary focus:border-primary text-sm" rows="3" placeholder="e.g. Male, Female, Other">${optionsString || ''}</textarea>
@@ -273,7 +286,11 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateFieldVisibility(row, selectedType) {
         const optionsContainer = row.querySelector('.dropdown-options-container');
         const optionsInput = row.querySelector('.dropdown-options-input');
+        
         const maxLengthContainer = row.querySelector('.max-length-container');
+        const maxLengthLabel = row.querySelector('.max-length-label');
+        const exactLengthContainer = row.querySelector('.exact-length-container');
+        
         const caseTypeContainer = row.querySelector('.case-type-container');
 
         // 1. Visibility
@@ -283,11 +300,27 @@ document.addEventListener('DOMContentLoaded', () => {
             optionsContainer.classList.add('hidden');
         }
 
-        // Updated to include 'phone' for max length
+        // --- LENGTH LOGIC UPDATE ---
         if (['string', 'textarea', 'numeric', 'email', 'phone'].includes(selectedType)) {
             maxLengthContainer.classList.remove('hidden');
+            
+            // Customize Label based on type
+            if (selectedType === 'phone') {
+                maxLengthLabel.textContent = "Length";
+            } else {
+                maxLengthLabel.textContent = "Max Length";
+            }
+
         } else {
             maxLengthContainer.classList.add('hidden');
+        }
+
+        // --- EXACT LENGTH CHECKBOX LOGIC ---
+        // Only show "Enforce Exact" for Phone (User Request) and Numeric
+        if (['phone', 'numeric'].includes(selectedType)) {
+            exactLengthContainer.classList.remove('hidden');
+        } else {
+            exactLengthContainer.classList.add('hidden');
         }
 
         if (['string', 'textarea'].includes(selectedType)) {
@@ -296,7 +329,7 @@ document.addEventListener('DOMContentLoaded', () => {
             caseTypeContainer.classList.add('hidden');
         }
 
-        // 2. LOCKING LOGIC (Make it Solid)
+        // 2. LOCKING LOGIC
         if (selectedType === 'blood_group') {
             optionsInput.readOnly = true; 
             optionsInput.classList.add('opacity-60', 'cursor-not-allowed');
@@ -382,16 +415,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 fieldRows.forEach(row => {
                     const typeSelect = row.querySelector('.data-type-select');
-                    const selectedUiType = typeSelect.value; // Capture the UI selection
+                    const selectedUiType = typeSelect.value;
                     let finalType = selectedUiType;
                     const optionsRaw = row.querySelector('.dropdown-options-input').value || '';
                     
-                    // --- TRANSFORM 1: Macro Logic ---
                     if (finalType === 'blood_group') {
                         finalType = 'dropdown';
                     }
 
-                    // --- TRANSFORM 2: STRINGIFY Logic ---
                     let finalOptionsString = '';
                     if (finalType === 'dropdown' || finalType === 'radio') {
                          const tempArray = optionsRaw.split(',').map(opt => opt.trim()).filter(opt => opt !== '');
@@ -401,11 +432,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     const fieldObject = {
                         fieldName: row.querySelector('.field-name-input').value || null,
                         dataType: finalType,
-                        uiType: selectedUiType, // MEMORY: Save 'blood_group' here!
+                        uiType: selectedUiType,
                         caseType: row.querySelector('.case-type-select').value || null,
                         maxLength: row.querySelector('.max-length-input').value || null,
+                        // NEW: Capture the exact length state
+                        isExactLength: row.querySelector('.exact-length-check').checked || false,
                         dropdownOptions: finalOptionsString,
-                        isMandatory: true // FORCE ALL FIELDS TO BE MANDATORY
+                        isMandatory: true
                     };
                     fields.push(fieldObject);
                 });
