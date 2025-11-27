@@ -1,10 +1,10 @@
 /*
-  M27 v2 - (AGGRESSIVE BLINDFOLD) Auth & Role Guard
+  M32 v1 - (WHITELIST LOCKDOWN) Auth & Role Guard
   -----------------------------------------------------
   Updates:
-  1. INSTANT CHECK: Checks sessionStorage immediately (before Firebase loads).
-  2. REDIRECT: Bounces Coordinators off restricted pages instantly.
-  3. UI HIDING: Aggressively hides sidebar links using multiple selectors.
+  1. SECURITY: Switched from Blacklist to Whitelist. 
+     - Coordinators are now blocked from EVERYTHING except 'dashboard.html'.
+  2. UI: Sidebar now hides ALL links except Dashboard.
 */
 
 // --- 1. INSTANT ROLE CHECK (Run immediately) ---
@@ -13,17 +13,12 @@
     const path = window.location.pathname;
     const pageName = path.split('/').pop();
 
-    // Restricted Pages for Coordinators
-    const forbiddenPages = [
-        'settings.html',
-        'form-creation.html',
-        'form-management.html',
-        'system-logs.html'
-    ];
-
-    if (role === 'coordinator' && forbiddenPages.includes(pageName)) {
-        console.warn("AuthGuard: Access Denied. Redirecting...");
-        window.location.replace('dashboard.html'); // Use replace to prevent 'Back' button loop
+    // STRICT WHITELIST for Coordinators
+    // If it's NOT dashboard.html (and we are on a protected page), kick them out.
+    // Note: auth-guard.js is not loaded on login.html/index.html, so we don't need to whitelist those here.
+    if (role === 'coordinator' && pageName !== 'dashboard.html') {
+        console.warn("AuthGuard: Strict Access Denied. Redirecting to Dashboard...");
+        window.location.replace('dashboard.html'); 
     }
 })();
 
@@ -51,6 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } else {
             // --- User is NOT Logged In ---
+            // Allow public form access (form.html)
             const isPublicPage = currentPath.endsWith('form.html');
             if (!isLoginPage && !isPublicPage) {
                 window.location.href = 'login.html';
@@ -58,35 +54,33 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- UI HIDING LOGIC ---
+    // --- UI HIDING LOGIC (WHITELIST MODE) ---
     function applyCoordinatorRestrictions() {
-        console.log("AuthGuard: Hiding Admin Links...");
+        console.log("AuthGuard: Enforcing Coordinator Whitelist...");
 
-        // 1. Hide by Text Content (Broadest Net)
+        // Target all navigation links in the sidebar
         const sidebarLinks = document.querySelectorAll('aside nav a');
-        const forbiddenKeywords = ['Settings', 'Form Creation', 'Form Management', 'System Logs'];
 
         sidebarLinks.forEach(link => {
-            const text = link.textContent.trim();
-            if (forbiddenKeywords.some(keyword => text.includes(keyword))) {
+            const href = link.getAttribute('href');
+            
+            // If the link is NOT dashboard.html, hide it.
+            if (href && !href.includes('dashboard.html')) {
                 link.style.display = 'none'; // Force hide
                 link.classList.add('hidden'); // Tailwind hide
             }
         });
-
-        // 2. Hide by HREF (Specific Net)
-        const forbiddenHrefs = ['settings.html', 'form-creation.html', 'form-management.html'];
-        forbiddenHrefs.forEach(href => {
-            const link = document.querySelector(`a[href*="${href}"]`);
-            if (link) {
-                link.style.display = 'none';
-                link.classList.add('hidden');
-            }
-        });
         
-        // 3. Special Case: "Form Management" button on Dashboard
+        // Extra Safety: Hide any "Manage" buttons on the dashboard itself if they exist
         const manageBtn = document.querySelector('a[href="form-management.html"]');
-        if (manageBtn) manageBtn.parentElement.style.display = 'none';
+        if (manageBtn) {
+            // Hide the parent container if it's a standalone button wrapper
+            if(manageBtn.parentElement.classList.contains('flex')) {
+                 manageBtn.parentElement.style.display = 'none';
+            } else {
+                 manageBtn.style.display = 'none';
+            }
+        }
     }
 
     // --- Sign Out Logic ---
