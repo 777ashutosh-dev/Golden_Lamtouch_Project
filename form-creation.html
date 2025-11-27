@@ -6,22 +6,20 @@
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>Golden Lamtouch - Form Creation</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
-        rel="stylesheet" />
+    <!-- Updated Font: Rajdhani -->
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
 </head>
 
 <body class="bg-background-dark font-display text-white">
     <div class="relative flex min-h-screen w-full">
-        <!-- SideNavBar (Updated for M21 v3) -->
+        <!-- SideNavBar -->
         <aside
             class="flex h-screen w-64 flex-col bg-surface-dark p-4 border-r border-border-dark sticky top-0 overflow-y-auto">
             <div class="flex flex-col gap-8">
                 <div class="flex items-center gap-3 px-3">
-                    <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10"
-                        data-alt="Golden Lamtouch company logo"
-                        style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBHcVL9mAEPMxg1o1fNfX5aOf3R2rbREe9mMkMhH021Aba47JlqBG1W5hZhrGuZimaztIOdGWwKkyzexyTsXHegXGN9XStpFCFR6OMl6FNNV7HvlgSrQre33s7GhNniALsxxds7fpmCYhLiEI6xBVoCvr7fg9kcKPmtYw56-BnRjdM9Kbccjvad_8a7SEqH1jcTu4yL--OMfZw4RXWT7WzgOnLDWYanF7YfkqfPDWD_OEf9iQRrqRHc5W_stZ052kUq8p-nwrDkaF0");'>
-                    </div>
+                    <!-- LOGO REPLACEMENT -->
+                    <img src="logo.png" alt="Golden Lamtouch" class="h-10 w-auto rounded">
                     <h1 class="text-white text-lg font-bold leading-normal">Golden Lamtouch</h1>
                 </div>
                 <nav class="flex flex-col gap-2">
@@ -39,14 +37,14 @@
                         <p class="text-sm font-medium leading-normal">Form Management</p>
                     </a>
                     
-                    <!-- Link 3: Form Creation (NOW ACTIVE) -->
+                    <!-- Link 3: Form Creation (ACTIVE) -->
                     <a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/20 text-primary"
                         href="form-creation.html">
                         <span class="material-symbols-outlined fill">create_new_folder</span>
                         <p class="text-sm font-medium leading-normal">Form Creation</p>
                     </a>
                     
-                    <!-- Link 4: Data Download (CONSISTENT LINK) -->
+                    <!-- Link 4: Data Download -->
                     <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 text-gray-300" href="data-download.html">
                         <span class="material-symbols-outlined">download_for_offline</span>
                         <p class="text-sm font-medium leading-normal">Data Download</p>
@@ -58,14 +56,14 @@
                         <p class="text-sm font-medium leading-normal">System Logs & Activity</p>
                     </a>
                     
-                    <!-- Link 6: Settings (NOW LINKED) -->
+                    <!-- Link 6: Settings -->
                     <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 text-gray-300" href="settings.html">
                         <span class="material-symbols-outlined">manage_accounts</span>
                         <p class="text-sm font-medium leading-normal">Settings & User Roles</p>
                     </a>
                 </nav>
             </div>
-            <!-- Sign Out Button (at the bottom) -->
+            <!-- Sign Out Button -->
             <div class="mt-auto pt-8">
                 <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 text-gray-300"
                     href="#" id="sign-out-button">
@@ -101,7 +99,7 @@
                             <input id="form-name" type="text" placeholder="e.g., 'Student ID Form 2025'"
                                 class="w-full h-10 px-4 mt-2 rounded-lg bg-background-dark border border-border-dark text-white placeholder-gray-500 focus:ring-primary focus:border-primary text-sm" />
                         </div>
-                        <!-- Name of Organisation (UPDATED with LIST attribute) -->
+                        <!-- Name of Organisation -->
                         <div>
                             <label for="org-name" class="text-sm font-medium text-gray-300">Name of Organisation</label>
                             <input id="org-name" type="text" list="org-suggestions-list" placeholder="e.g., 'XYZ University'"
@@ -187,7 +185,7 @@
         </main>
     </div>
 
-    <!-- Hidden Template for New Fields (Only "Blood Group" added to select) -->
+    <!-- Hidden Template for New Fields -->
     <template id="field-template">
         <div class="field-card group bg-surface-dark border border-border-dark rounded-xl p-4 transition-all hover:border-gray-500 relative">
             <!-- Drag Handle & Remove -->
@@ -218,7 +216,7 @@
                         <option value="phone">Phone Number</option>
                         <option value="date">Date Picker</option>
                         <option value="dropdown">Dropdown Selection</option>
-                        <option value="blood_group">Blood Group (Auto-Fill)</option> <!-- NEW OPTION ADDED HERE -->
+                        <option value="blood_group">Blood Group (Auto-Fill)</option> 
                         <option value="image">Image Upload</option>
                         <option value="signature">Signature</option>
                         <option value="header">Section Header</option>

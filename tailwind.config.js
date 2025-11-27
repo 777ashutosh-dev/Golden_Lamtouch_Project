@@ -14,7 +14,8 @@ module.exports = {
         "border-dark": "#3e3e3e"
       },
       fontFamily: {
-        "display": ["Inter", "sans-serif"]
+        // UPDATED: Switched from 'Inter' to 'Rajdhani' for the industrial vibe
+        "display": ["Rajdhani", "sans-serif"]
       },
       borderRadius: {
         "DEFAULT": "0.25rem",
