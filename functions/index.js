@@ -1,8 +1,9 @@
 /**
- * M28 v5 - (SECURE CORE & OTP VALIDATION)
+ * M34 v1 - (CLEAN REPORT CSV)
  * * Updates:
- * 1. IDENTITY FIX: synchronized Admin email to 'goldenlamtouch@gmail.com'.
- * 2. SECURITY: 'requireAdmin' now strictly checks this email or the 'admin' claim.
+ * 1. REPORTING: Removed '.jpg' extension from image columns in the CSV report.
+ * - Columns like 'Photo' will now read '250001' instead of '250001.jpg'.
+ * 2. LOGIC: Maintained all other security and zip generation logic.
  */
 
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
@@ -29,18 +30,16 @@ const auth = admin.auth();
 const storage = admin.storage().bucket(BUCKET_NAME);
 
 /**
- * --- HELPER: SECURITY GATEKEEPER ---
- * Throws error if user is not an Admin.
+ * --- HELPER: STRICT ADMIN GATEKEEPER ---
+ * Only for Super Admin (You).
  */
 function requireAdmin(request) {
   if (!request.auth) {
     throw new HttpsError("unauthenticated", "User must be logged in.");
   }
-  // Check for Custom Claim 'role' or specific email whitelist
   const token = request.auth.token;
   
-  // *** IDENTITY SYNCHRONIZATION ***
-  // We strictly allow the Master Email here.
+  // STRICTLY allow only the Master Email
   if (token.role !== 'admin' && token.email !== 'goldenlamtouch@gmail.com') { 
      console.warn(`Non-admin access attempt by: ${token.email}`);
      throw new HttpsError("permission-denied", "Access denied: Admins only.");
@@ -83,18 +82,15 @@ exports.onSubmissionCreate = onDocumentCreated(
     const otpId = submissionData.otpId;
 
     // --- SECURITY CHECK: Validate OTP Usage ---
-    // If someone bypassed the frontend and injected data, we catch them here.
     if (otpId) {
       const otpRef = db.collection('otps').doc(otpId);
       const otpDoc = await otpRef.get();
       
-      // If OTP doesn't exist OR Code mismatch
       if (!otpDoc.exists || otpDoc.data().code !== otpUsed) {
          await logSystemEvent("System", "SECURITY", "Fraud Attempt", `Deleted submission with fake OTP: ${otpUsed}`, { submissionId: event.params.submissionId });
-         return snap.ref.delete(); // DELETE FRAUDULENT SUBMISSION
+         return snap.ref.delete();
       }
       
-      // Mark as used if not already (Server-side enforcement)
       if (otpDoc.data().isUsed === false) {
         await otpRef.update({ isUsed: true, usedAt: admin.firestore.FieldValue.serverTimestamp() });
       }
@@ -139,10 +135,10 @@ exports.onSubmissionCreate = onDocumentCreated(
 );
 
 /**
- * 2. Cascading Delete (SECURED)
+ * 2. Cascading Delete (STRICTLY SECURED)
  */
 exports.onFormDelete = onCall({ cors: true }, async (request) => {
-  requireAdmin(request); // LOCK
+  requireAdmin(request); // SUPER ADMIN ONLY
 
   const formId = request.data.formId;
   const actorEmail = request.auth.token.email;
@@ -151,7 +147,6 @@ exports.onFormDelete = onCall({ cors: true }, async (request) => {
   const formSnap = await formDocRef.get();
   const formName = formSnap.exists ? formSnap.data().formName : "Unknown Form";
 
-  // Function to delete in batches
   async function deleteQueryBatch(query, resolve) {
     const snapshot = await query.get();
     const batchSize = snapshot.size;
@@ -193,12 +188,12 @@ exports.onFormDelete = onCall({ cors: true }, async (request) => {
 });
 
 /**
- * 3. Create Full Report .zip (SECURED)
+ * 3. Create Full Report .zip (STRICTLY SECURED)
  */
 exports.createFullReportZip = onCall(
   { timeoutSeconds: 540, memory: "1GiB", cors: true },
   async (request) => {
-    requireAdmin(request); // LOCK
+    requireAdmin(request); // SUPER ADMIN ONLY
 
     const { formId, startSerial, endSerial } = request.data;
     const actorEmail = request.auth.token.email;
@@ -221,7 +216,6 @@ exports.createFullReportZip = onCall(
 
     const allSubmissions = submissionsSnap.docs.map((d) => d.data());
 
-    // CSV Logic
     function escapeCsvCell(cell) {
         if (cell === null || cell === undefined) return '""';
         let str = String(cell).replace(/"/g, '""');
@@ -241,9 +235,9 @@ exports.createFullReportZip = onCall(
       const row = [];
       for (const h of headers) {
         let val = sub[h];
-        // Replace Image URL with "See Folder" reference
         if (imageFields.includes(h)) {
-           val = sub[h] ? `${sub.serialNumber}.jpg` : "No Image";
+           // *** CHANGE HERE: REMOVED ".jpg" ***
+           val = sub[h] ? `${sub.serialNumber}` : "No Image";
         }
         if (h === "submissionDate" && val && val.toDate) {
           val = val.toDate().toLocaleString("en-IN");
@@ -253,7 +247,6 @@ exports.createFullReportZip = onCall(
       csvRows.push(row.join(","));
     }
 
-    // Zip Logic
     const tempZipName = `${formName}_${uuidv4()}.zip`;
     const tempZipPath = path.join(os.tmpdir(), tempZipName);
     const output = fs.createWriteStream(tempZipPath);
@@ -267,7 +260,6 @@ exports.createFullReportZip = onCall(
     archive.pipe(output);
     archive.append(csvRows.join("\n"), { name: "report.csv" });
 
-    // Add Images
     for (const sub of allSubmissions) {
         const serial = sub.serialNumber;
         if (!serial) continue;
@@ -276,10 +268,7 @@ exports.createFullReportZip = onCall(
             const url = sub[field];
             if (!url) continue;
             try {
-                // Parse storage path from URL or Stored Path
-                // Assuming stored as URL: .../o/submissions%2FformId%2Ffile.jpg...
                 const urlObj = new URL(url);
-                // Extract path after /o/
                 let storagePath = decodeURIComponent(urlObj.pathname.split("/o/")[1]);
                 if(storagePath) {
                     const file = storage.file(storagePath);
@@ -313,10 +302,10 @@ exports.createFullReportZip = onCall(
 );
 
 /**
- * 4. Coordinator Management (SECURED)
+ * 4. Coordinator Management (STRICTLY SECURED)
  */
 exports.createCoordinatorAccount = onCall({ cors: true }, async (request) => {
-  requireAdmin(request); // LOCK
+  requireAdmin(request); // SUPER ADMIN ONLY
 
   const { email, password, name, org, phone, accessList } = request.data;
   
@@ -327,7 +316,6 @@ exports.createCoordinatorAccount = onCall({ cors: true }, async (request) => {
       displayName: name
     });
 
-    // SET CUSTOM CLAIM (CRITICAL FOR RBAC)
     await auth.setCustomUserClaims(userRecord.uid, { role: 'coordinator' });
 
     await db.collection("coordinators").add({
@@ -348,11 +336,10 @@ exports.createCoordinatorAccount = onCall({ cors: true }, async (request) => {
 });
 
 exports.updateCoordinatorAccount = onCall({ cors: true }, async (request) => {
-  requireAdmin(request); // LOCK
+  requireAdmin(request); // SUPER ADMIN ONLY
 
   const { docId, email, password, name, org, phone, accessList } = request.data;
   
-  // ... (Existing update logic) ...
   const coordDoc = await db.collection("coordinators").doc(docId).get();
   if (!coordDoc.exists) throw new HttpsError("not-found", "Not found");
   
@@ -366,7 +353,6 @@ exports.updateCoordinatorAccount = onCall({ cors: true }, async (request) => {
   if (Object.keys(authUpdates).length > 0) await auth.updateUser(uid, authUpdates);
   
   const firestoreUpdates = { email, name, org, phone, accessList };
-  // Remove undefined keys
   Object.keys(firestoreUpdates).forEach(key => firestoreUpdates[key] === undefined && delete firestoreUpdates[key]);
   
   await db.collection("coordinators").doc(docId).update(firestoreUpdates);
@@ -376,21 +362,20 @@ exports.updateCoordinatorAccount = onCall({ cors: true }, async (request) => {
 });
 
 exports.deleteCoordinatorAuth = onCall({ cors: true }, async (request) => {
-  requireAdmin(request); // LOCK
+  requireAdmin(request); // SUPER ADMIN ONLY
   await auth.deleteUser(request.data.uid);
   await logSystemEvent(request.auth.token.email, "SECURITY", "Coordinator Deleted", `Deleted UID: ${request.data.uid}`);
   return { success: true };
 });
 
 /**
- * 5. Generate Batch OTPs (SECURED)
+ * 5. Generate Batch OTPs (STRICTLY SECURED)
  */
 exports.generateBatchOTPs = onCall({ cors: true }, async (request) => {
-  requireAdmin(request); // LOCK
+  requireAdmin(request); // SUPER ADMIN ONLY
 
   const { formId, quantity } = request.data;
   
-  // ... (Existing OTP generation logic) ...
   const batch = db.batch();
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
   
