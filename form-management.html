@@ -90,7 +90,7 @@
                     </div>
                 </div>
 
-                <!-- Toolbar Row (Restored) -->
+                <!-- Toolbar Row (UPDATED: "Sort A-Z" removed) -->
                 <div class="flex flex-wrap items-center justify-between gap-4">
                     <!-- Left: Group Controls -->
                     <div class="flex items-center gap-4 flex-wrap">
@@ -113,11 +113,7 @@
                         </button>
                     </div>
 
-                    <!-- Right: Sort Button -->
-                    <button id="sort-az-button" class="flex items-center justify-center h-10 px-4 rounded-lg bg-surface-dark border border-border-dark text-sm text-gray-300 hover:bg-white/5 gap-2">
-                        <span class="material-symbols-outlined text-lg">sort_by_alpha</span>
-                        <span>Sort A-Z</span>
-                    </button>
+                    <!-- Right: Empty (Sort Button Removed) -->
                 </div>
                 
                 <!-- Table Container -->
@@ -126,28 +122,47 @@
                         <table class="w-full text-left">
                             <thead>
                                 <tr class="border-b border-border-dark">
-                                    <!-- Col 1: Form Name -->
-                                    <th class="px-6 py-3 text-sm font-semibold text-gray-400 min-w-[200px]">
-                                        <span>Form Name</span>
+                                    <!-- Col 1: Form Name (Sortable) -->
+                                    <th id="sort-name" class="px-6 py-3 text-sm font-semibold text-gray-400 cursor-pointer hover:text-white min-w-[200px]">
+                                        <div class="flex items-center gap-1">
+                                            <span>Form Name</span>
+                                            <span class="material-symbols-outlined text-base">unfold_more</span>
+                                        </div>
                                     </th>
                                     
-                                    <!-- Col 2: Organisation -->
-                                    <th class="px-6 py-3 text-sm font-semibold text-gray-400 min-w-[150px]">
-                                        <span>Organisation</span>
+                                    <!-- Col 2: Organisation (Sortable) -->
+                                    <th id="sort-org" class="px-6 py-3 text-sm font-semibold text-gray-400 cursor-pointer hover:text-white min-w-[150px]">
+                                        <div class="flex items-center gap-1">
+                                            <span>Organisation</span>
+                                            <span class="material-symbols-outlined text-base">unfold_more</span>
+                                        </div>
                                     </th>
 
-                                    <!-- Col 3: Payment Status -->
-                                    <th class="px-6 py-3 text-sm font-semibold text-gray-400 min-w-[120px]">
-                                        <span>Payment Status</span>
+                                    <!-- Col 3: Payment Status (Sortable) -->
+                                    <th id="sort-payment" class="px-6 py-3 text-sm font-semibold text-gray-400 cursor-pointer hover:text-white min-w-[120px]">
+                                        <div class="flex items-center gap-1">
+                                            <span>Payment Status</span>
+                                            <span class="material-symbols-outlined text-base">unfold_more</span>
+                                        </div>
                                     </th>
 
-                                    <!-- Col 4: Total OTPs -->
-                                    <th class="px-6 py-3 text-sm font-semibold text-gray-400 min-w-[100px]">Total OTPs</th>
+                                    <!-- Col 4: Total OTPs (Sortable) -->
+                                    <th id="sort-total" class="px-6 py-3 text-sm font-semibold text-gray-400 cursor-pointer hover:text-white min-w-[100px]">
+                                        <div class="flex items-center gap-1">
+                                            <span>Total OTPs</span>
+                                            <span class="material-symbols-outlined text-base">unfold_more</span>
+                                        </div>
+                                    </th>
                                     
-                                    <!-- Col 5: Used OTPs -->
-                                    <th class="px-6 py-3 text-sm font-semibold text-gray-400">Used OTPs</th>
+                                    <!-- Col 5: Used OTPs (Sortable) -->
+                                    <th id="sort-used" class="px-6 py-3 text-sm font-semibold text-gray-400 cursor-pointer hover:text-white">
+                                        <div class="flex items-center gap-1">
+                                            <span>Used OTPs</span>
+                                            <span class="material-symbols-outlined text-base">unfold_more</span>
+                                        </div>
+                                    </th>
                                     
-                                    <!-- Col 6: Actions -->
+                                    <!-- Col 6: Actions (Not Sortable) -->
                                     <th class="px-6 py-3 text-sm font-semibold text-gray-400 min-w-[300px]">Actions</th>
                                 </tr>
                             </thead>

@@ -1,10 +1,11 @@
 /*
-  M23 v23 - (SECURE OTP GENERATION) Form Management Brain
+  M33 v1 - (MULTI-COLUMN SORTING ENGINE) Form Management Brain
   -----------------------------------------------------
   Updates:
-  1. SECURITY: "Generate OTPs" now calls the Cloud Function 'generateBatchOTPs'.
-     - Direct database writes removed to comply with strict security rules.
-  2. FIX: Resolved "Permission Denied" error when creating OTPs.
+  1. SORTING: Upgraded from simple A-Z to full multi-column sorting.
+     - Supports: Name, Organisation, Payment, Total OTPs, Used OTPs.
+  2. UI: Headers are now clickable triggers.
+  3. STYLE: "Assign Group" icon is now Blue for better visibility.
 */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -14,25 +15,29 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- FIX: TELL FIREBASE TO USE INDIA ---
     const functions = firebase.app().functions('asia-south1');
     const onFormDelete = functions.httpsCallable('onFormDelete');
-    const generateBatchOTPs = functions.httpsCallable('generateBatchOTPs'); // NEW FUNCTION
+    const generateBatchOTPs = functions.httpsCallable('generateBatchOTPs');
 
     // --- Page "Memory" ---
     let allForms = [];
     let allGroups = [];
     let allOtps = [];
-    let isAscending = true; // State for sorting
+    
+    // Sorting State (Default: Name A-Z)
+    let currentSort = { column: 'formName', direction: 'asc' }; 
     
     // --- Global "Targets" in the HTML ---
     const formTableBody = document.getElementById('form-table-body');
     const searchInput = document.getElementById('form-search-input');
-    
-    // --- NEW Targets for Restored UI ---
     const viewGroupSelect = document.getElementById('view-group-select'); 
-    const sortAzButton = document.getElementById('sort-az-button');
     
-    // --- Toolbar Targets ---
-    const createGroupButton = document.getElementById('create-group-button');
-    const manageGroupsButton = document.getElementById('manage-groups-button');
+    // --- Header Targets for Sorting ---
+    const sortHeaders = {
+        'sort-name': 'formName',
+        'sort-org': 'org',
+        'sort-payment': 'payment',
+        'sort-total': 'total',
+        'sort-used': 'used'
+    };
 
     // --- Private "Memory" for Modals ---
     let currentAssignFormId = null;
@@ -44,12 +49,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- 1. Load All Forms (Live) ---
     function loadAllForms() {
-        db.collection('forms').orderBy('formName', 'asc').onSnapshot(querySnapshot => {
+        db.collection('forms').onSnapshot(querySnapshot => {
             allForms = [];
             querySnapshot.forEach(doc => {
                 allForms.push({ id: doc.id, ...doc.data() });
             });
-            renderFilteredForms(); // Render the table on load
+            renderFilteredForms(); 
         }, (error) => {
             console.error("Error fetching forms: ", error);
             if(formTableBody) formTableBody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-red-400">Error loading forms.</td></tr>';
@@ -65,7 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             populateGroupDropdowns();
             renderManageGroupsList();
-            renderFilteredForms(); // Re-render table to update logic
+            renderFilteredForms(); 
         }, (error) => {
             console.error("Error loading groups: ", error);
         });
@@ -78,39 +83,74 @@ document.addEventListener('DOMContentLoaded', () => {
             snapshot.forEach(doc => {
                 allOtps.push({ id: doc.id, ...doc.data() });
             });
-            renderFilteredForms(); // Re-render table to update counts
+            renderFilteredForms(); 
         }, (error) => {
             console.error("Error loading OTPs: ", error);
         });
     }
     
     // =================================================================
-    // START: FILTERING & RENDERING (The "Brain")
+    // START: FILTERING & SORTING (The "Brain")
     // =================================================================
 
     // --- Event Listeners for Toolbar ---
-    if (searchInput) {
-        searchInput.addEventListener('input', () => {
-            renderFilteredForms();
-        });
-    }
+    if (searchInput) searchInput.addEventListener('input', renderFilteredForms);
+    if (viewGroupSelect) viewGroupSelect.addEventListener('change', renderFilteredForms);
 
-    if (viewGroupSelect) {
-        viewGroupSelect.addEventListener('change', () => {
-            renderFilteredForms();
-        });
-    }
+    // --- Event Listeners for Sorting Headers ---
+    Object.keys(sortHeaders).forEach(headerId => {
+        const headerEl = document.getElementById(headerId);
+        if (headerEl) {
+            headerEl.addEventListener('click', () => {
+                const columnKey = sortHeaders[headerId];
+                
+                // Toggle direction if clicking the same column, otherwise reset to asc
+                if (currentSort.column === columnKey) {
+                    currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+                } else {
+                    currentSort.column = columnKey;
+                    currentSort.direction = 'asc';
+                }
+                
+                renderFilteredForms();
+                updateSortIcons();
+            });
+        }
+    });
 
-    if (sortAzButton) {
-        sortAzButton.addEventListener('click', () => {
-            isAscending = !isAscending;
-            renderFilteredForms();
+    function updateSortIcons() {
+        // Reset all icons to neutral
+        Object.keys(sortHeaders).forEach(headerId => {
+            const el = document.getElementById(headerId);
+            if(el) {
+                const icon = el.querySelector('.material-symbols-outlined');
+                if(icon) {
+                    icon.textContent = 'unfold_more';
+                    icon.classList.remove('text-primary');
+                }
+                el.classList.remove('text-white');
+                el.classList.add('text-gray-400');
+            }
         });
+
+        // Set active icon
+        const activeHeaderId = Object.keys(sortHeaders).find(key => sortHeaders[key] === currentSort.column);
+        if (activeHeaderId) {
+            const activeEl = document.getElementById(activeHeaderId);
+            if(activeEl) {
+                const icon = activeEl.querySelector('.material-symbols-outlined');
+                if(icon) {
+                    icon.textContent = currentSort.direction === 'asc' ? 'arrow_upward' : 'arrow_downward';
+                    icon.classList.add('text-primary');
+                }
+                activeEl.classList.remove('text-gray-400');
+                activeEl.classList.add('text-white');
+            }
+        }
     }
 
     /**
-     * This is the new "Master" function.
-     * It filters by Search AND Group, then Sorts.
+     * Master Filter & Sort Function
      */
     function renderFilteredForms() {
         
@@ -130,22 +170,49 @@ document.addEventListener('DOMContentLoaded', () => {
             return matchesSearch && matchesGroup;
         });
 
-        // --- 2. Add Analytics Data ---
+        // --- 2. Add Analytics Data (Required for Sorting) ---
         processedForms = processedForms.map(form => {
             const otpsForThisForm = allOtps.filter(otp => otp.formId === form.id);
             return {
                 ...form,
                 totalOtps: otpsForThisForm.length,
                 usedOtps: otpsForThisForm.filter(otp => otp.isUsed === true).length,
+                // Normalize Payment Status for sorting
+                paymentLabel: form.isPrepaid ? 'Prepaid' : 'Postpaid'
             };
         });
         
         // --- 3. Sort ---
         processedForms.sort((a, b) => {
-            const nameA = (a.formName || '').toLowerCase();
-            const nameB = (b.formName || '').toLowerCase();
-            if (nameA < nameB) return isAscending ? -1 : 1;
-            if (nameA > nameB) return isAscending ? 1 : -1;
+            let valA, valB;
+
+            switch (currentSort.column) {
+                case 'formName':
+                    valA = (a.formName || '').toLowerCase();
+                    valB = (b.formName || '').toLowerCase();
+                    break;
+                case 'org':
+                    valA = (a.orgName || '').toLowerCase();
+                    valB = (b.orgName || '').toLowerCase();
+                    break;
+                case 'payment':
+                    valA = a.paymentLabel;
+                    valB = b.paymentLabel;
+                    break;
+                case 'total':
+                    valA = a.totalOtps;
+                    valB = b.totalOtps;
+                    break;
+                case 'used':
+                    valA = a.usedOtps;
+                    valB = b.usedOtps;
+                    break;
+                default:
+                    return 0;
+            }
+
+            if (valA < valB) return currentSort.direction === 'asc' ? -1 : 1;
+            if (valA > valB) return currentSort.direction === 'asc' ? 1 : -1;
             return 0;
         });
 
@@ -157,9 +224,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // START: TABLE & MODAL RENDERING (The "UI")
     // =================================================================
 
-    /**
-     * Master "Draw the Table" Function
-     */
     function renderTable(formsToRender) {
         if (!formTableBody) return;
         formTableBody.innerHTML = ''; 
@@ -172,24 +236,20 @@ document.addEventListener('DOMContentLoaded', () => {
         formsToRender.forEach(form => {
             const formId = form.id;
             
-            // --- Group Badge Logic ---
+            // Group Badge
             const group = allGroups.find(g => g.id === form.groupId);
             const groupBadge = group 
               ? `<span class="ml-2 px-2 py-0.5 text-xs font-medium bg-primary/20 text-primary rounded-full">${group.groupName}</span>` 
               : '';
             
-            // Organisation Name
-            const orgName = form.orgName || 'N/A';
-
-            // Payment Status Logic
+            // Payment Styling
             const isPrepaid = form.isPrepaid === true;
             const paymentStatusText = isPrepaid ? 'Prepaid' : 'Postpaid';
-            // Yellow for Prepaid, Gray for Postpaid
             const paymentStatusClass = isPrepaid ? 'text-primary font-medium' : 'text-gray-400';
 
             const rowHTML = `
                 <tr class="border-b border-border-dark hover:bg-white/5">
-                    <!-- Col 1: Form Name (With Badge) -->
+                    <!-- Col 1: Form Name -->
                     <td class="px-6 py-4 text-sm font-semibold text-white">
                         <span>${form.formName || 'Untitled Form'}</span>
                         ${groupBadge}
@@ -197,7 +257,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     <!-- Col 2: Organisation -->
                     <td class="px-6 py-4 text-sm text-gray-300">
-                        ${orgName}
+                        ${form.orgName || 'N/A'}
                     </td>
 
                     <!-- Col 3: Payment Status -->
@@ -224,8 +284,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <span class="material-symbols-outlined">vpn_key</span>
                             </button>
 
-                            <!-- Assign Group Button -->
-                            <button data-id="${formId}" data-name="${form.formName || 'Untitled Form'}" data-group-id="${form.groupId || 'none'}" class="assign-group-button p-2 text-gray-400 hover:bg-white/10 rounded-lg" title="Assign Group">
+                            <!-- Assign Group Button (UPDATED: BLUE) -->
+                            <button data-id="${formId}" data-name="${form.formName || 'Untitled Form'}" data-group-id="${form.groupId || 'none'}" class="assign-group-button p-2 text-blue-400 hover:bg-blue-500/10 rounded-lg" title="Assign Group">
                                 <span class="material-symbols-outlined">label</span>
                             </button>
 
@@ -247,7 +307,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
-     * Populates the "Group" dropdowns in the toolbar AND modals.
+     * Populates the "Group" dropdowns
      */
     function populateGroupDropdowns() {
         // 1. Assign Modal Dropdown
@@ -264,9 +324,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // 2. View By Group Filter Dropdown (Toolbar)
         if (viewGroupSelect) {
-            // Save current selection if re-populating to prevent reset
             const currentVal = viewGroupSelect.value;
-            
             viewGroupSelect.innerHTML = '<option value="all">All Groups</option>';
             allGroups.forEach(group => {
                 const option = document.createElement('option');
@@ -274,8 +332,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 option.textContent = group.groupName;
                 viewGroupSelect.appendChild(option);
             });
-
-            // Restore selection if it still exists
             if (currentVal !== 'all' && allGroups.find(g => g.id === currentVal)) {
                 viewGroupSelect.value = currentVal;
             }
@@ -283,7 +339,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
-     * Renders the list in the "Manage Groups" modal.
+     * Renders the list in the "Manage Groups" modal
      */
     function renderManageGroupsList() {
         const groupListContainer = document.getElementById('group-list-container');
@@ -299,7 +355,6 @@ document.addEventListener('DOMContentLoaded', () => {
             groupListContainer.innerHTML = ''; 
             allGroups.forEach(group => {
                 const row = document.createElement('div');
-                // Add an ID to the row so we can find it later for manual removal
                 row.id = `group-row-${group.id}`;
                 row.className = 'flex justify-between items-center p-3 bg-background-dark rounded-lg';
                 row.innerHTML = `
@@ -317,13 +372,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // START: ACTION HANDLERS (The "Muscles")
     // =================================================================
     
-    /**
-     * This is the "widest net" listener for all clicks in the table body.
-     */
     if (formTableBody) {
         formTableBody.addEventListener('click', (e) => {
             
-            // --- OTP CSV Download ---
+            // OTP CSV Download
             const downloadOtpButton = e.target.closest('.download-otp-button');
             if (downloadOtpButton) {
                 const formId = downloadOtpButton.dataset.id;
@@ -332,7 +384,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // --- Edit Form ---
+            // Edit Form
             const editButton = e.target.closest('.edit-form-button');
             if (editButton) {
                 const formId = editButton.dataset.id;
@@ -340,7 +392,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // --- Assign Group ---
+            // Assign Group
             const assignButton = e.target.closest('.assign-group-button');
             if (assignButton) {
                 const assignGroupModal = document.getElementById('assign-group-modal');
@@ -359,15 +411,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // --- Delete Form (CALLING THE CLOUD) ---
+            // Delete Form
             const deleteButton = e.target.closest('.delete-form-button');
             if (deleteButton) {
                 const formId = deleteButton.dataset.id;
                 const formName = deleteButton.dataset.formName;
                 
                 if (confirm(`Are you sure you want to delete "${formName}"? This will delete all related submissions, OTPs, and files. This cannot be undone.`)) {
-                    
-                    // This now calls the ASIA-SOUTH1 function
                     onFormDelete({ formId: formId })
                         .then((result) => {
                             console.log('Cloud Function Success:', result.data.message);
@@ -381,13 +431,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // --- Add OTPs ---
+            // Add OTPs
             const otpButton = e.target.closest('.add-otp-button');
             if (otpButton) {
                 const formId = otpButton.dataset.id;
                 const form = allForms.find(f => f.id === formId);
                 const formName = form ? (form.formName || 'Untitled Form') : 'this form';
-                
                 currentOtpFormId = formId; 
                 
                 const addOtpModal = document.getElementById('add-otp-modal');
@@ -405,24 +454,26 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    /**
-     * This is the "widest net" listener for all modal pop-ups
-     */
+    // Modal Listeners (unchanged logic)
     document.body.addEventListener('click', async (e) => {
+        // Create Group
+        if (e.target.closest('#create-group-button')) document.getElementById('create-group-modal').classList.remove('hidden');
+        if (e.target.closest('#close-create-modal-button') || e.target.closest('#cancel-create-modal-button')) document.getElementById('create-group-modal').classList.add('hidden');
         
-        // --- Create Group Modal ---
-        if (e.target.closest('#create-group-button')) {
-             document.getElementById('create-group-modal').classList.remove('hidden');
-        }
-        if (e.target.closest('#close-create-modal-button') || e.target.closest('#cancel-create-modal-button')) {
-            document.getElementById('create-group-modal').classList.add('hidden');
-        }
+        // Manage Groups
+        if (e.target.closest('#manage-groups-button')) document.getElementById('manage-groups-modal').classList.remove('hidden');
+        if (e.target.closest('#close-manage-modal-button')) document.getElementById('manage-groups-modal').classList.add('hidden');
         
-        // --- SAVE GROUP LOGIC (UPDATED with Validation) ---
+        // Assign Group
+        if (e.target.closest('#close-assign-modal-button') || e.target.closest('#cancel-assign-modal-button')) document.getElementById('assign-group-modal').classList.add('hidden');
+        
+        // Add OTP
+        if (e.target.closest('#close-otp-modal-button') || e.target.closest('#cancel-otp-modal-button')) document.getElementById('add-otp-modal').classList.add('hidden');
+
+        // Save Group Logic
         if (e.target.closest('#save-group-button')) {
             const saveBtn = e.target.closest('#save-group-button');
-            const originalText = '<span class="truncate">Save Group</span>'; // Store original text structure
-            
+            const originalText = '<span class="truncate">Save Group</span>';
             const groupNameInput = document.getElementById('group-name-input');
             const groupErrorMessage = document.getElementById('create-group-error-message');
             const groupName = groupNameInput.value.trim();
@@ -431,77 +482,50 @@ document.addEventListener('DOMContentLoaded', () => {
                 groupErrorMessage.textContent = 'Group Name cannot be empty.';
                 return; 
             }
-
-            // --- DUPLICATE CHECK ---
             const isDuplicate = allGroups.some(g => g.groupName.toLowerCase() === groupName.toLowerCase());
             if (isDuplicate) {
                 groupErrorMessage.textContent = 'Error: A group with this name already exists.';
                 return;
             }
-            
-            // 1. Loading State
             saveBtn.disabled = true;
             saveBtn.innerHTML = '<span class="truncate">Saving...</span>';
             groupErrorMessage.textContent = '';
 
             try {
                 await db.collection('groups').add({ groupName: groupName });
-                
-                // 2. Success State (Green)
                 saveBtn.classList.remove('bg-primary', 'text-background-dark');
                 saveBtn.classList.add('bg-green-500', 'text-white');
                 saveBtn.innerHTML = '<span class="truncate">Saved!</span>';
                 
-                // 3. Wait 1s, then close and reset
                 setTimeout(() => {
                     document.getElementById('create-group-modal').classList.add('hidden');
-                    
-                    // Reset Inputs
                     groupNameInput.value = '';
-                    
-                    // Reset Button Style
                     saveBtn.disabled = false;
                     saveBtn.innerHTML = originalText;
                     saveBtn.classList.add('bg-primary', 'text-background-dark');
                     saveBtn.classList.remove('bg-green-500', 'text-white');
-                    
                 }, 1000);
-                
             } catch (error) {
                 console.error("Error saving group: ", error);
                 groupErrorMessage.textContent = 'An error occurred. Please try again.';
-                
-                // Reset Button on Error
                 saveBtn.disabled = false;
                 saveBtn.innerHTML = originalText;
             }
         }
 
-        // --- Manage Groups Modal ---
-        if (e.target.closest('#manage-groups-button')) {
-             document.getElementById('manage-groups-modal').classList.remove('hidden');
-        }
-        if (e.target.closest('#close-manage-modal-button')) {
-            document.getElementById('manage-groups-modal').classList.add('hidden');
-        }
-        
-        // --- DELETE GROUP LOGIC (OPTIMISTIC UI) ---
+        // Delete Group
         const deleteGroupButton = e.target.closest('.delete-group-button');
         if (deleteGroupButton) {
             const groupId = deleteGroupButton.dataset.id;
-            const rowToRemove = deleteGroupButton.closest('div'); // The row element
+            const rowToRemove = deleteGroupButton.closest('div');
             
             if (confirm('Are you sure? This will not delete forms.')) {
-                // Visually disable the button to prevent double-clicks
                 deleteGroupButton.disabled = true;
-                deleteGroupButton.innerHTML = '<span class="material-symbols-outlined animate-spin">sync</span>'; // Spinner icon
+                deleteGroupButton.innerHTML = '<span class="material-symbols-outlined animate-spin">sync</span>'; 
 
                 db.collection('groups').doc(groupId).delete()
                     .then(() => {
-                        // SUCCESS: Manually remove the row instantly!
                         if (rowToRemove) rowToRemove.remove();
-                        
-                        // If list is empty now, show "No groups" message
                         const container = document.getElementById('group-list-container');
                         if (container && container.children.length === 0) {
                              const msg = document.getElementById('no-groups-message');
@@ -511,25 +535,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     .catch(error => {
                         console.error('Error deleting group:', error);
                         alert('Error deleting group.');
-                        // Revert button state on error
                         deleteGroupButton.disabled = false;
                         deleteGroupButton.innerHTML = '<span class="material-symbols-outlined">delete</span>';
                     });
             }
         }
 
-        // --- Assign Group Modal ---
-        if (e.target.closest('#close-assign-modal-button') || e.target.closest('#cancel-assign-modal-button')) {
-            document.getElementById('assign-group-modal').classList.add('hidden');
-        }
+        // Save Assignment
         if (e.target.closest('#save-assign-button')) {
             const assignGroupSelect = document.getElementById('assign-group-select');
             const newGroupValue = assignGroupSelect.value === 'none' ? null : assignGroupSelect.value;
             
-            if (!currentAssignFormId) {
-                 document.getElementById('assign-group-error-message').textContent = 'Error: No form selected.';
-                 return;
-            }
+            if (!currentAssignFormId) return;
             
             db.collection('forms').doc(currentAssignFormId).update({ groupId: newGroupValue })
                 .then(() => {
@@ -539,10 +556,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 .catch(err => document.getElementById('assign-group-error-message').textContent = 'An error occurred.');
         }
 
-        // --- Add OTP Modal (SECURE CLOUD FUNCTION) ---
-        if (e.target.closest('#close-otp-modal-button') || e.target.closest('#cancel-otp-modal-button')) {
-            document.getElementById('add-otp-modal').classList.add('hidden');
-        }
+        // Generate OTPs
         if (e.target.closest('#generate-otp-button')) {
             const quantityInput = document.getElementById('otp-quantity-input');
             const errorMsg = document.getElementById('otp-error-message');
@@ -552,17 +566,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 errorMsg.textContent = 'Please enter a valid number (1-1000).';
                 return;
             }
-            if (!currentOtpFormId) {
-                errorMsg.textContent = 'Error: No form selected. Please close and re-open.';
-                return;
-            }
+            if (!currentOtpFormId) return;
             
             const btn = e.target.closest('#generate-otp-button');
             btn.disabled = true;
             btn.querySelector('.truncate').textContent = 'Generating...';
             
             try {
-                // --- NEW: CALL CLOUD FUNCTION (Secure) ---
                 const result = await generateBatchOTPs({
                     formId: currentOtpFormId,
                     quantity: quantity
@@ -571,10 +581,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (result.data.success) {
                     alert(`Success! ${result.data.count} new OTPs have been generated.`);
                     document.getElementById('add-otp-modal').classList.add('hidden');
-                } else {
-                    throw new Error("Unknown server error");
                 }
-
             } catch (error) {
                 console.error("Error generating OTPs: ", error);
                 errorMsg.textContent = 'An error occurred. Please try again.';
@@ -587,37 +594,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- Helper function to generate random code (Unused now, but kept for ref) ---
-    function generateRandomCode() {
-        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-        let result = '';
-        for (let i = 0; i < 6; i++) {
-            result += chars.charAt(Math.floor(Math.random() * chars.length));
-        }
-        return result;
-    }
-    
-    // =================================================================
-    // START: CSV DOWNLOAD LOGIC (OTP Only)
-    // =================================================================
-
-    /**
-     * Handles the click for "Download OTP CSV"
-     * (We need to load allSubmissions *just for this function*)
-     */
+    // --- OTP CSV Download Logic ---
     async function handleOtpCsvDownload(formId, formName, buttonElement) {
-        // Show a quick loading message
         buttonElement.classList.add('cursor-not-allowed', 'opacity-50');
         const icon = buttonElement.querySelector('.material-symbols-outlined');
         const originalIcon = icon.textContent;
         icon.textContent = 'hourglass_top';
         
         try {
-            // --- LOAD SUBMISSIONS (One-time) ---
-            // This is the only place we need submissions now.
             const submissionsSnapshot = await db.collection('submissions').where('formId', '==', formId).get();
             const submissionsForThisForm = submissionsSnapshot.docs.map(doc => doc.data());
-            // --- End Load ---
 
             const form = allForms.find(f => f.id === formId);
             let nameFieldName = null;
@@ -639,7 +625,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const status = otp.isUsed ? "Used" : "Unused";
                 let name = "", email = "";
                 if (otp.isUsed) {
-                    // Search the submissions we just loaded
                     const submission = submissionsForThisForm.find(sub => sub.otpId === otp.id);
                     if (submission) {
                         if (nameFieldName) name = submission[nameFieldName] || "";
@@ -664,13 +649,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    /**
-     * Helper: Escapes a cell for CSV content
-     */
     function escapeCsvCell(cell) {
-        if (cell === null || cell === undefined) {
-            return '""';
-        }
+        if (cell === null || cell === undefined) return '""';
         let cellString = String(cell);
         if (cellString.includes('"') || cellString.includes(',')) {
             cellString = '"' + cellString.replace(/"/g, '""') + '"';
@@ -678,9 +658,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return cellString;
     }
     
-    /**
-     * Helper: Triggers the actual file download
-     */
     function triggerCsvDownload(csvContent, baseFileName) {
         const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
@@ -695,17 +672,9 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.removeChild(link);
     }
     
-
-    // =================================================================
-    // START: INITIALIZE THE PAGE
-    // =================================================================
-    
-    function initializePage() {
-        loadAllGroups();
-        loadAllForms();
-        loadAllOtps();
-    }
-
-    initializePage();
+    // --- Initialize ---
+    loadAllGroups();
+    loadAllForms();
+    loadAllOtps();
 
 });
