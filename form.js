@@ -1,10 +1,11 @@
 /*
-  M29 v2 - (THE ENFORCER) Public Form Brain
+  M36 v1 - (HIDE ORG NAME UPDATE) Public Form Brain
   -----------------------------------------------------
   Updates:
-  1. VALIDATION: Enforces 'Exact Length' rule if 'isExactLength' is true.
-  2. TRANSFORMATION: Auto-converts text to 'Title Case' if 'caseType' is 'title-case'.
-  3. PRESERVED: All camera, cropping, and submission logic.
+  1. PRIVACY: Removed all logic that populates 'form-org-name'.
+     - The Organisation Name will no longer appear on the screen.
+  2. PDF: Confirmed receipt generation uses ONLY the Form Name.
+  3. LOGIC: Preserved all other validation and submission features.
 */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -86,7 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function initializeForm() {
         formTitle.textContent = 'Form Submission';
-        formOrgName.textContent = 'Please enter your code to begin.';
+        // REMOVED: formOrgName text content update
     }
 
     if (verifyOtpButton) {
@@ -133,7 +134,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (formDoc.exists) {
                     const formData = formDoc.data();
                     formTitle.textContent = formData.formName || 'Form Submission';
-                    formOrgName.textContent = formData.orgName || 'Please fill out the form.';
+                    // REMOVED: formOrgName population logic
+                    
                     formFields = formData.fields || []; // Our template!
                     unlockForm();
                 } else {

@@ -41,7 +41,9 @@
                 style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBHcVL9mAEPMxg1o1fNfX5aOf3R2rbREe9mMkMhH021Aba47JlqBG1W5hZhrGuZimaztIOdGWwKkyzexyTsXHegXGN9XStpFCFR6OMl6FNNV7HvlgSrQre33s7GhNniALsxxds7fpmCYhLiEI6xBVoCvr7fg9kcKPmtYw56-BnRjdM9Kbccjvad_8a7SEqH1jcTu4yL--OMfZw4RXWT7WzgOnLDWYanF7YfkqfPDWD_OEf9iQRrqRHc5W_stZ052kUq8p-nwrDkaF0");'>
             </div>
             <h1 class="text-white tracking-light text-center text-3xl font-bold leading-tight" id="form-title">Form Submission</h1>
-            <p class="text-gray-400 text-lg" id="form-org-name">Loading...</p>
+            
+            <!-- UPDATED: Added 'hidden' class to hide Organisation Name -->
+            <p class="hidden text-gray-400 text-lg" id="form-org-name">Loading...</p>
         </div>
 
         <!-- 
@@ -181,7 +183,7 @@
             </div>
             
             <!-- Modal Footer -->
-            <div classs="flex justify-between items-center gap-4 p-6 border-t border-border-dark flex-shrink-0">
+            <div class="flex justify-between items-center gap-4 p-6 border-t border-border-dark flex-shrink-0">
                 <button id="cancel-preview-button"
                         class="h-10 px-4 rounded-lg bg-surface-dark border border-border-dark text-sm text-gray-300 hover:bg-white/10">
                     Go Back & Edit
