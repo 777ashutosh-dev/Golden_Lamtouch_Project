@@ -1,10 +1,8 @@
 /**
- * M28 v4 - (SECURE CORE & OTP VALIDATION)
+ * M28 v5 - (SECURE CORE & OTP VALIDATION)
  * * Updates:
- * 1. SECURITY: Added 'requireAdmin' helper to lock down sensitive functions.
- * 2. INTEGRITY: Added 'verifySubmissionOtp' logic inside onSubmissionCreate.
- * - If a user bypasses client JS and submits with a fake/used OTP, 
- * this deletes the submission instantly.
+ * 1. IDENTITY FIX: synchronized Admin email to 'goldenlamtouch@gmail.com'.
+ * 2. SECURITY: 'requireAdmin' now strictly checks this email or the 'admin' claim.
  */
 
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
@@ -40,10 +38,12 @@ function requireAdmin(request) {
   }
   // Check for Custom Claim 'role' or specific email whitelist
   const token = request.auth.token;
-  // Note: Update 'admin@lamtouch.com' to your actual admin email if needed
-  if (token.role !== 'admin' && token.email !== 'admin@lamtouch.com') { 
-     // throw new HttpsError("permission-denied", "Access denied: Admins only.");
+  
+  // *** IDENTITY SYNCHRONIZATION ***
+  // We strictly allow the Master Email here.
+  if (token.role !== 'admin' && token.email !== 'goldenlamtouch@gmail.com') { 
      console.warn(`Non-admin access attempt by: ${token.email}`);
+     throw new HttpsError("permission-denied", "Access denied: Admins only.");
   }
 }
 

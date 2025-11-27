@@ -8,7 +8,7 @@ service cloud.firestore {
         // Option 1: Check for the "Admin Badge" (Custom Claim)
         request.auth.token.role == 'admin' || 
         
-        // Option 2: Whitelist your specific email (REPLACE THIS WITH YOUR EMAIL)
+        // Option 2: Whitelist your specific email
         request.auth.token.email == 'goldenlamtouch@gmail.com'
       );
     }
@@ -26,7 +26,6 @@ service cloud.firestore {
       
       // Allow Admins to Create and Update forms directly from the website
       allow create, update: if isAdmin();
-      
       // Delete must still use the Cloud Function
       allow delete: if false;
       
@@ -50,7 +49,7 @@ service cloud.firestore {
     
     // --- OTPS COLLECTION ---
     match /otps/{otpId} {
-      allow read: if true; 
+      allow read: if true;
       allow update: if true 
                     && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isUsed'])
                     && request.resource.data.isUsed == true;
