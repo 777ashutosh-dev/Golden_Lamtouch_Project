@@ -1,11 +1,12 @@
 /*
-  M36 v1 - (HIDE ORG NAME UPDATE) Public Form Brain
+  M41 v1 - (ENGLISH GUARD) Public Form Brain
   -----------------------------------------------------
   Updates:
-  1. PRIVACY: Removed all logic that populates 'form-org-name'.
-     - The Organisation Name will no longer appear on the screen.
-  2. PDF: Confirmed receipt generation uses ONLY the Form Name.
-  3. LOGIC: Preserved all other validation and submission features.
+  1. VALIDATION: Added "English Only" Watchdog.
+     - Detects non-ASCII characters (Devanagari, Emojis) in real-time.
+     - Shows "English characters only" error.
+  2. SUBMISSION: validateForm() now blocks submission if non-English text remains.
+  3. LOGIC: Preserved OTP, Camera, PDF, and App Check flows.
 */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -60,7 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const capturePhotoButton = document.getElementById('capture-photo-button');
     const closeCameraButton = document.getElementById('close-camera-button');
     
-    // NEW: Create Switch Camera Button dynamically if not present in HTML
+    // Create Switch Camera Button dynamically if not present in HTML
     let switchCameraButton = document.getElementById('switch-camera-button');
     if (!switchCameraButton && cameraModal) {
         switchCameraButton = document.createElement('button');
@@ -77,7 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const confirmSubmitButton = document.getElementById('confirm-submit-button');
     const previewDataContainer = document.getElementById('preview-data-container');
     
-    // Step 73b: The "Vibe" Overlay
+    // The "Vibe" Overlay
     const submissionOverlay = document.getElementById('submission-overlay');
 
 
@@ -87,7 +88,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function initializeForm() {
         formTitle.textContent = 'Form Submission';
-        // REMOVED: formOrgName text content update
     }
 
     if (verifyOtpButton) {
@@ -134,7 +134,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (formDoc.exists) {
                     const formData = formDoc.data();
                     formTitle.textContent = formData.formName || 'Form Submission';
-                    // REMOVED: formOrgName population logic
                     
                     formFields = formData.fields || []; // Our template!
                     unlockForm();
@@ -195,7 +194,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 case 'string':
                 case 'email':
                 case 'numeric':
-                case 'phone': // Added handling for Phone
+                case 'phone': 
                 case 'textarea': 
                     
                     const isTextarea = field.dataType === 'textarea';
@@ -414,22 +413,18 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // --- 1. The "Widest Net" for Gallery Uploads ---
         document.addEventListener('change', (e) => {
-            // Check if the changed element is one of our file inputs
             if (e.target.classList.contains('file-input')) {
-                // Manually set the current field data
                 currentImageField = { 
                     id: e.target.dataset.fieldId, 
                     name: e.target.dataset.fieldName, 
                     type: e.target.dataset.type 
                 };
-                
-                // Now handle the file
                 handleFileSelect(e);
             }
         });
 
 
-        // --- 2. Brains for Text Inputs (Counter & Case & MAX LENGTH Enforcement) ---
+        // --- 2. Brains for Text Inputs (Counter & Case & MAX LENGTH & ENGLISH GUARD) ---
         if (dynamicFormFields) {
             dynamicFormFields.addEventListener('input', (e) => {
                 if (e.target.classList.contains('field-input')) {
@@ -439,13 +434,34 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     let value = input.value;
 
+                    // --- M41: ENGLISH GUARD (Real-time Watchdog) ---
+                    const safeEnglishRegex = /^[\x00-\x7F\s]*$/; // Matches only ASCII range + whitespace
+                    const containerId = `${input.id}-container`;
+                    const container = document.getElementById(containerId);
+                    const errorMsg = document.getElementById(`${input.id}-error-msg`);
+
+                    if (!safeEnglishRegex.test(value)) {
+                        // BAD: Found non-English character
+                        if (errorMsg) {
+                            errorMsg.textContent = "Please use English characters only.";
+                            errorMsg.classList.remove('hidden');
+                        }
+                        if (container) container.classList.add('border-red-500', 'border-2');
+                    } else {
+                        // GOOD: Clear error (only if it's the language one)
+                        if (errorMsg && errorMsg.textContent.includes("English")) {
+                            errorMsg.textContent = "";
+                            errorMsg.classList.add('hidden');
+                            if (container) container.classList.remove('border-red-500', 'border-2');
+                        }
+                    }
+
                     // --- ENFORCE MAX LENGTH FOR NUMBERS/PHONES ---
-                    // HTML 'number' inputs ignore maxlength by default, so we enforce via JS
                     if (hasLimit && (input.type === 'number' || input.type === 'tel')) {
                         const max = parseInt(input.getAttribute('maxlength'), 10);
                         if (input.value.length > max) {
                             input.value = input.value.slice(0, max);
-                            value = input.value; // Update for counter below
+                            value = input.value; 
                         }
                     }
 
@@ -455,7 +471,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     } else if (caseType === 'sentence-case' && value.length > 0) {
                         value = value.charAt(0).toUpperCase() + value.slice(1);
                     } else if (caseType === 'title-case') {
-                        // NEW: Title Case Logic (First letter of each word capitalized)
                         value = value.replace(/\w\S*/g, function(txt){
                             return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
                         });
@@ -471,7 +486,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         const counter = document.getElementById(`${fieldId}-counter`);
                         if (counter) {
                             const rawText = counter.textContent;
-                            // Preserve the "(Exact)" text if present
                             const isExact = rawText.includes("(Exact)");
                             const max = input.getAttribute('maxlength');
                             counter.textContent = `${value.length} / ${max}${isExact ? ' (Exact)' : ''}`;
@@ -516,16 +530,10 @@ document.addEventListener('DOMContentLoaded', () => {
         // --- 4. SWITCH CAMERA Button ---
         if (switchCameraButton) {
             switchCameraButton.addEventListener('click', () => {
-                // Toggle mode
                 currentFacingMode = (currentFacingMode === 'user') ? 'environment' : 'user';
-                
-                // Stop existing stream
                 if (cameraStream) {
                     cameraStream.getTracks().forEach(track => track.stop());
                 }
-                
-                // Restart with new mode
-                // NOTE: field data is preserved in 'currentImageField'
                 if (currentImageField) {
                     startCamera(currentImageField.id, currentImageField.name, currentImageField.type);
                 }
@@ -614,7 +622,6 @@ document.addEventListener('DOMContentLoaded', () => {
         saveCropButton.addEventListener('click', () => {
             if (!cropper || !currentImageField) return;
 
-            // --- CHANGE 1: ADJUSTED COMPRESSION TO 0.7 ---
             cropper.getCroppedCanvas().toBlob((blob) => {
                 
                 currentImageBlobs[currentImageField.name] = blob;
@@ -635,7 +642,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     cropper = null;
                 }
                 
-            }, 'image/jpeg', 0.7); // Changed to 0.7 (70%)
+            }, 'image/jpeg', 0.7); 
         });
     }
 
@@ -647,7 +654,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            // Use the global 'currentFacingMode' state
             const constraints = { 
                 video: { 
                     facingMode: currentFacingMode 
@@ -701,6 +707,8 @@ document.addEventListener('DOMContentLoaded', () => {
         submitErrorMessage.textContent = ''; 
         
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        // M41: English Regex (ASCII + Whitespace only)
+        const safeEnglishRegex = /^[\x00-\x7F\s]*$/;
         
         formFields.forEach(field => {
             if (field.dataType === 'hidden' || field.dataType === 'header') return; 
@@ -722,7 +730,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if(widget) widget.classList.remove('border-red-500', 'border-2');
             }
 
-            // 2. CHECK ALL FIELDS (Mandatory by default)
+            // 2. CHECK ALL FIELDS
             switch (field.dataType) {
                 case 'string':
                 case 'email':
@@ -732,17 +740,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 case 'dropdown':
                 case 'date': 
                     const input = document.getElementById(fieldId);
+                    
+                    // A. Empty Check
                     if (!input || input.value.trim() === '') {
                         isValid = false;
                         missingFields.push(field.fieldName);
                         if (container) container.classList.add('border-red-500', 'border-2');
                     
+                    // B. English Check (New for M41)
+                    } else if (!safeEnglishRegex.test(input.value)) {
+                        isValid = false;
+                        missingFields.push(field.fieldName + " (Non-English characters)");
+                        if (errorMsg) {
+                            errorMsg.textContent = "Please use English characters only.";
+                            errorMsg.classList.remove('hidden');
+                        }
+                        if (container) container.classList.add('border-red-500', 'border-2');
+
+                    // C. Specific Type Checks
                     } else if (field.dataType === 'email' && !emailRegex.test(input.value.trim())) {
                         isValid = false;
                         missingFields.push(field.fieldName + " (invalid format)");
                         if (container) container.classList.add('border-red-500', 'border-2');
                     
-                    // --- NEW: EXACT LENGTH CHECK ---
                     } else if ((field.dataType === 'numeric' || field.dataType === 'phone') && field.isExactLength && field.maxLength) {
                         const requiredLen = parseInt(field.maxLength, 10);
                         if (input.value.length !== requiredLen) {
@@ -788,7 +808,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!isValid) {
             if (missingFields.length > 0) {
-                submitErrorMessage.textContent = `Please check fields marked in red.`;
+                // Customized error message if English issue detected
+                const hasLanguageError = missingFields.some(f => f.includes("Non-English"));
+                if (hasLanguageError) {
+                    submitErrorMessage.textContent = `Submission stopped. Please remove non-English characters.`;
+                } else {
+                    submitErrorMessage.textContent = `Please check fields marked in red.`;
+                }
             } else {
                 submitErrorMessage.textContent = `Please correct the errors above.`;
             }
@@ -872,18 +898,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (confirmSubmitButton) {
         confirmSubmitButton.addEventListener('click', async () => {
             
-            console.log("DEBUG: 'Confirm & Submit' clicked.");
-            
             // --- Show Overlay ---
             if (submissionOverlay) submissionOverlay.classList.remove('hidden');
             confirmSubmitButton.disabled = true;
             cancelPreviewButton.disabled = true;
             
-            // --- CHANGE 2: VISUAL FEEDBACK LOGIC ---
             const statusText = submissionOverlay.querySelector('p.text-lg');
             if (statusText) statusText.textContent = "Compressing & Preparing...";
             
-            // --- Capture timestamp ---
             const submissionTimestamp = new Date();
 
             try {
@@ -892,10 +914,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 for (const fieldName in currentImageBlobs) {
                     
-                    // Update feedback
                     if (statusText) statusText.textContent = `Uploading ${fieldName}...`;
                     
-                    console.log(`DEBUG: Uploading image for: ${fieldName}`);
                     const blob = currentImageBlobs[fieldName];
                     
                     const fileName = `${currentFormId}_${validOtpDocId}_${fieldName.replace(/[^a-zA-Z0-9-]/g, '_')}.jpg`;
@@ -908,7 +928,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         uploadTask.then(async (snapshot) => {
                             const downloadURL = await snapshot.ref.getDownloadURL();
                             imageURLs[fieldName] = downloadURL; 
-                            console.log(`DEBUG: SUCCESS uploading ${fieldName}. URL: ${downloadURL}`);
                         })
                     );
                 }
@@ -916,42 +935,35 @@ document.addEventListener('DOMContentLoaded', () => {
                 await Promise.all(uploadPromises);
                 
                 if (statusText) statusText.textContent = "Saving Data...";
-                console.log("DEBUG: All image uploads complete.");
 
                 const finalSubmission = {
-                    ...collectedData,  // Use the data we already collected
+                    ...collectedData, 
                     ...imageURLs, 
                     formId: currentFormId,
                     otp: validOtpCode,
                     otpId: validOtpDocId,
-                    submissionDate: submissionTimestamp, // Use our client-side timestamp
+                    submissionDate: submissionTimestamp, 
                     status: 'Submitted' 
                 };
                 
                 await db.collection('submissions').add(finalSubmission);
-                console.log("DEBUG: Data saved successfully.");
                 
                 if (statusText) statusText.textContent = "Finalizing...";
                 
                 await db.collection('otps').doc(validOtpDocId).update({
                     isUsed: true
                 });
-                console.log("DEBUG: OTP updated successfully.");
                 
-                // --- Get the preview data *before* hiding the modal
                 const previewHTML = previewDataContainer.innerHTML;
                 
-                // Hide the modal & overlay
                 previewModal.classList.add('hidden');
                 if (submissionOverlay) submissionOverlay.classList.add('hidden');
                 
                 const formNameStr = formTitle.textContent;
 
-                // --- Step 76: Hide the main page header text ---
                 if (formTitle) formTitle.textContent = 'Submission Complete';
                 if (formOrgName) formOrgName.classList.add('hidden');
 
-                // --- Step 77: Format date string for the on-screen receipt ---
                 const dateString = submissionTimestamp.toLocaleString('en-IN', {
                     day: '2-digit',
                     month: 'short',
@@ -1009,18 +1021,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 `;
                 
                 formContentContainer.innerHTML = receiptHTML;
-                console.log("DEBUG: Success! Showing receipt screen.");
 
                 document.getElementById('download-pdf-button').addEventListener('click', () => {
                     const fileName = `${formNameStr.replace(/ /g, '_')}_Receipt_${validOtpCode}.pdf`;
-                    generatePDF(fileName, submissionTimestamp); // Pass timestamp
+                    generatePDF(fileName, submissionTimestamp); 
                 });
 
             } catch (err) {
                 console.error("--- DEBUG: SUBMIT FAILED! ---");
                 console.error(err);
                 
-                // We can show the error on the main page
                 previewModal.classList.add('hidden');
                 submitErrorMessage.textContent = 'An error occurred during submission. Please check the console and try again.';
 
