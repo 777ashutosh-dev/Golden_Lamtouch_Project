@@ -239,22 +239,16 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-functions-compat.js"></script>
+    <!-- REQUIRED: Storage library for potential future use (consistency) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-storage-compat.js"></script>
     
-    <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyAJ-xyOPmJXmhe9PUCa1BU75fWJ_MWsHA0",
-            authDomain: "golden-lamtouch-project.firebaseapp.com",
-            projectId: "golden-lamtouch-project",
-            storageBucket: "golden-lamtouch-project.firebasestorage.app",
-            messagingSenderId: "528955254323",
-            appId: "1:528955254323:web:e71517dab7fcb78b842546"
-        };
-        const app = firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
-        const functions = firebase.functions();
-    </script>
+    <!-- REQUIRED: Functions & App Check Libraries (Must be loaded for firebase-config.js) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-functions-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-check-compat.js"></script>
+
+    <!-- NEW: Central Configuration -->
+    <script src="firebase-config.js"></script>
+    
     <script src="auth-guard.js"></script>
     <script src="settings.js"></script>
 </body>

@@ -166,20 +166,16 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-storage-compat.js"></script>
-    <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyAJ-xyOPmJXmhe9PUCa1BU75fWJ_MWsHA0",
-            authDomain: "golden-lamtouch-project.firebaseapp.com",
-            projectId: "golden-lamtouch-project",
-            storageBucket: "golden-lamtouch-project.firebasestorage.app",
-            messagingSenderId: "528955254323",
-            appId: "1:528955254323:web:e71517dab7fcb78b842546"
-        };
-        const app = firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-        const storage = firebase.storage();
-    </script>
+    <!-- FIX: Added missing Functions Library -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-functions-compat.js"></script>
     
+    <!-- NEW: App Check Library -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-check-compat.js"></script>
+
+    <!-- NEW: Central Configuration -->
+    <script src="firebase-config.js"></script>
+    
+    <!-- Utilities -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>

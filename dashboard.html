@@ -83,8 +83,7 @@
                     </div>
                 </div>
 
-                <!-- Executive Overview Cards (Forced Horizontal Row with Inline Styles) -->
-                <!-- We use inline style to FORCE the 3-column grid regardless of Tailwind rules -->
+                <!-- Executive Overview Cards -->
                 <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem;">
                     
                     <!-- Card 1: Today's Submissions -->
@@ -101,7 +100,7 @@
                     <div class="flex flex-col gap-2 rounded-xl p-6 bg-surface-dark border border-border-dark relative">
                         <div class="flex justify-between items-center">
                             <p class="text-gray-300 text-base font-medium leading-normal">Total Submissions</p>
-                            <!-- Filter Dropdown (UPDATED STYLE) -->
+                            <!-- Filter Dropdown -->
                             <select id="total-filter-select" class="h-10 px-3 rounded-lg bg-background-dark border border-border-dark text-white text-sm focus:ring-primary focus:border-primary cursor-pointer">
                                 <option value="7day">7 Days</option>
                                 <option value="30day">30 Days</option>
@@ -119,7 +118,7 @@
                     <div class="flex flex-col gap-2 rounded-xl p-6 bg-surface-dark border border-border-dark relative">
                         <div class="flex justify-between items-center">
                             <p class="text-gray-300 text-base font-medium leading-normal">Pending Downloads</p>
-                            <!-- Filter Dropdown (UPDATED STYLE) -->
+                            <!-- Filter Dropdown -->
                             <select id="pending-filter-select" class="h-10 px-3 rounded-lg bg-background-dark border border-border-dark text-white text-sm focus:ring-primary focus:border-primary cursor-pointer">
                                 <option value="7day">7 Days</option>
                                 <option value="30day">30 Days</option>
@@ -129,7 +128,6 @@
                                 <option value="all" selected>All Time</option>
                             </select>
                         </div>
-                        <!-- RED ALERT TEXT APPLIED HERE -->
                         <p class="text-red-500 text-3xl font-bold leading-tight mt-2" id="pending-count-display">0</p>
                         <p class="text-gray-400 text-sm">Records waiting to be downloaded</p>
                     </div>
@@ -273,22 +271,14 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-storage-compat.js"></script>
+    
+    <!-- REQUIRED: Functions & App Check Libraries (Must be loaded for firebase-config.js) -->
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-functions-compat.js"></script>
-    <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyAJ-xyOPmJXmhe9PUCa1BU75fWJ_MWsHA0",
-            authDomain: "golden-lamtouch-project.firebaseapp.com",
-            projectId: "golden-lamtouch-project",
-            storageBucket: "golden-lamtouch-project.firebasestorage.app",
-            messagingSenderId: "528955254323",
-            appId: "1:528955254323:web:e71517dab7fcb78b842546"
-        };
-        const app = firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
-        const storage = firebase.storage();
-        const functions = firebase.functions(); 
-    </script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-check-compat.js"></script>
+
+    <!-- NEW: Central Configuration -->
+    <script src="firebase-config.js"></script>
+    
     <script src="auth-guard.js"></script>
     <script src="dashboard.js"></script>
 </body>
