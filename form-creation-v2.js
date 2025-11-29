@@ -1,10 +1,12 @@
 /*
-  M30 v1 - (SMART ORG SUGGESTIONS) Form Creation Brain
+  M42 v1 - (DATA TYPE SPLIT) Form Creation Brain
   -----------------------------------------------------
   Updates:
-  1. AUTOCOMPLETE: Fetches unique 'orgName' from existing forms.
-  2. DATALIST: Dynamic dropdown suggestions for Organisation Name.
-  3. PRESERVED: All previous validation (Title Case, Exact Length, etc.).
+  1. DATA TYPES: Split 'string' into:
+     - 'string': Text (Alphabets Only) - Restricted
+     - 'string_all': Text (Open) - Unrestricted
+  2. LOGIC: Updated visibility rules (Max Length, Case Type) to support 'string_all'.
+  3. PRESERVED: Smart Org Suggestions and Edit Mode logic.
 */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -215,6 +217,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         // --- HTML TEMPLATE ---
+        // UPDATED: Added 'string_all' and renamed 'string'
         const fieldHTML = `
             <div class="flex flex-wrap gap-4 items-center">
                 <div class="field-number flex items-center justify-center h-10 w-10 bg-surface-dark border border-border-dark rounded-lg text-primary font-bold text-lg">
@@ -229,7 +232,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     <label class="text-xs font-medium text-gray-400">Data Type</label>
                     <select class="data-type-select w-full h-10 px-4 mt-1 rounded-lg bg-surface-dark border border-border-dark text-white focus:ring-primary focus:border-primary text-sm ${isLocked ? 'opacity-50 cursor-not-allowed' : ''}" 
                             ${isLocked ? 'disabled' : ''}>
-                        <option value="string" ${dataType === 'string' ? 'selected' : ''}>String (Text)</option>
+                        <option value="string" ${dataType === 'string' ? 'selected' : ''}>Text (Alphabets Only)</option>
+                        <option value="string_all" ${dataType === 'string_all' ? 'selected' : ''}>Text (Open - Numbers/Symbols)</option>
                         <option value="email" ${dataType === 'email' ? 'selected' : ''}>Email</option>
                         <option value="phone" ${dataType === 'phone' ? 'selected' : ''}>Phone Number</option>
                         <option value="textarea" ${dataType === 'textarea' ? 'selected' : ''}>Textarea (Multi-line)</option>
@@ -332,8 +336,8 @@ document.addEventListener('DOMContentLoaded', () => {
             optionsContainer.classList.add('hidden');
         }
 
-        // --- LENGTH LOGIC UPDATE ---
-        if (['string', 'textarea', 'numeric', 'email', 'phone'].includes(selectedType)) {
+        // --- LENGTH LOGIC UPDATE (Added string_all) ---
+        if (['string', 'string_all', 'textarea', 'numeric', 'email', 'phone'].includes(selectedType)) {
             maxLengthContainer.classList.remove('hidden');
             
             // Customize Label based on type
@@ -354,7 +358,8 @@ document.addEventListener('DOMContentLoaded', () => {
             exactLengthContainer.classList.add('hidden');
         }
 
-        if (['string', 'textarea'].includes(selectedType)) {
+        // --- CASE TYPE VISIBILITY (Added string_all) ---
+        if (['string', 'string_all', 'textarea'].includes(selectedType)) {
             caseTypeContainer.classList.remove('hidden');
         } else {
             caseTypeContainer.classList.add('hidden');

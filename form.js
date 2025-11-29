@@ -1,12 +1,11 @@
 /*
-  M41 v1 - (ENGLISH GUARD) Public Form Brain
+  M44 v1 - (BRANDING FOOTER) Public Form Brain
   -----------------------------------------------------
   Updates:
-  1. VALIDATION: Added "English Only" Watchdog.
-     - Detects non-ASCII characters (Devanagari, Emojis) in real-time.
-     - Shows "English characters only" error.
-  2. SUBMISSION: validateForm() now blocks submission if non-English text remains.
-  3. LOGIC: Preserved OTP, Camera, PDF, and App Check flows.
+  1. UI: Added "Golden Lamtouch" Branding Footer to the Success Screen.
+     - Includes Logo, Tagline, and Website Link.
+  2. PDF ENGINE: Upgraded `generatePDF` to stitch [Receipt] + [Footer] together.
+  3. RETAINED: All strict validation (Numbers/English) logic.
 */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -192,6 +191,7 @@ document.addEventListener('DOMContentLoaded', () => {
             switch (field.dataType) {
                 
                 case 'string':
+                case 'string_all': 
                 case 'email':
                 case 'numeric':
                 case 'phone': 
@@ -226,6 +226,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             class="field-input w-full p-4 rounded-lg bg-background-dark border border-border-dark text-white placeholder-gray-500 focus:ring-primary focus:border-primary text-sm"
                             data-field-name="${field.fieldName}"
                             data-case-type="${field.caseType || 'as-typed'}"
+                            data-type="${field.dataType}" 
                             ${hasLimit ? `maxlength="${field.maxLength}"` : ''}
                         ></textarea>
                     ` : `
@@ -236,6 +237,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             class="field-input w-full h-10 px-4 rounded-lg bg-background-dark border border-border-dark text-white placeholder-gray-500 focus:ring-primary focus:border-primary text-sm"
                             data-field-name="${field.fieldName}"
                             data-case-type="${field.caseType || 'as-typed'}"
+                            data-type="${field.dataType}"
                             ${hasLimit ? `maxlength="${field.maxLength}"` : ''}
                             ${field.dataType === 'phone' ? 'pattern="[0-9]*" inputmode="numeric"' : ''} 
                         >
@@ -261,6 +263,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             id="${fieldId}"
                             class="field-input w-full h-10 px-4 rounded-lg bg-background-dark border border-border-dark text-white placeholder-gray-500 focus:ring-primary focus:border-primary text-sm"
                             data-field-name="${field.fieldName}"
+                            data-type="date"
                         >
                     `;
                     fieldWrapper.className = 'flex flex-col gap-2 p-3 rounded-lg border border-transparent';
@@ -276,6 +279,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             id="${fieldId}"
                             class="field-input w-full h-10 px-4 rounded-lg bg-background-dark border border-border-dark text-white focus:ring-primary focus:border-primary text-sm"
                             data-field-name="${field.fieldName}"
+                            data-type="dropdown"
                         >
                             <option value="">Select an option...</option>
                             ${dropdownOptionsHTML}
@@ -431,37 +435,47 @@ document.addEventListener('DOMContentLoaded', () => {
                     const input = e.target;
                     const hasLimit = input.hasAttribute('maxlength');
                     const caseType = input.dataset.caseType;
+                    const dataType = input.dataset.type; // FETCH DATA TYPE
                     
                     let value = input.value;
 
-                    // --- M41: ENGLISH GUARD (Real-time Watchdog) ---
-                    const safeEnglishRegex = /^[\x00-\x7F\s]*$/; // Matches only ASCII range + whitespace
+                    // --- M43: STRICT NUMBER SANITIZATION ---
+                    if (dataType === 'phone' || dataType === 'numeric') {
+                        value = value.replace(/[^0-9]/g, '');
+                    }
+
+                    // --- M42: SMART ENGLISH GUARD ---
+                    // Rule: Only enforce this regex if dataType is exactly 'string'.
+                    const safeEnglishRegex = /^[A-Za-z\s]*$/; 
+                    
                     const containerId = `${input.id}-container`;
                     const container = document.getElementById(containerId);
                     const errorMsg = document.getElementById(`${input.id}-error-msg`);
 
-                    if (!safeEnglishRegex.test(value)) {
-                        // BAD: Found non-English character
-                        if (errorMsg) {
-                            errorMsg.textContent = "Please use English characters only.";
-                            errorMsg.classList.remove('hidden');
-                        }
-                        if (container) container.classList.add('border-red-500', 'border-2');
-                    } else {
-                        // GOOD: Clear error (only if it's the language one)
-                        if (errorMsg && errorMsg.textContent.includes("English")) {
-                            errorMsg.textContent = "";
-                            errorMsg.classList.add('hidden');
-                            if (container) container.classList.remove('border-red-500', 'border-2');
+                    // ONLY CHECK IF STRICT STRING
+                    if (dataType === 'string') {
+                        if (!safeEnglishRegex.test(value)) {
+                            // BAD: Found non-Alphabet character in strict field
+                            if (errorMsg) {
+                                errorMsg.textContent = "Please use English Alphabets only (No numbers/symbols).";
+                                errorMsg.classList.remove('hidden');
+                            }
+                            if (container) container.classList.add('border-red-500', 'border-2');
+                        } else {
+                            // GOOD: Clear error
+                            if (errorMsg && errorMsg.textContent.includes("English")) {
+                                errorMsg.textContent = "";
+                                errorMsg.classList.add('hidden');
+                                if (container) container.classList.remove('border-red-500', 'border-2');
+                            }
                         }
                     }
 
                     // --- ENFORCE MAX LENGTH FOR NUMBERS/PHONES ---
                     if (hasLimit && (input.type === 'number' || input.type === 'tel')) {
                         const max = parseInt(input.getAttribute('maxlength'), 10);
-                        if (input.value.length > max) {
-                            input.value = input.value.slice(0, max);
-                            value = input.value; 
+                        if (value.length > max) { 
+                            value = value.slice(0, max);
                         }
                     }
 
@@ -707,8 +721,9 @@ document.addEventListener('DOMContentLoaded', () => {
         submitErrorMessage.textContent = ''; 
         
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        // M41: English Regex (ASCII + Whitespace only)
-        const safeEnglishRegex = /^[\x00-\x7F\s]*$/;
+        
+        // M42: STRICT English Regex (Only A-Z, a-z, and Space)
+        const safeEnglishRegex = /^[A-Za-z\s]*$/;
         
         formFields.forEach(field => {
             if (field.dataType === 'hidden' || field.dataType === 'header') return; 
@@ -733,6 +748,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // 2. CHECK ALL FIELDS
             switch (field.dataType) {
                 case 'string':
+                case 'string_all': // Handled below in IF conditions
                 case 'email':
                 case 'numeric':
                 case 'phone':
@@ -747,8 +763,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         missingFields.push(field.fieldName);
                         if (container) container.classList.add('border-red-500', 'border-2');
                     
-                    // B. English Check (New for M41)
-                    } else if (!safeEnglishRegex.test(input.value)) {
+                    // B. English Check (STRICT STRING ONLY)
+                    } else if (field.dataType === 'string' && !safeEnglishRegex.test(input.value)) {
                         isValid = false;
                         missingFields.push(field.fieldName + " (Non-English characters)");
                         if (errorMsg) {
@@ -763,6 +779,16 @@ document.addEventListener('DOMContentLoaded', () => {
                         missingFields.push(field.fieldName + " (invalid format)");
                         if (container) container.classList.add('border-red-500', 'border-2');
                     
+                    // M43: STRICT NUMBER CHECK (FINAL GATE)
+                    } else if ((field.dataType === 'numeric' || field.dataType === 'phone') && !/^\d+$/.test(input.value)) {
+                         isValid = false;
+                         missingFields.push(field.fieldName + " (Numbers only)");
+                         if (errorMsg) {
+                             errorMsg.textContent = "Please enter only digits (0-9).";
+                             errorMsg.classList.remove('hidden');
+                         }
+                         if (container) container.classList.add('border-red-500', 'border-2');
+
                     } else if ((field.dataType === 'numeric' || field.dataType === 'phone') && field.isExactLength && field.maxLength) {
                         const requiredLen = parseInt(field.maxLength, 10);
                         if (input.value.length !== requiredLen) {
@@ -811,7 +837,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Customized error message if English issue detected
                 const hasLanguageError = missingFields.some(f => f.includes("Non-English"));
                 if (hasLanguageError) {
-                    submitErrorMessage.textContent = `Submission stopped. Please remove non-English characters.`;
+                    submitErrorMessage.textContent = `Submission stopped. Please remove non-English characters in strict fields.`;
                 } else {
                     submitErrorMessage.textContent = `Please check fields marked in red.`;
                 }
@@ -973,6 +999,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     hour12: true
                 });
 
+                // M44: UPDATED RECEIPT HTML WITH BRANDING FOOTER
                 const receiptHTML = `
                     <div class="flex flex-col items-center justify-center gap-4 p-4">
                         <div id="receipt-content-for-pdf" 
@@ -1017,6 +1044,15 @@ document.addEventListener('DOMContentLoaded', () => {
                             <span class="material-symbols-outlined">download</span>
                             <span class="truncate ml-2">Download PDF Receipt</span>
                         </button>
+
+                        <!-- NEW: BRANDING FOOTER -->
+                        <div id="brand-footer-content" class="w-full max-w-xl mt-8 flex flex-col items-center gap-3 p-4">
+                            <a href="https://www.goldenlamtouch.com" target="_blank" class="hover:opacity-80 transition-opacity">
+                                <img src="brand-footer.png" alt="Golden Lamtouch" class="h-12 w-auto">
+                            </a>
+                            <p class="text-primary font-bold text-sm tracking-wide text-center">India’s Trusted ID Card Printing & Manufacturing Company</p>
+                            <a href="https://www.goldenlamtouch.com" target="_blank" class="text-gray-400 text-xs hover:text-white transition-colors">www.goldenlamtouch.com</a>
+                        </div>
                     </div>
                 `;
                 
@@ -1065,23 +1101,38 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const { jsPDF } = window.jspdf;
         
-        const contentToPrint = document.getElementById('receipt-content-for-pdf');
-        
-        const pdfWrapper = contentToPrint.cloneNode(true);
-        
-        const headerContainer = pdfWrapper.querySelector('.py-4');
-        if (headerContainer) {
-            const otpRow = headerContainer.children[0]; 
-            if(otpRow) {
-                otpRow.children[1].classList.add('break-all', 'max-w-[50%]', 'text-right');
-            }
-        }
-
+        // M44: VIRTUAL PDF CONTAINER (The "Stitcher")
+        // We create a new container to hold BOTH the receipt and the footer
+        const pdfWrapper = document.createElement('div');
         pdfWrapper.style.width = "800px"; 
         pdfWrapper.style.position = "absolute";
         pdfWrapper.style.left = "-9999px";
-        pdfWrapper.style.padding = "20px"; 
-        pdfWrapper.classList.add("bg-surface-dark"); 
+        pdfWrapper.style.padding = "40px"; // Increased padding
+        pdfWrapper.classList.add("bg-surface-dark", "flex", "flex-col", "gap-8"); // Flex column layout
+        
+        // 1. Clone Receipt
+        const receiptContent = document.getElementById('receipt-content-for-pdf');
+        if (receiptContent) {
+            const receiptClone = receiptContent.cloneNode(true);
+            
+            // Fix header alignment inside clone
+            const headerContainer = receiptClone.querySelector('.py-4');
+            if (headerContainer && headerContainer.children[0]) {
+                headerContainer.children[0].children[1].classList.add('break-all', 'max-w-[50%]', 'text-right');
+            }
+            pdfWrapper.appendChild(receiptClone);
+        }
+
+        // 2. Clone Footer
+        const footerContent = document.getElementById('brand-footer-content');
+        if (footerContent) {
+            const footerClone = footerContent.cloneNode(true);
+            // Ensure footer is visible and styled for PDF
+            footerClone.classList.remove('mt-8'); // Remove web margin
+            footerClone.classList.add('mt-4'); // Add PDF specific margin
+            pdfWrapper.appendChild(footerClone);
+        }
+
         document.body.appendChild(pdfWrapper);
 
         try {
